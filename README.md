@@ -174,3 +174,6 @@ Get your API credentials at [developers.amadeus.com](https://developers.amadeus.
 ---
 
 **Built with ❤️ for seamless travel booking**
+
+🚀 **Live Demo**: Coming soon!
+🌟 **Status**: Deployed and ready for use
