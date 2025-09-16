@@ -1,17 +1,9 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
   "framework": "nextjs",
-  "regions": ["bom1", "sin1"],
+  "regions": ["bom1"],
   "functions": {
-    "src/app/api/**": {
+    "app/api/**/*.js": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "AMADEUS_CLIENT_ID": "@amadeus-client-id",
-    "AMADEUS_CLIENT_SECRET": "@amadeus-client-secret",
-    "AMADEUS_ENVIRONMENT": "test"
   }
 }
