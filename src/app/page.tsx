@@ -1,8 +1,45 @@
+'use client';
+
+import { useState } from 'react';
 import SearchForm from '@/components/forms/SearchForm';
 import Header from '@/components/ui/Header';
+import FlightResults from '@/components/FlightResults';
+import SearchDebug from '@/components/debug/SearchDebug';
 import { Plane, Clock, Shield, Globe } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+
+interface SearchData {
+  from: string;
+  to: string;
+  departDate: string;
+  returnDate?: string;
+  passengers: number;
+  tripType: 'roundtrip' | 'oneway';
+  travelClass?: string;
+}
 
 export default function Home() {
+  const [searchData, setSearchData] = useState<SearchData | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const { formatPrice } = useCurrency();
+
+  const handleSearch = (data: SearchData) => {
+    setSearchData(data);
+    setShowResults(true);
+  };
+
+  const handleBackToSearch = () => {
+    setShowResults(false);
+  };
+
+  if (showResults && searchData) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <FlightResults searchData={searchData} onBack={handleBackToSearch} />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -23,7 +60,9 @@ export default function Home() {
       {/* Search Form Section */}
       <section className="py-12 -mt-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SearchForm />
+          <SearchForm onSearch={handleSearch} />
+          {/* Debug Component - Remove in production */}
+          <SearchDebug />
         </div>
       </section>
 
@@ -125,7 +164,7 @@ export default function Home() {
                   <p className="text-gray-600 mb-3">{destination.country}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-2xl font-bold text-blue-600">
-                      ${destination.price}
+                      {formatPrice(destination.price)}
                     </span>
                     <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
                       View Flights
@@ -137,60 +176,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Plane className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold">FlightBooker</span>
-              </div>
-              <p className="text-gray-400">
-                Your trusted partner for flight bookings worldwide.
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="/" className="hover:text-white transition-colors">Home</a></li>
-                <li><a href="/search" className="hover:text-white transition-colors">Search Flights</a></li>
-                <li><a href="/bookings" className="hover:text-white transition-colors">My Bookings</a></li>
-                <li><a href="/support" className="hover:text-white transition-colors">Support</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="/help" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="/contact" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="/terms" className="hover:text-white transition-colors">Terms & Conditions</a></li>
-                <li><a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-semibold mb-4">Contact</h4>
-              <div className="space-y-2 text-gray-400">
-                <p>support@flightbooker.com</p>
-                <p>1-800-FLIGHTS</p>
-                <p>Available 24/7</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 FlightBooker. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
     </div>
-  );
-}
   );
 }

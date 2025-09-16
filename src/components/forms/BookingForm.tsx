@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { User, Mail, Phone, CreditCard } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 const bookingSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -37,6 +38,7 @@ export default function BookingForm({ onSubmit, totalPrice, loading = false }: B
   const { register, handleSubmit, formState: { errors } } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
   });
+  const { selectedCurrency } = useCurrency();
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
@@ -250,7 +252,9 @@ export default function BookingForm({ onSubmit, totalPrice, loading = false }: B
         <div className="border-t pt-6">
           <div className="flex items-center justify-between mb-6">
             <span className="text-xl font-semibold text-gray-900">Total Amount:</span>
-            <span className="text-2xl font-bold text-blue-600">${totalPrice}</span>
+            <span className="text-2xl font-bold text-blue-600">
+              {selectedCurrency.symbol}{totalPrice.toLocaleString()}
+            </span>
           </div>
           
           <button

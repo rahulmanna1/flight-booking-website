@@ -1,6 +1,32 @@
 'use client';
 
-import { Clock, Plane, MapPin } from 'lucide-react';
+import { Clock, Plane, MapPin, Calendar, Users, Info, Wifi, Utensils, Monitor, Zap } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
+import { getAircraftAmenities, getFeatureList } from '@/lib/aircraftDatabase';
+
+// Airport name mapping for better user experience
+const AIRPORT_NAMES = {
+  'JFK': 'John F. Kennedy Intl',
+  'LAX': 'Los Angeles Intl',
+  'LHR': 'London Heathrow',
+  'CDG': 'Paris Charles de Gaulle',
+  'NRT': 'Tokyo Narita Intl',
+  'DXB': 'Dubai Intl',
+  'SYD': 'Sydney Kingsford Smith',
+  'SFO': 'San Francisco Intl',
+  'ORD': 'Chicago O\'Hare Intl',
+  'MIA': 'Miami Intl',
+  'FCO': 'Rome Fiumicino',
+  'AMS': 'Amsterdam Schiphol',
+  'FRA': 'Frankfurt Main',
+  'MAD': 'Madrid Barajas',
+  'BCN': 'Barcelona El Prat',
+  'IST': 'Istanbul Airport',
+  'DOH': 'Doha Hamad Intl',
+  'SIN': 'Singapore Changi',
+  'HKG': 'Hong Kong Intl',
+  'ICN': 'Seoul Incheon Intl'
+};
 
 interface FlightCardProps {
   flight: {
@@ -15,77 +41,210 @@ interface FlightCardProps {
     price: number;
     stops?: number;
     aircraft?: string;
+    travelClass?: string;
   };
   onSelect: (flightId: string) => void;
 }
 
+// Get airline logo/color based on airline name
+const getAirlineInfo = (airline: string) => {
+  if (airline.includes('Emirates')) return { color: 'bg-red-100 text-red-700', icon: '🇦🇪' };
+  if (airline.includes('British Airways')) return { color: 'bg-blue-100 text-blue-700', icon: '🇬🇧' };
+  if (airline.includes('Lufthansa')) return { color: 'bg-yellow-100 text-yellow-700', icon: '🇩🇪' };
+  if (airline.includes('Air France')) return { color: 'bg-blue-100 text-blue-700', icon: '🇫🇷' };
+  if (airline.includes('KLM')) return { color: 'bg-blue-100 text-blue-700', icon: '🇳🇱' };
+  if (airline.includes('Turkish')) return { color: 'bg-red-100 text-red-700', icon: '🇹🇷' };
+  if (airline.includes('Qatar')) return { color: 'bg-purple-100 text-purple-700', icon: '🇶🇦' };
+  if (airline.includes('Singapore')) return { color: 'bg-blue-100 text-blue-700', icon: '🇸🇬' };
+  if (airline.includes('American')) return { color: 'bg-red-100 text-red-700', icon: '🇺🇸' };
+  if (airline.includes('Delta')) return { color: 'bg-blue-100 text-blue-700', icon: '🇺🇸' };
+  if (airline.includes('United')) return { color: 'bg-blue-100 text-blue-700', icon: '🇺🇸' };
+  if (airline.includes('WestJet')) return { color: 'bg-blue-100 text-blue-700', icon: '🇨🇦' };
+  return { color: 'bg-gray-100 text-gray-700', icon: '✈️' };
+};
+
+// Get aircraft features from database
+const getAircraftFeatures = (aircraftCode: string | undefined, airline: string) => {
+  if (!aircraftCode) {
+    return { category: 'Unknown', features: ['Basic Service'] };
+  }
+  
+  const amenities = getAircraftAmenities(aircraftCode, airline);
+  const features = getFeatureList(amenities);
+  
+  return {
+    category: amenities.category,
+    features: features,
+    amenities: amenities
+  };
+};
+
+// Get travel class display info
+const getTravelClassInfo = (travelClass: string | undefined) => {
+  switch (travelClass) {
+    case 'first':
+      return { label: 'First Class', icon: '👑', color: 'bg-purple-100 text-purple-700' };
+    case 'business':
+      return { label: 'Business', icon: '🥂', color: 'bg-indigo-100 text-indigo-700' };
+    case 'premium-economy':
+      return { label: 'Premium Economy', icon: '✈️', color: 'bg-blue-100 text-blue-700' };
+    case 'economy':
+    default:
+      return { label: 'Economy', icon: '💺', color: 'bg-gray-100 text-gray-700' };
+  }
+};
+
 export default function FlightCard({ flight, onSelect }: FlightCardProps) {
+  const { formatPrice } = useCurrency();
+  const airlineInfo = getAirlineInfo(flight.airline);
+  const aircraftInfo = getAircraftFeatures(flight.aircraft, flight.airline);
+  const travelClassInfo = getTravelClassInfo(flight.travelClass);
+  
+  const getAirportName = (code: string) => AIRPORT_NAMES[code] || code;
+  
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <Plane className="w-4 h-4 text-blue-600" />
+    <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:border-blue-300">
+      {/* Header - Airline and Price */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg ${airlineInfo.color}`}>
+            {airlineInfo.icon}
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{flight.airline}</h3>
-            <p className="text-sm text-gray-500">{flight.flightNumber}</p>
+            <h3 className="font-bold text-lg text-gray-900">{flight.airline}</h3>
+            <p className="text-sm text-gray-500">{flight.flightNumber} • {flight.aircraft}</p>
+            <div className="flex items-center space-x-2 mt-1">
+              <p className="text-xs text-gray-400">{aircraftInfo.category} Aircraft</p>
+              <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${travelClassInfo.color}`}>
+                {travelClassInfo.icon} {travelClassInfo.label}
+              </span>
+            </div>
           </div>
         </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-gray-900">${flight.price}</p>
+          <p className="text-3xl font-bold text-blue-600">{formatPrice(flight.price)}</p>
           <p className="text-sm text-gray-500">per person</p>
+          <div className="flex items-center justify-end mt-1">
+            <Users className="w-3 h-3 text-gray-400 mr-1" />
+            <span className="text-xs text-gray-400">Adult fare</span>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-1 mb-1">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span className="font-semibold text-gray-900">{flight.origin}</span>
+      {/* Flight Route */}
+      <div className="grid grid-cols-3 gap-6 mb-6">
+        {/* Departure */}
+        <div className="text-left">
+          <div className="flex items-center space-x-2 mb-2">
+            <MapPin className="w-4 h-4 text-green-600" />
+            <span className="font-bold text-lg text-gray-900">{flight.origin}</span>
           </div>
-          <p className="text-lg font-bold text-gray-900">{flight.departTime}</p>
-          <p className="text-sm text-gray-500">Departure</p>
+          <p className="text-2xl font-bold text-gray-900 mb-1">{flight.departTime}</p>
+          <p className="text-sm text-gray-600">{getAirportName(flight.origin)}</p>
+          <p className="text-xs text-gray-500">Departure</p>
         </div>
 
+        {/* Duration and Stops */}
         <div className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-1">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-sm text-gray-600">{flight.duration}</span>
+          <div className="flex items-center justify-center space-x-2 mb-2">
+            <Clock className="w-4 h-4 text-blue-600" />
+            <span className="text-sm font-semibold text-gray-700">{flight.duration}</span>
           </div>
-          <div className="flex items-center justify-center">
-            <div className="w-8 h-0.5 bg-gray-300"></div>
-            <div className="w-2 h-2 bg-gray-400 rounded-full mx-1"></div>
-            <div className="w-8 h-0.5 bg-gray-300"></div>
+          
+          {/* Flight path visualization */}
+          <div className="flex items-center justify-center mb-2">
+            <div className="w-6 h-0.5 bg-blue-200"></div>
+            <Plane className="w-4 h-4 text-blue-600 mx-2 transform rotate-90" />
+            <div className="w-6 h-0.5 bg-blue-200"></div>
           </div>
+          
           {flight.stops !== undefined && (
-            <p className="text-xs text-gray-500 mt-1">
-              {flight.stops === 0 ? 'Direct' : `${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}
-            </p>
+            <div className="text-center">
+              {flight.stops === 0 ? (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  ✓ Direct Flight
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                  {flight.stops} Stop{flight.stops > 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
           )}
         </div>
 
-        <div className="text-center">
-          <div className="flex items-center justify-center space-x-1 mb-1">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span className="font-semibold text-gray-900">{flight.destination}</span>
+        {/* Arrival */}
+        <div className="text-right">
+          <div className="flex items-center justify-end space-x-2 mb-2">
+            <span className="font-bold text-lg text-gray-900">{flight.destination}</span>
+            <MapPin className="w-4 h-4 text-red-600" />
           </div>
-          <p className="text-lg font-bold text-gray-900">{flight.arriveTime}</p>
-          <p className="text-sm text-gray-500">Arrival</p>
+          <p className="text-2xl font-bold text-gray-900 mb-1">{flight.arriveTime}</p>
+          <p className="text-sm text-gray-600">{getAirportName(flight.destination)}</p>
+          <p className="text-xs text-gray-500">Arrival</p>
         </div>
       </div>
 
-      {flight.aircraft && (
-        <div className="mb-4">
-          <p className="text-sm text-gray-500">Aircraft: {flight.aircraft}</p>
+      {/* Aircraft Features */}
+      {aircraftInfo.features.length > 0 && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+            <Info className="w-4 h-4 mr-1" />
+            Aircraft Features
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {aircraftInfo.features.map((feature, index) => {
+              let icon = null;
+              let bgColor = 'bg-blue-100 text-blue-700';
+              
+              if (feature.includes('Wi-Fi')) {
+                icon = <Wifi className="w-3 h-3 mr-1" />;
+                bgColor = 'bg-green-100 text-green-700';
+              } else if (feature.includes('Entertainment')) {
+                icon = <Monitor className="w-3 h-3 mr-1" />;
+                bgColor = 'bg-purple-100 text-purple-700';
+              } else if (feature.includes('Meal')) {
+                icon = <Utensils className="w-3 h-3 mr-1" />;
+                bgColor = 'bg-orange-100 text-orange-700';
+              } else if (feature.includes('Power')) {
+                icon = <Zap className="w-3 h-3 mr-1" />;
+                bgColor = 'bg-yellow-100 text-yellow-700';
+              } else if (feature.includes('Legroom')) {
+                bgColor = 'bg-indigo-100 text-indigo-700';
+              }
+              
+              return (
+                <span key={index} className={`inline-flex items-center px-2 py-1 rounded text-xs ${bgColor}`}>
+                  {icon}
+                  {feature}
+                </span>
+              );
+            })}
+          </div>
         </div>
       )}
 
+      {/* Additional Info */}
+      <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
+        <div className="flex items-center space-x-4">
+          <span className="flex items-center">
+            <Calendar className="w-4 h-4 mr-1" />
+            Flexible dates
+          </span>
+          <span className="text-green-600 font-medium">
+            {flight.stops === 0 ? 'Fastest option' : 'Economy friendly'}
+          </span>
+        </div>
+        <span className="text-xs text-gray-500">Taxes & fees included</span>
+      </div>
+
+      {/* Select Button */}
       <button
         onClick={() => onSelect(flight.id)}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
       >
-        Select Flight
+        <span>Select This Flight</span>
+        <Plane className="w-4 h-4" />
       </button>
     </div>
   );

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Plane, Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import CurrencySelector from './CurrencySelector';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,6 +38,7 @@ export default function Header() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
+            <CurrencySelector />
             <Link
               href="/login"
               className="text-gray-700 hover:text-blue-600 transition-colors"
@@ -97,6 +99,9 @@ export default function Header() {
                 Support
               </Link>
               <hr className="border-gray-200" />
+              <div className="py-2">
+                <CurrencySelector />
+              </div>
               <Link 
                 href="/login" 
                 className="text-gray-700 hover:text-blue-600 transition-colors"

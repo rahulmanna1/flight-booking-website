@@ -1,0 +1,458 @@
+'use client';
+
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useDebounce } from 'use-debounce';
+import { MapPin, Loader2, Navigation, Plane, Building2, Search, X } from 'lucide-react';
+import { Airport } from '@/app/api/airports/search/route';
+
+interface AirportSearchInputProps {
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (airportCode: string, airport?: Airport) => void;
+  error?: string;
+  disabled?: boolean;
+}
+
+// Get country flag emoji from country code
+const getCountryFlag = (countryCode: string): string => {
+  if (countryCode.length !== 2) return '🌍';
+  
+  const codePoints = countryCode
+    .toUpperCase()
+    .split('')
+    .map(char => 0x1F1E6 + char.charCodeAt(0) - 'A'.charCodeAt(0));
+  
+  return String.fromCodePoint(...codePoints);
+};
+
+// Format distance display
+const formatDistance = (distance?: number): string => {
+  if (!distance) return '';
+  if (distance < 10) return `${distance}km`;
+  if (distance < 100) return `${distance}km`;
+  return `${Math.round(distance)}km`;
+};
+
+export default function AirportSearchInput({ 
+  label, 
+  placeholder, 
+  value, 
+  onChange, 
+  error,
+  disabled = false 
+}: AirportSearchInputProps) {
+  const [query, setQuery] = useState('');
+  const [displayValue, setDisplayValue] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [airports, setAirports] = useState<Airport[]>([]);
+  const [nearbyAirports, setNearbyAirports] = useState<Airport[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<GeolocationPosition | null>(null);
+  const [selectedAirport, setSelectedAirport] = useState<Airport | null>(null);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [hasSearched, setHasSearched] = useState(false);
+  
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Debounce search query
+  const [debouncedQuery] = useDebounce(query, 300);
+  
+  // Sync display value with external value changes
+  useEffect(() => {
+    if (value && !selectedAirport) {
+      setDisplayValue(value);
+    }
+  }, [value, selectedAirport]);
+
+  // Search airports when debounced query changes
+  useEffect(() => {
+    if (debouncedQuery.length >= 2) {
+      searchAirports(debouncedQuery);
+      setHasSearched(true);
+    } else {
+      setAirports([]);
+      if (debouncedQuery.length === 0) {
+        setHasSearched(false);
+      }
+    }
+  }, [debouncedQuery, userLocation]);
+
+  // Get user location on component mount
+  useEffect(() => {
+    detectUserLocation();
+  }, []);
+
+  // Handle clicking outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        !inputRef.current?.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Detect user's current location
+  const detectUserLocation = useCallback(async () => {
+    if (!navigator.geolocation) return;
+    
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes cache
+        });
+      });
+      
+      setUserLocation(position);
+      
+      // Get nearby airports
+      const response = await fetch('/api/airports/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          radius: 100,
+          limit: 5
+        })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        setNearbyAirports(data.airports);
+      }
+    } catch (error) {
+      console.log('Location detection failed:', error);
+      // Fail silently - geolocation is optional
+    }
+  }, []);
+
+  // Search airports using API
+  const searchAirports = useCallback(async (searchQuery: string) => {
+    if (!searchQuery || searchQuery.length < 2) return;
+    
+    setLoading(true);
+    
+    try {
+      const params = new URLSearchParams({
+        q: searchQuery,
+        limit: '10'
+      });
+      
+      // Include user location for distance sorting
+      if (userLocation) {
+        params.append('lat', userLocation.coords.latitude.toString());
+        params.append('lng', userLocation.coords.longitude.toString());
+      }
+      
+      const response = await fetch(`/api/airports/search?${params}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAirports(data.airports);
+      } else {
+        console.error('Airport search failed:', data.error);
+        setAirports([]);
+      }
+    } catch (error) {
+      console.error('Airport search error:', error);
+      setAirports([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userLocation]);
+
+  // Handle input change
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newQuery = e.target.value;
+    setQuery(newQuery);
+    setDisplayValue(newQuery);
+    setIsOpen(true);
+    setHighlightedIndex(-1);
+    
+    // If input is cleared, reset selection
+    if (newQuery === '') {
+      setSelectedAirport(null);
+      onChange('');
+      setHasSearched(false);
+    } else {
+      // Clear previous selection when typing
+      if (selectedAirport && newQuery !== `${selectedAirport.iataCode} - ${selectedAirport.city}`) {
+        setSelectedAirport(null);
+      }
+    }
+  };
+
+  // Handle airport selection
+  const handleAirportSelect = (airport: Airport) => {
+    setSelectedAirport(airport);
+    const displayText = `${airport.iataCode} - ${airport.city}`;
+    setQuery(displayText);
+    setDisplayValue(displayText);
+    setIsOpen(false);
+    setHighlightedIndex(-1);
+    setHasSearched(false);
+    onChange(airport.iataCode, airport);
+  };
+
+  // Clear selection
+  const handleClearSelection = () => {
+    setSelectedAirport(null);
+    setQuery('');
+    setDisplayValue('');
+    setIsOpen(false);
+    setHighlightedIndex(-1);
+    setHasSearched(false);
+    onChange('');
+    inputRef.current?.focus();
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    const allResults = nearbyAirports.length > 0 && query.length < 2 
+      ? nearbyAirports 
+      : airports;
+      
+    if (!isOpen || allResults.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev < allResults.length - 1 ? prev + 1 : 0
+        );
+        break;
+        
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev > 0 ? prev - 1 : allResults.length - 1
+        );
+        break;
+        
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0) {
+          handleAirportSelect(allResults[highlightedIndex]);
+        }
+        break;
+        
+      case 'Escape':
+        setIsOpen(false);
+        setHighlightedIndex(-1);
+        inputRef.current?.blur();
+        break;
+    }
+  };
+
+  // Handle focus
+  const handleFocus = () => {
+    setIsOpen(true);
+  };
+
+  // Current location handler
+  const handleCurrentLocation = () => {
+    if (nearbyAirports.length > 0) {
+      handleAirportSelect(nearbyAirports[0]);
+    } else {
+      detectUserLocation();
+    }
+  };
+
+  // Determine what to show in dropdown
+  const showNearbyAirports = nearbyAirports.length > 0 && query.length < 2;
+  const displayAirports = showNearbyAirports ? nearbyAirports : airports;
+
+  return (
+    <div className="relative">
+      <label className="block text-sm font-medium text-gray-700 mb-2">
+        <MapPin className="inline w-4 h-4 mr-1" />
+        {label}
+      </label>
+      
+      <div className="relative">
+        {/* Input Field */}
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-4 w-4 text-gray-400" />
+          </div>
+          
+          <input
+            ref={inputRef}
+            type="text"
+            value={displayValue}
+            onChange={handleInputChange}
+            onFocus={handleFocus}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled}
+            autoComplete="off"
+            className={`w-full pl-10 pr-20 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 ${
+              error 
+                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
+                : selectedAirport 
+                  ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
+                  : 'border-gray-300'
+            } ${disabled ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'bg-white'}`}
+          />
+          
+          {/* Right side buttons */}
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-1">
+            {/* Clear button */}
+            {selectedAirport && (
+              <button
+                type="button"
+                onClick={handleClearSelection}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+                title="Clear selection"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            
+            {/* Current Location Button */}
+            {nearbyAirports.length > 0 && !loading && (
+              <button
+                type="button"
+                onClick={handleCurrentLocation}
+                className="p-1 text-blue-600 hover:text-blue-700 rounded transition-colors"
+                title="Use current location"
+              >
+                <Navigation className="w-4 h-4" />
+              </button>
+            )}
+            
+            {/* Loading Spinner */}
+            {loading && (
+              <div className="p-1">
+                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Selected Airport Indicator */}
+        {selectedAirport && (
+          <div className="mt-2 flex items-center text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
+            <div className="flex items-center space-x-2">
+              <span className="text-lg">{getCountryFlag(selectedAirport.countryCode)}</span>
+              <span className="font-medium">{selectedAirport.iataCode}</span>
+              <span>•</span>
+              <span>{selectedAirport.name}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Error Message */}
+      {error && (
+        <p className="text-red-500 text-sm mt-1">{error}</p>
+      )}
+      
+      {/* Dropdown */}
+      {isOpen && (displayAirports.length > 0 || loading || (hasSearched && query.length >= 2)) && (
+        <div 
+          ref={dropdownRef}
+          className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-lg mt-2 z-50 max-h-80 overflow-y-auto border border-gray-200"
+        >
+          {/* Nearby Airports Section */}
+          {showNearbyAirports && (
+            <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-700 flex items-center">
+                <Navigation className="w-4 h-4 mr-2 text-blue-600" />
+                📍 Nearby Airports
+              </h4>
+            </div>
+          )}
+          
+          {/* Airport Results */}
+          {displayAirports.map((airport, index) => (
+            <div
+              key={`${airport.iataCode}-${index}`}
+              onClick={() => handleAirportSelect(airport)}
+              className={`group flex items-center p-4 cursor-pointer transition-colors ${
+                index === highlightedIndex 
+                  ? 'bg-blue-50 border-l-4 border-blue-500' 
+                  : 'hover:bg-gray-50 border-l-4 border-transparent'
+              }`}
+            >
+              {/* Country Flag */}
+              <div className="mr-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-lg shadow-sm">
+                  {getCountryFlag(airport.countryCode)}
+                </div>
+              </div>
+              
+              {/* Airport Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-1">
+                  <span className="font-bold text-lg text-gray-900 group-hover:text-blue-600">
+                    {airport.iataCode}
+                  </span>
+                  <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-600">
+                    {airport.type === 'airport' ? 'Airport' : 'City'}
+                  </span>
+                  {airport.distance && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                      {formatDistance(airport.distance)}
+                    </span>
+                  )}
+                </div>
+                
+                <div className="text-sm text-gray-600 truncate mb-1">
+                  {airport.name}
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  {airport.city}, {airport.country}
+                </div>
+              </div>
+              
+              {/* Arrow */}
+              <div className="ml-4 text-gray-400 group-hover:text-blue-600 transition-colors">
+                <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center">
+                  <span className="text-lg">→</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {/* No Results */}
+          {!loading && displayAirports.length === 0 && hasSearched && query.length >= 2 && (
+            <div className="p-6 text-center text-gray-500">
+              <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                <Plane className="w-8 h-8 text-gray-400" />
+              </div>
+              <p className="font-medium mb-1">No airports found</p>
+              <p className="text-sm">Try searching by city name, airport name, or IATA code</p>
+              <div className="mt-3 text-xs text-gray-400">
+                Search examples: "London", "LHR", or "Heathrow"
+              </div>
+            </div>
+          )}
+          
+          {/* Loading State */}
+          {loading && (
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              </div>
+              <p className="font-medium text-gray-700 mb-1">Searching airports...</p>
+              <p className="text-sm text-gray-500">Finding the best matches for "{query}"</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
