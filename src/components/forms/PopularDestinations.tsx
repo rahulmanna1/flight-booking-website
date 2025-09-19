@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, Star, Sun, Snowflake, Leaf, Plane, MapPin } from 'lucide-react';
+import { TrendingUp, Star, Sun, Snowflake, Leaf, Plane, MapPin, Cloud } from 'lucide-react';
 import { Airport } from '@/app/api/airports/search/route';
 
 interface PopularDestinationsProps {
@@ -49,16 +49,17 @@ const POPULAR_DESTINATIONS = {
   ]
 };
 
-// Get country flag emoji
+// Get country flag emoji with fallback
 const getCountryFlag = (countryCode: string): string => {
-  if (countryCode.length !== 2) return '🌍';
+  // Map of country codes to flag emojis for better compatibility
+  const flags: { [key: string]: string } = {
+    'GB': '🇬🇧', 'AE': '🇦🇪', 'FR': '🇫🇷', 'US': '🇺🇸', 'JP': '🇯🇵', 'SG': '🇸🇬',
+    'ES': '🇪🇸', 'IT': '🇮🇹', 'GR': '🇬🇷', 'DK': '🇩🇰', 'PT': '🇵🇹', 'TR': '🇹🇷',
+    'TH': '🇹🇭', 'IN': '🇮🇳', 'EG': '🇪🇬', 'HK': '🇭🇰', 'AU': '🇦🇺', 'NL': '🇳🇱',
+    'AT': '🇦🇹', 'CZ': '🇨🇿', 'CH': '🇨🇭', 'DE': '🇩🇪'
+  };
   
-  const codePoints = countryCode
-    .toUpperCase()
-    .split('')
-    .map(char => 0x1F1E6 + char.charCodeAt(0) - 'A'.charCodeAt(0));
-  
-  return String.fromCodePoint(...codePoints);
+  return flags[countryCode] || '🌍';
 };
 
 // Get current season based on month

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useDebounce } from 'use-debounce';
-import { MapPin, Loader2, Navigation, Plane, Building2, Search, X } from 'lucide-react';
+import { MapPin, Plane, X, Loader2, Search } from 'lucide-react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useLocationPermission } from '@/hooks/useLocationPermission';
 import { Airport } from '@/app/api/airports/search/route';
 
 interface AirportSearchInputProps {
@@ -48,10 +49,12 @@ export default function AirportSearchInput({
   const [airports, setAirports] = useState<Airport[]>([]);
   const [nearbyAirports, setNearbyAirports] = useState<Airport[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userLocation, setUserLocation] = useState<GeolocationPosition | null>(null);
   const [selectedAirport, setSelectedAirport] = useState<Airport | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [hasSearched, setHasSearched] = useState(false);
+  
+  // Use the location permission hook
+  const { location: savedLocation, requestLocation, hasValidLocation } = useLocationPermission();
   
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -77,7 +80,7 @@ export default function AirportSearchInput({
         setHasSearched(false);
       }
     }
-  }, [debouncedQuery, userLocation]);
+  }, [debouncedQuery]);
 
   // Don't auto-request location on mount - wait for user action
 
@@ -99,28 +102,17 @@ export default function AirportSearchInput({
 
   // Detect user's current location - only when requested
   const detectUserLocation = useCallback(async () => {
-    if (!navigator.geolocation) {
-      console.log('Geolocation not supported');
-      return;
-    }
-    
-    // Check if we already have location
-    if (userLocation) {
-      // Use existing location to show nearby airports
-      displayNearbyAirports();
-      return;
-    }
+    setLoading(true);
     
     try {
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: false,
-          timeout: 5000,
-          maximumAge: 600000 // 10 minutes cache
-        });
-      });
+      // Use the location permission hook to get location
+      const position = await requestLocation();
       
-      setUserLocation(position);
+      if (!position) {
+        console.log('Could not get location');
+        setLoading(false);
+        return;
+      }
       
       // Get nearby airports
       const response = await fetch('/api/airports/search', {
@@ -138,20 +130,14 @@ export default function AirportSearchInput({
       if (data.success) {
         setNearbyAirports(data.airports);
         setIsOpen(true); // Open dropdown to show nearby airports
+        setQuery(''); // Clear query to show nearby airports
       }
     } catch (error) {
-      console.log('Location detection failed - user may have denied permission');
-      // Don't show error to user - location is optional
+      console.log('Error getting nearby airports:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [userLocation]);
-  
-  // Show nearby airports if we already have them
-  const displayNearbyAirports = () => {
-    if (nearbyAirports.length > 0) {
-      setIsOpen(true);
-      setQuery('');
-    }
-  };
+  }, [requestLocation]);
 
   // Search airports using API
   const searchAirports = useCallback(async (searchQuery: string) => {
@@ -165,10 +151,10 @@ export default function AirportSearchInput({
         limit: '10'
       });
       
-      // Include user location for distance sorting
-      if (userLocation) {
-        params.append('lat', userLocation.coords.latitude.toString());
-        params.append('lng', userLocation.coords.longitude.toString());
+      // Include user location for distance sorting if available
+      if (savedLocation) {
+        params.append('lat', savedLocation.latitude.toString());
+        params.append('lng', savedLocation.longitude.toString());
       }
       
       const response = await fetch(`/api/airports/search?${params}`);
@@ -186,7 +172,7 @@ export default function AirportSearchInput({
     } finally {
       setLoading(false);
     }
-  }, [userLocation]);
+  }, [savedLocation]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

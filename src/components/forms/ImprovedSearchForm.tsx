@@ -149,14 +149,17 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             />
           </div>
 
-          <button
-            type="button"
-            onClick={handleSwapAirports}
-            className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 bg-white border-2 border-gray-300 hover:border-blue-500 rounded-full p-3 hover:shadow-lg transition-all group"
-            title="Swap locations"
-          >
-            <ArrowLeftRight className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-          </button>
+          {/* Swap Button - Better positioning */}
+          <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 transform" style={{ marginTop: '8px' }}>
+            <button
+              type="button"
+              onClick={handleSwapAirports}
+              className="bg-white border-2 border-gray-300 hover:border-blue-500 rounded-full p-2.5 hover:shadow-lg transition-all group z-30"
+              title="Swap locations"
+            >
+              <ArrowLeftRight className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+            </button>
+          </div>
 
           <div>
             <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
