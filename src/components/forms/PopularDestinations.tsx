@@ -189,13 +189,13 @@ export default function PopularDestinations({
                 animation: 'fadeInUp 0.4s ease-out forwards'
               }}
             >
-              <div className="flex items-start space-x-4">
-                {/* Enhanced Flag Display */}
-                <div className="relative">
-                  <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-xl font-semibold shadow-sm">
-                    {getCountryFlag(destination.countryCode)}
+              <div className="flex items-center space-x-4">
+                {/* Country Flag with Plane Icon */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg border border-blue-200">
+                    <span className="text-white text-xs font-bold">{destination.countryCode}</span>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-sm">
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center shadow-lg">
                     <Plane className="w-3 h-3 text-white" />
                   </div>
                 </div>
