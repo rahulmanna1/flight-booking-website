@@ -17,15 +17,37 @@ interface AirportDisplayProps {
 }
 
 const AirportDisplay = ({ code, showFullName = false, className = '' }: AirportDisplayProps) => {
-  const cached = airportCache[code];
+  const [airportData, setAirportData] = useState<{ name: string, city: string, country: string } | null>(null);
   
-  if (showFullName && cached) {
+  useEffect(() => {
+    const loadData = async () => {
+      if (airportCache[code]) {
+        setAirportData(airportCache[code]);
+      } else {
+        const data = await fetchAirportDetails(code);
+        if (data) {
+          setAirportData(data);
+        }
+      }
+    };
+    loadData();
+  }, [code]);
+  
+  if (showFullName && airportData) {
     return (
       <span className={className}>
-        <span className="font-bold">{cached.name}</span>
+        <span className="font-bold">{airportData.name}</span>
         <span className="text-gray-500 ml-1">({code})</span>
         <br />
-        <span className="text-sm text-gray-600">{cached.city}, {cached.country}</span>
+        <span className="text-sm text-gray-600">{airportData.city}, {airportData.country}</span>
+      </span>
+    );
+  }
+  
+  if (!airportData) {
+    return (
+      <span className={className}>
+        <span className="font-bold">{code}</span>
       </span>
     );
   }
@@ -33,9 +55,7 @@ const AirportDisplay = ({ code, showFullName = false, className = '' }: AirportD
   return (
     <span className={className}>
       <span className="font-bold">{code}</span>
-      {cached && (
-        <span className="text-gray-600 ml-1">- {cached.city}</span>
-      )}
+      <span className="text-gray-600 ml-1">- {airportData.city}</span>
     </span>
   );
 };

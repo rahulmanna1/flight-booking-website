@@ -78,20 +78,20 @@ export default function Home() {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-20">
+      <section className="relative bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
             Find Your Perfect Flight
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100">
+          <p className="text-lg md:text-xl mb-6 text-blue-100">
             Search, compare, and book flights to destinations worldwide
           </p>
         </div>
       </section>
 
       {/* Search Form Section */}
-      <section className="py-12 -mt-16 relative z-10">
+      <section className="py-8 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ImprovedSearchForm onSearch={handleSearch} />
           

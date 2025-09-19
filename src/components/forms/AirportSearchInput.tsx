@@ -107,7 +107,7 @@ export default function AirportSearchInput({
     // Check if we already have location
     if (userLocation) {
       // Use existing location to show nearby airports
-      showNearbyAirports();
+      displayNearbyAirports();
       return;
     }
     
@@ -146,7 +146,7 @@ export default function AirportSearchInput({
   }, [userLocation]);
   
   // Show nearby airports if we already have them
-  const showNearbyAirports = () => {
+  const displayNearbyAirports = () => {
     if (nearbyAirports.length > 0) {
       setIsOpen(true);
       setQuery('');

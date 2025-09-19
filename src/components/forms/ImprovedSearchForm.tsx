@@ -91,28 +91,19 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl overflow-hidden max-w-6xl mx-auto">
+    <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-w-6xl mx-auto">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-8 py-10">
-        <div className="text-center">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-3">
-            Find Your Perfect Flight
-          </h1>
-          <p className="text-blue-100 text-lg">
-            Search from thousands of airports worldwide
-          </p>
-        </div>
-
+      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-6 py-6">
         {/* Trip Type Toggle */}
-        <div className="flex justify-center mt-8">
-          <div className="bg-black/20 backdrop-blur rounded-xl p-1 inline-flex">
+        <div className="flex justify-center">
+          <div className="bg-white/10 backdrop-blur rounded-lg p-1 inline-flex">
             <button
               type="button"
               onClick={() => {
                 setTripType('roundtrip');
                 setValue('tripType', 'roundtrip');
               }}
-              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                 tripType === 'roundtrip' 
                   ? 'bg-white text-blue-700 shadow-lg' 
                   : 'text-white/90 hover:text-white'
@@ -127,7 +118,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                 setTripType('oneway');
                 setValue('tripType', 'oneway');
               }}
-              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`px-6 py-2 rounded-md text-sm font-medium transition-all ${
                 tripType === 'oneway' 
                   ? 'bg-white text-blue-700 shadow-lg' 
                   : 'text-white/90 hover:text-white'
@@ -264,7 +255,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
 
       {/* Popular Destinations */}
       <div className="border-t bg-gray-50 px-8 py-6">
-        <PopularDestinations onSelectDestination={handleToAirportChange} />
+        <PopularDestinations onDestinationSelect={(airport) => handleToAirportChange(airport.iataCode, airport)} />
       </div>
     </div>
   );
