@@ -5,6 +5,8 @@ import SearchForm from '@/components/forms/SearchForm';
 import Header from '@/components/ui/Header';
 import FlightResults from '@/components/FlightResults';
 import SearchDebug from '@/components/debug/SearchDebug';
+import RecentSearches from '@/components/RecentSearches';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { Plane, Clock, Shield, Globe } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -22,14 +24,46 @@ export default function Home() {
   const [searchData, setSearchData] = useState<SearchData | null>(null);
   const [showResults, setShowResults] = useState(false);
   const { formatPrice } = useCurrency();
+  const { 
+    recentSearches, 
+    addRecentSearch, 
+    removeRecentSearch, 
+    clearRecentSearches,
+    getPopularRoutes,
+    isClient 
+  } = useRecentSearches();
 
   const handleSearch = (data: SearchData) => {
     setSearchData(data);
     setShowResults(true);
+    
+    // Add to recent searches
+    addRecentSearch({
+      from: data.from,
+      to: data.to,
+      departDate: data.departDate,
+      returnDate: data.returnDate,
+      passengers: data.passengers,
+      tripType: data.tripType,
+      travelClass: data.travelClass
+    });
   };
 
   const handleBackToSearch = () => {
     setShowResults(false);
+  };
+  
+  const handleSelectRecentSearch = (search: any) => {
+    const data: SearchData = {
+      from: search.from,
+      to: search.to,
+      departDate: search.departDate,
+      returnDate: search.returnDate || '',
+      passengers: search.passengers,
+      tripType: search.tripType,
+      travelClass: search.travelClass
+    };
+    handleSearch(data);
   };
 
   if (showResults && searchData) {
@@ -61,6 +95,20 @@ export default function Home() {
       <section className="py-12 -mt-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SearchForm onSearch={handleSearch} />
+          
+          {/* Recent Searches */}
+          {isClient && (recentSearches.length > 0 || getPopularRoutes().length > 0) && (
+            <div className="mt-8">
+              <RecentSearches
+                searches={recentSearches}
+                onSelectSearch={handleSelectRecentSearch}
+                onRemoveSearch={removeRecentSearch}
+                onClearAll={clearRecentSearches}
+                popularRoutes={getPopularRoutes()}
+              />
+            </div>
+          )}
+          
           {/* Debug Component - Remove in production */}
           <SearchDebug />
         </div>

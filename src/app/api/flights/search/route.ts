@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchFlights, convertAmadeusFlightToOurFormat, AIRLINE_NAMES } from '@/lib/amadeus';
+import SimpleCache, { flightSearchCache } from '@/lib/cache';
 
 // Mock data fallback (your existing generateMockFlights logic)
 import { generateMockFlights } from '@/lib/mockFlights';
@@ -58,6 +59,30 @@ export async function POST(request: NextRequest) {
     const hasCredentials = process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET;
     
     if (useRealAPI && hasCredentials) {
+      // Generate cache key
+      const cacheKey = SimpleCache.generateKey('flight-search', {
+        from,
+        to,
+        departDate,
+        returnDate,
+        passengers,
+        tripType,
+        travelClass
+      });
+      
+      // Check cache first
+      const cachedResult = flightSearchCache.get<any[]>(cacheKey);
+      if (cachedResult) {
+        console.log(`Returning ${cachedResult.length} cached flights`);
+        return NextResponse.json({
+          success: true,
+          flights: cachedResult,
+          source: 'amadeus_cached',
+          count: cachedResult.length,
+          cached: true
+        });
+      }
+      
       try {
         // Use Amadeus API
         const amadeusOffers = await searchFlights({
@@ -75,6 +100,11 @@ export async function POST(request: NextRequest) {
           convertAmadeusFlightToOurFormat(offer, AIRLINE_NAMES, travelClass)
         );
         
+        // Cache the results
+        if (flights.length > 0) {
+          flightSearchCache.set(cacheKey, flights, 10 * 60 * 1000); // Cache for 10 minutes
+        }
+        
         console.log(`Returning ${flights.length} real flights from Amadeus`);
         
         return NextResponse.json({
@@ -85,7 +115,25 @@ export async function POST(request: NextRequest) {
         });
         
       } catch (amadeusError: any) {
-        console.warn('Amadeus API failed, falling back to mock data:', amadeusError.message);
+        console.warn('Amadeus API failed:', amadeusError.message);
+        
+        // Check if it's a rate limit error
+        if (amadeusError.message?.includes('429') || amadeusError.message?.includes('rate limit')) {
+          console.log('Rate limit detected, using mock data');
+          
+          // For rate limits, use a shorter cache time for mock data
+          const mockFlights = generateMockFlights(from, to, departDate);
+          const mockCacheKey = SimpleCache.generateKey('flight-search-mock', searchData);
+          flightSearchCache.set(mockCacheKey, mockFlights, 2 * 60 * 1000); // Cache mock for 2 minutes
+          
+          return NextResponse.json({
+            success: true,
+            flights: mockFlights,
+            source: 'mock_ratelimit',
+            count: mockFlights.length,
+            warning: 'API rate limit reached. Using demo data temporarily.'
+          });
+        }
         
         // Fallback to mock data if Amadeus fails
         const mockFlights = generateMockFlights(from, to, departDate);

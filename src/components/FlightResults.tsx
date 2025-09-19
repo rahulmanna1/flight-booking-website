@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import FlightCard from './cards/FlightCard';
 import BookingForm from './forms/BookingForm';
 import FlightFilters, { FlightFilters as FilterType } from './FlightFilters';
-import { ArrowLeft, Filter, X, Loader2, Plane } from 'lucide-react';
+import FlightResultsSkeleton from './FlightResultsSkeleton';
+import { ArrowLeft, Filter, X, Loader2, Plane, RefreshCw, AlertCircle } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { hasAmenity } from '@/lib/aircraftDatabase';
 
@@ -137,7 +138,7 @@ interface FlightResultsProps {
 export default function FlightResults({ searchData, onBack }: FlightResultsProps) {
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [sortBy, setSortBy] = useState<'price' | 'duration' | 'departure'>('price');
+  const [sortBy, setSortBy] = useState<string>('price-asc');
   const [bookingLoading, setBookingLoading] = useState(false);
   const [flights, setFlights] = useState<Flight[]>([]);
   const [filteredFlights, setFilteredFlights] = useState<Flight[]>([]);
@@ -145,66 +146,99 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   const [error, setError] = useState<string | null>(null);
   const [dataSource, setDataSource] = useState<string>('loading');
   const [showFilters, setShowFilters] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [isRetrying, setIsRetrying] = useState(false);
   const { formatPrice, convertPrice } = useCurrency();
 
   // Fetch flights and airport details from APIs
-  useEffect(() => {
-    const fetchFlights = async () => {
-      try {
+  const fetchFlights = useCallback(async (isRetry = false) => {
+    try {
+      if (isRetry) {
+        setIsRetrying(true);
+      } else {
         setLoading(true);
-        setError(null);
+      }
+      setError(null);
+      
+      // Add timeout for long requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      // Fetch flight data
+      const response = await fetch('/api/flights/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchData),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        if (response.status === 400 && data.error) {
+          throw new Error(data.error);
+        }
+        if (response.status === 429) {
+          throw new Error('Too many requests. Please wait a moment and try again.');
+        }
+        if (response.status >= 500) {
+          throw new Error('Server error. Please try again later.');
+        }
+        throw new Error(data.error || 'Failed to search flights');
+      }
+      
+      if (data.success) {
+        setFlights(data.flights);
+        setDataSource(data.source);
+        setRetryCount(0); // Reset retry count on success
+        console.log(`Loaded ${data.flights.length} flights from ${data.source}`);
         
-        // Fetch flight data
-        const response = await fetch('/api/flights/search', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(searchData)
+        // Batch load airport names for all unique airports in the results
+        const uniqueAirportCodes = new Set<string>();
+        uniqueAirportCodes.add(searchData.from);
+        uniqueAirportCodes.add(searchData.to);
+        
+        // Add any airports found in flight data
+        data.flights.forEach((flight: any) => {
+          if (flight.origin) uniqueAirportCodes.add(flight.origin);
+          if (flight.destination) uniqueAirportCodes.add(flight.destination);
         });
         
-        const data = await response.json();
-        
-        if (!response.ok) {
-          if (response.status === 400 && data.error) {
-            throw new Error(data.error);
-          }
-          throw new Error(data.error || 'Failed to search flights');
-        }
-        
-        if (data.success) {
-          setFlights(data.flights);
-          setDataSource(data.source);
-          console.log(`Loaded ${data.flights.length} flights from ${data.source}`);
-          
-          // Batch load airport names for all unique airports in the results
-          const uniqueAirportCodes = new Set<string>();
-          uniqueAirportCodes.add(searchData.from);
-          uniqueAirportCodes.add(searchData.to);
-          
-          // Add any airports found in flight data
-          data.flights.forEach((flight: any) => {
-            if (flight.origin) uniqueAirportCodes.add(flight.origin);
-            if (flight.destination) uniqueAirportCodes.add(flight.destination);
-          });
-          
-          // Batch fetch all airport details
-          await fetchMultipleAirportDetails(Array.from(uniqueAirportCodes));
-        } else {
-          throw new Error(data.error || 'Failed to load flights');
-        }
-        
-      } catch (err: any) {
-        console.error('Flight search error:', err);
-        setError(err.message || 'Failed to load flights');
-        setFlights([]);
-      } finally {
-        setLoading(false);
+        // Batch fetch all airport details
+        await fetchMultipleAirportDetails(Array.from(uniqueAirportCodes));
+      } else {
+        throw new Error(data.error || 'Failed to load flights');
       }
-    };
-    
-    fetchFlights();
+      
+    } catch (err: any) {
+      console.error('Flight search error:', err);
+      
+      // Handle timeout error
+      if (err.name === 'AbortError') {
+        setError('Request timed out. Please try again.');
+      } else {
+        setError(err.message || 'Failed to load flights');
+      }
+      
+      setFlights([]);
+      
+      // Increment retry count for display purposes
+      if (isRetry) {
+        setRetryCount(prev => prev + 1);
+      }
+    } finally {
+      setLoading(false);
+      setIsRetrying(false);
+    }
   }, [searchData]);
+  
+  useEffect(() => {
+    fetchFlights();
+  }, []);
   
   // Filter flights based on active filters
   const handleFiltersChange = useCallback((filters: FilterType) => {
@@ -325,16 +359,41 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   };
 
   const sortedFlights = [...filteredFlights].sort((a, b) => {
-    switch (sortBy) {
+    const [sortField, sortOrder] = sortBy.split('-');
+    const isAsc = sortOrder === 'asc';
+    
+    // Helper function to parse duration
+    const parseDuration = (duration: string) => {
+      const hoursMatch = duration.match(/(\d+)h/);
+      const minutesMatch = duration.match(/(\d+)m/);
+      const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+      const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+      return hours * 60 + minutes;
+    };
+    
+    let compareResult = 0;
+    
+    switch (sortField) {
       case 'price':
-        return a.price - b.price;
+        compareResult = a.price - b.price;
+        break;
       case 'duration':
-        return parseInt(a.duration) - parseInt(b.duration);
+        compareResult = parseDuration(a.duration) - parseDuration(b.duration);
+        break;
       case 'departure':
-        return a.departTime.localeCompare(b.departTime);
+        compareResult = a.departTime.localeCompare(b.departTime);
+        break;
+      case 'arrival':
+        compareResult = a.arriveTime.localeCompare(b.arriveTime);
+        break;
+      case 'stops':
+        compareResult = (a.stops || 0) - (b.stops || 0);
+        break;
       default:
         return 0;
     }
+    
+    return isAsc ? compareResult : -compareResult;
   });
 
   const getFlightCountText = () => {
@@ -533,46 +592,96 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                   <span className="text-sm text-gray-700">Sort by:</span>
                   <select
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as 'price' | 'duration' | 'departure')}
+                    onChange={(e) => setSortBy(e.target.value)}
                     className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                   >
-                    <option value="price">Price (Low to High)</option>
-                    <option value="duration">Duration</option>
-                    <option value="departure">Departure Time</option>
+                    <optgroup label="Price">
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                    </optgroup>
+                    <optgroup label="Duration">
+                      <option value="duration-asc">Duration: Shortest First</option>
+                      <option value="duration-desc">Duration: Longest First</option>
+                    </optgroup>
+                    <optgroup label="Time">
+                      <option value="departure-asc">Departure: Earliest First</option>
+                      <option value="departure-desc">Departure: Latest First</option>
+                      <option value="arrival-asc">Arrival: Earliest First</option>
+                      <option value="arrival-desc">Arrival: Latest First</option>
+                    </optgroup>
+                    <optgroup label="Stops">
+                      <option value="stops-asc">Stops: Non-stop First</option>
+                      <option value="stops-desc">Stops: Most Connections</option>
+                    </optgroup>
                   </select>
                 </div>
               </div>
             </div>
 
             {/* Loading State */}
-            {loading && (
-              <div className="text-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-                <p className="text-gray-600 text-lg">Searching for the best flights...</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  This may take a few moments while we check live prices
-                </p>
-              </div>
+            {loading && !isRetrying && (
+              <>
+                <div className="text-center mb-6">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+                  <p className="text-gray-600 text-lg">Searching for the best flights...</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    This may take a few moments while we check live prices
+                  </p>
+                </div>
+                <FlightResultsSkeleton />
+              </>
             )}
 
             {/* Error State */}
             {error && !loading && (
               <div className="text-center py-12">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-                  <p className="text-red-600 text-lg font-semibold mb-2">Search Error</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg mx-auto">
+                  <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                  <p className="text-red-600 text-lg font-semibold mb-2">
+                    {error.includes('timeout') ? 'Request Timed Out' : 'Search Error'}
+                  </p>
                   <p className="text-red-700 mb-4">{error}</p>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors mr-3"
-                  >
-                    Try Again
-                  </button>
-                  <button
-                    onClick={onBack}
-                    className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors"
-                  >
-                    Modify Search
-                  </button>
+                  
+                  {retryCount > 0 && (
+                    <p className="text-sm text-red-600 mb-4">
+                      Retry attempt {retryCount} failed
+                    </p>
+                  )}
+                  
+                  <div className="flex justify-center space-x-3">
+                    <button
+                      onClick={() => fetchFlights(true)}
+                      disabled={isRetrying}
+                      className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                    >
+                      {isRetrying ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Retrying...</span>
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="w-4 h-4" />
+                          <span>Try Again</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={onBack}
+                      className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                    >
+                      Modify Search
+                    </button>
+                  </div>
+                  
+                  <div className="mt-4 text-xs text-gray-600">
+                    <p>Tips:</p>
+                    <ul className="text-left mt-2 space-y-1">
+                      <li>• Check your internet connection</li>
+                      <li>• Try searching for different dates or routes</li>
+                      <li>• If the problem persists, contact support</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             )}
