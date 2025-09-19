@@ -79,10 +79,7 @@ export default function AirportSearchInput({
     }
   }, [debouncedQuery, userLocation]);
 
-  // Get user location on component mount
-  useEffect(() => {
-    detectUserLocation();
-  }, []);
+  // Don't auto-request location on mount - wait for user action
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -100,16 +97,26 @@ export default function AirportSearchInput({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Detect user's current location
+  // Detect user's current location - only when requested
   const detectUserLocation = useCallback(async () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      console.log('Geolocation not supported');
+      return;
+    }
+    
+    // Check if we already have location
+    if (userLocation) {
+      // Use existing location to show nearby airports
+      showNearbyAirports();
+      return;
+    }
     
     try {
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000 // 5 minutes cache
+          enableHighAccuracy: false,
+          timeout: 5000,
+          maximumAge: 600000 // 10 minutes cache
         });
       });
       
@@ -130,12 +137,21 @@ export default function AirportSearchInput({
       const data = await response.json();
       if (data.success) {
         setNearbyAirports(data.airports);
+        setIsOpen(true); // Open dropdown to show nearby airports
       }
     } catch (error) {
-      console.log('Location detection failed:', error);
-      // Fail silently - geolocation is optional
+      console.log('Location detection failed - user may have denied permission');
+      // Don't show error to user - location is optional
     }
-  }, []);
+  }, [userLocation]);
+  
+  // Show nearby airports if we already have them
+  const showNearbyAirports = () => {
+    if (nearbyAirports.length > 0) {
+      setIsOpen(true);
+      setQuery('');
+    }
+  };
 
   // Search airports using API
   const searchAirports = useCallback(async (searchQuery: string) => {

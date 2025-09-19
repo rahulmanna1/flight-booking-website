@@ -152,6 +152,9 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
 
   // Fetch flights and airport details from APIs
   const fetchFlights = useCallback(async (isRetry = false) => {
+    let controller: AbortController | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
+    
     try {
       if (isRetry) {
         setIsRetrying(true);
@@ -161,8 +164,12 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
       setError(null);
       
       // Add timeout for long requests
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      controller = new AbortController();
+      timeoutId = setTimeout(() => {
+        if (controller) {
+          controller.abort(new Error('Request timeout'));
+        }
+      }, 30000); // 30 second timeout
       
       // Fetch flight data
       const response = await fetch('/api/flights/search', {
@@ -174,7 +181,9 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         signal: controller.signal
       });
       
-      clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       
       const data = await response.json();
       

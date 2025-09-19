@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import SearchForm from '@/components/forms/SearchForm';
+import ImprovedSearchForm from '@/components/forms/ImprovedSearchForm';
 import Header from '@/components/ui/Header';
 import FlightResults from '@/components/FlightResults';
-import SearchDebug from '@/components/debug/SearchDebug';
 import RecentSearches from '@/components/RecentSearches';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
 import { Plane, Clock, Shield, Globe } from 'lucide-react';
@@ -94,7 +93,7 @@ export default function Home() {
       {/* Search Form Section */}
       <section className="py-12 -mt-16 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SearchForm onSearch={handleSearch} />
+          <ImprovedSearchForm onSearch={handleSearch} />
           
           {/* Recent Searches */}
           {isClient && (recentSearches.length > 0 || getPopularRoutes().length > 0) && (
@@ -108,9 +107,6 @@ export default function Home() {
               />
             </div>
           )}
-          
-          {/* Debug Component - Remove in production */}
-          <SearchDebug />
         </div>
       </section>
 
