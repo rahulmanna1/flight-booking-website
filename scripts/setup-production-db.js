@@ -1,4 +1,15 @@
-// This is your Prisma schema file,
+/**
+ * Production Database Setup Script
+ * This script helps configure the database for different environments
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+
+// Prisma schema template for production (PostgreSQL)
+const productionSchema = `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -27,7 +38,7 @@ model User {
   nationality           String?
   
   // User preferences stored as JSON
-  preferences           String   @default("{\"currency\":\"USD\",\"language\":\"en\",\"notifications\":{\"email\":true,\"sms\":false,\"push\":true}}")
+  preferences           String   @default("{\\"currency\\":\\"USD\\",\\"language\\":\\"en\\",\\"notifications\\":{\\"email\\":true,\\"sms\\":false,\\"push\\":true}}")
   
   // Frequent flyer numbers stored as JSON array
   frequentFlyerNumbers  String?  @default("[]")
@@ -103,7 +114,7 @@ model PriceAlert {
   tripType              TripType    @default(ONE_WAY)
   
   // Passenger information stored as JSON
-  passengers            String      @default("{\"adults\":1,\"children\":0,\"infants\":0}")
+  passengers            String      @default("{\\"adults\\":1,\\"children\\":0,\\"infants\\":0}")
   
   cabinClass            CabinClass  @default(ECONOMY)
   
@@ -205,89 +216,23 @@ enum NotificationType {
   FLIGHT_CANCELLED
   CHECK_IN_REMINDER
   GENERAL
+}`;
+
+function updateSchemaForProduction() {
+  const schemaPath = path.join(__dirname, '..', 'prisma', 'schema.prisma');
+  
+  if (isProduction) {
+    console.log('📝 Updating Prisma schema for production (PostgreSQL)...');
+    fs.writeFileSync(schemaPath, productionSchema);
+    console.log('✅ Schema updated for production');
+  } else {
+    console.log('🔧 Using development schema (SQLite)');
+  }
 }
 
-// Flight data model for caching and search optimization
-model Flight {
-  id                    String      @id @default(cuid())
-  
-  // Basic flight information
-  airline               String
-  flightNumber          String
-  aircraftType          String?
-  
-  // Route information
-  origin                String
-  destination           String
-  departureTime         String
-  arrivalTime           String
-  departureDate         String
-  arrivalDate           String?
-  duration              String
-  stops                 Int         @default(0)
-  
-  // Pricing and availability
-  basePrice             Float
-  currency              String      @default("USD")
-  availableSeats        Int?
-  
-  // Cabin classes with pricing stored as JSON
-  cabinClasses          String      @default("{}")
-  
-  // Additional flight details stored as JSON
-  additionalInfo        String      @default("{}")
-  
-  // Cache metadata
-  validUntil            DateTime
-  
-  // Timestamps
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-  
-  // Indexes for search optimization
-  @@index([origin, destination, departureDate])
-  @@index([airline, flightNumber])
-  @@index([validUntil])
-  @@map("flights")
+// Check if we need a production database
+if (process.env.SETUP_PRODUCTION_DB === 'true') {
+  updateSchemaForProduction();
 }
 
-// Session model for authentication tokens (optional - if not using JWT)
-model Session {
-  id                    String      @id @default(cuid())
-  sessionToken          String      @unique
-  userId                String
-  expires               DateTime
-  
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-  
-  @@map("sessions")
-}
-
-// Airport data model for search and autocomplete
-model Airport {
-  id                    String      @id @default(cuid())
-  iataCode              String      @unique
-  icaoCode              String?
-  name                  String
-  city                  String
-  country               String
-  countryCode           String
-  timezone              String?
-  latitude              Float?
-  longitude             Float?
-  elevation             Int?
-  
-  // Additional airport information stored as JSON
-  additionalInfo        String      @default("{}")
-  
-  // Timestamps
-  createdAt             DateTime    @default(now())
-  updatedAt             DateTime    @updatedAt
-  
-  // Indexes for search optimization
-  @@index([iataCode])
-  @@index([city, country])
-  @@index([name])
-  @@map("airports")
-}
+module.exports = { updateSchemaForProduction };

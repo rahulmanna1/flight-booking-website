@@ -1,8 +1,15 @@
 {
   "framework": "nextjs",
   "regions": ["bom1"],
+  "build": {
+    "env": {
+      "ENABLE_EXPERIMENTAL_COREPACK": "1"
+    }
+  },
+  "buildCommand": "npm run build",
+  "installCommand": "npm install && npx prisma generate",
   "functions": {
-    "app/api/**/*.js": {
+    "app/api/**": {
       "maxDuration": 30
     }
   }
