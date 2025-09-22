@@ -8,7 +8,7 @@ import RecentSearches from '@/components/RecentSearches';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
 import RecentSearchesSkeleton from '@/components/skeletons/RecentSearchesSkeleton';
 import KeyboardNavigationHelp from '@/components/accessibility/KeyboardNavigationHelp';
-import { Plane, Clock, Shield, Globe } from 'lucide-react';
+import { Plane, Clock, Shield, Globe, Loader2 } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface SearchData {
@@ -24,6 +24,7 @@ interface SearchData {
 export default function Home() {
   const [searchData, setSearchData] = useState<SearchData | null>(null);
   const [showResults, setShowResults] = useState(false);
+  const [loadingDestination, setLoadingDestination] = useState<string | null>(null);
   const { formatPrice } = useCurrency();
   const { 
     recentSearches, 
@@ -82,6 +83,40 @@ export default function Home() {
       travelClass: 'economy'
     };
     handleSearch(data);
+  };
+
+  // Map city names to airport codes for destination cards
+  const getCityAirportCode = (city: string) => {
+    const cityToAirport: { [key: string]: string } = {
+      'New York': 'JFK',
+      'Paris': 'CDG',
+      'Tokyo': 'NRT',
+      'London': 'LHR',
+      'Dubai': 'DXB',
+      'Sydney': 'SYD'
+    };
+    return cityToAirport[city] || 'JFK';
+  };
+
+  const handleDestinationClick = async (city: string, price: number) => {
+    setLoadingDestination(city);
+    
+    // Simulate a brief loading delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const destinationCode = getCityAirportCode(city);
+    const data: SearchData = {
+      from: 'JFK', // Default origin - could be enhanced with user's location
+      to: destinationCode,
+      departDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 2 weeks from now
+      returnDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 3 weeks from now
+      passengers: 1,
+      tripType: 'roundtrip',
+      travelClass: 'economy'
+    };
+    
+    handleSearch(data);
+    setLoadingDestination(null);
   };
 
   if (showResults && searchData) {
@@ -150,50 +185,50 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Plane className="w-8 h-8 text-blue-600" />
+            <div className="text-center group cursor-pointer">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-200 group-hover:shadow-lg">
+                <Plane className="w-8 h-8 text-blue-600 transition-all duration-300 group-hover:scale-110 group-hover:text-blue-700" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 transition-colors group-hover:text-blue-600">
                 Wide Selection
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 transition-colors group-hover:text-gray-700">
                 Access to hundreds of airlines and thousands of destinations worldwide
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-green-600" />
+            <div className="text-center group cursor-pointer">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-green-200 group-hover:shadow-lg">
+                <Clock className="w-8 h-8 text-green-600 transition-all duration-300 group-hover:scale-110 group-hover:text-green-700" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 transition-colors group-hover:text-green-600">
                 Quick Booking
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 transition-colors group-hover:text-gray-700">
                 Book your flights in just a few clicks with our streamlined process
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="w-8 h-8 text-purple-600" />
+            <div className="text-center group cursor-pointer">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-purple-200 group-hover:shadow-lg">
+                <Shield className="w-8 h-8 text-purple-600 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-700" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 transition-colors group-hover:text-purple-600">
                 Secure Payment
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 transition-colors group-hover:text-gray-700">
                 Your payment information is protected with bank-level security
               </p>
             </div>
             
-            <div className="text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Globe className="w-8 h-8 text-orange-600" />
+            <div className="text-center group cursor-pointer">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 transition-all duration-300 group-hover:scale-110 group-hover:bg-orange-200 group-hover:shadow-lg">
+                <Globe className="w-8 h-8 text-orange-600 transition-all duration-300 group-hover:scale-110 group-hover:text-orange-700" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 transition-colors group-hover:text-orange-600">
                 24/7 Support
               </h3>
-              <p className="text-gray-600">
+              <p className="text-gray-600 transition-colors group-hover:text-gray-700">
                 Get help whenever you need it with our round-the-clock customer support
               </p>
             </div>
@@ -222,23 +257,42 @@ export default function Home() {
               { city: 'Dubai', country: 'UAE', price: 799, image: 'dubai' },
               { city: 'Sydney', country: 'Australia', price: 1299, image: 'sydney' },
             ].map((destination, index) => (
-              <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="h-48 bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center">
-                  <span className="text-white text-6xl font-bold opacity-20">
+              <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all duration-300 transform hover:scale-105 cursor-pointer group">
+                <div className="h-48 bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center relative overflow-hidden">
+                  <span className="text-white text-6xl font-bold opacity-20 group-hover:opacity-30 transition-opacity">
                     {destination.city.charAt(0)}
                   </span>
+                  <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
                 </div>
                 <div className="p-6">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-1">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-1 group-hover:text-blue-600 transition-colors">
                     {destination.city}
                   </h3>
                   <p className="text-gray-600 mb-3">{destination.country}</p>
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-blue-600">
-                      {formatPrice(destination.price)}
-                    </span>
-                    <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                      View Flights
+                    <div>
+                      <span className="text-2xl font-bold text-blue-600">
+                        {formatPrice(destination.price)}
+                      </span>
+                      <p className="text-xs text-gray-500">from</p>
+                    </div>
+                    <button 
+                      onClick={() => handleDestinationClick(destination.city, destination.price)}
+                      disabled={loadingDestination === destination.city}
+                      className={`px-4 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center space-x-2 min-w-[120px] justify-center ${
+                        loadingDestination === destination.city
+                          ? 'bg-blue-500 cursor-not-allowed' 
+                          : 'bg-blue-600 text-white hover:bg-blue-700 transform hover:scale-105'
+                      }`}
+                    >
+                      {loadingDestination === destination.city ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Searching...</span>
+                        </>
+                      ) : (
+                        <span>View Flights</span>
+                      )}
                     </button>
                   </div>
                 </div>

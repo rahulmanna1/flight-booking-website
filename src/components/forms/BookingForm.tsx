@@ -41,8 +41,14 @@ export default function BookingForm({ onSubmit, totalPrice, loading = false }: B
   const { selectedCurrency } = useCurrency();
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Passenger & Payment Details</h2>
+    <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      <div className="text-center mb-8">
+        <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <CreditCard className="w-8 h-8 text-white" />
+        </div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Booking</h2>
+        <p className="text-gray-600">Secure payment and passenger information</p>
+      </div>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Passenger Information */}
@@ -60,9 +66,20 @@ export default function BookingForm({ onSubmit, totalPrice, loading = false }: B
               <input
                 {...register('firstName')}
                 placeholder="Enter first name"
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full p-4 border-2 rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 ${
+                  errors.firstName ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                }`}
               />
-              {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
+              {errors.firstName && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-1 duration-200">
+                  <p className="text-red-700 text-sm flex items-center">
+                    <span className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center mr-2">
+                      <span className="text-white text-xs font-bold">!</span>
+                    </span>
+                    {errors.firstName.message}
+                  </p>
+                </div>
+              )}
             </div>
             
             <div>
@@ -249,21 +266,49 @@ export default function BookingForm({ onSubmit, totalPrice, loading = false }: B
         </div>
 
         {/* Total and Submit */}
-        <div className="border-t pt-6">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-100 rounded-2xl p-6 mt-8">
           <div className="flex items-center justify-between mb-6">
-            <span className="text-xl font-semibold text-gray-900">Total Amount:</span>
-            <span className="text-2xl font-bold text-blue-600">
-              {selectedCurrency.symbol}{totalPrice.toLocaleString()}
-            </span>
+            <div>
+              <span className="text-lg font-medium text-gray-700">Total Amount:</span>
+              <p className="text-xs text-gray-500 mt-1">Including all taxes and fees</p>
+            </div>
+            <div className="text-right">
+              <span className="text-3xl font-bold text-blue-600">
+                {selectedCurrency.symbol}{totalPrice.toLocaleString()}
+              </span>
+              <p className="text-sm text-gray-600">{selectedCurrency.code}</p>
+            </div>
           </div>
           
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-3 px-6 rounded-md hover:bg-green-700 disabled:bg-gray-400 transition-colors text-lg font-semibold"
+            className={`w-full py-4 px-8 rounded-2xl text-lg font-bold transition-all duration-300 shadow-lg transform ${
+              loading
+                ? 'bg-gray-400 cursor-not-allowed scale-100'
+                : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 hover:shadow-2xl hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] active:translate-y-0'
+            } flex items-center justify-center space-x-3`}
           >
-            {loading ? 'Processing...' : 'Complete Booking'}
+            {loading ? (
+              <>
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Processing Payment...</span>
+              </>
+            ) : (
+              <>
+                <CreditCard className="w-6 h-6" />
+                <span>Complete Booking</span>
+                <span className="bg-white/20 rounded-full p-1">
+                  <span className="text-white text-sm">→</span>
+                </span>
+              </>
+            )}
           </button>
+          
+          <p className="text-center text-xs text-gray-600 mt-4 flex items-center justify-center">
+            <span className="w-4 h-4 text-green-600 mr-1">🔒</span>
+            Secured by SSL encryption. Your information is safe with us.
+          </p>
         </div>
       </form>
     </div>

@@ -499,7 +499,7 @@ export default function FlightComparison({
     >
       <div 
         ref={modalRef}
-        className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden focus:outline-none"
+        className="bg-white rounded-lg shadow-2xl max-w-7xl w-full max-h-[98vh] sm:max-h-[90vh] overflow-hidden focus:outline-none"
         tabIndex={-1}
       >
         {/* Header */}
@@ -546,10 +546,10 @@ export default function FlightComparison({
                     key={category.id}
                     ref={(el) => categoryButtonsRef.current[index] = el}
                     onClick={() => setActiveCategory(category.id)}
-                    className={`whitespace-nowrap lg:w-full text-left flex items-center space-x-2 lg:space-x-3 px-2 lg:px-3 py-2 rounded-md text-xs lg:text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`whitespace-nowrap lg:w-full text-left flex items-center space-x-2 lg:space-x-3 px-3 lg:px-3 py-3 rounded-md text-xs lg:text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation min-h-[44px] ${
                       activeCategory === category.id
-                        ? 'bg-blue-100 text-blue-700 border-blue-200'
-                        : 'text-gray-600 hover:bg-gray-100'
+                        ? 'bg-blue-100 text-blue-700 border-blue-200 transform scale-105'
+                        : 'text-gray-600 hover:bg-gray-100 active:scale-95'
                     }`}
                     aria-pressed={activeCategory === category.id}
                     aria-label={`Show ${category.name} comparison. Press ${index + 1} for quick access.`}
@@ -568,21 +568,24 @@ export default function FlightComparison({
             {/* Mobile: Stack flights vertically, Desktop: Table format */}
             <div className="lg:hidden">
               {/* Mobile Flight Cards */}
-              <div className="p-3">
+              <div className="p-4">
                 {enhancedFlights.map((flight, index) => (
-                  <div key={flight.id} className="mb-4 bg-white border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <div className="font-semibold text-gray-900">{flight.airline}</div>
-                        <div className="text-sm text-gray-600">{flight.flightNumber}</div>
-                        <div className="text-xs text-gray-500">
-                          {flight.departTime} - {flight.arriveTime}
+                  <div key={flight.id} className="mb-6 bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <div className="font-bold text-lg text-gray-900 mb-1">{flight.airline}</div>
+                        <div className="text-sm text-gray-600 mb-1">{flight.flightNumber}</div>
+                        <div className="text-sm font-medium text-blue-600">
+                          {flight.departTime} → {flight.arriveTime}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {flight.origin} to {flight.destination}
                         </div>
                       </div>
                       <button
                         ref={(el) => selectButtonsRef.current[index] = el}
                         onClick={() => onSelectFlight(flight.id)}
-                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform active:scale-95 min-w-[80px] min-h-[44px] flex items-center justify-center touch-manipulation"
                         aria-label={`Select ${flight.airline} flight ${flight.flightNumber}`}
                       >
                         Select
@@ -590,15 +593,15 @@ export default function FlightComparison({
                     </div>
                     
                     {/* Mobile flight details */}
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {COMPARISON_CATEGORIES
                         .find(cat => cat.id === activeCategory)
                         ?.fields.map(field => (
-                          <div key={field} className="flex justify-between items-center py-2 border-b border-gray-100">
-                            <span className="text-sm font-medium text-gray-600">
+                          <div key={field} className="flex justify-between items-start py-3 border-b border-gray-100 last:border-b-0">
+                            <span className="text-sm font-semibold text-gray-700 flex-shrink-0 mr-3">
                               {getFieldLabel(field)}
                             </span>
-                            <div className="text-sm">
+                            <div className="text-sm text-right">
                               {renderField(flight, field)}
                             </div>
                           </div>

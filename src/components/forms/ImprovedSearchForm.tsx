@@ -132,7 +132,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* Airport Selection */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
           {/* From Airport */}
@@ -150,12 +150,12 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             />
           </div>
 
-          {/* Professional Swap Button */}
-          <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30">
+          {/* Professional Swap Button - Desktop */}
+          <div className="hidden lg:block absolute left-1/2 top-8 -translate-x-1/2 z-30">
             <button
               type="button"
               onClick={handleSwapAirports}
-              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 mt-4"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 active:scale-95"
               title="Swap airports"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,14 +164,15 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             </button>
           </div>
           
-          {/* Mobile Swap Button */}
-          <div className="lg:hidden flex justify-center -my-2">
+          {/* Mobile Swap Button - Better positioning and styling */}
+          <div className="lg:hidden flex justify-center py-3">
             <button
               type="button"
               onClick={handleSwapAirports}
-              className="bg-blue-600 text-white rounded-full p-2 shadow-md"
+              className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full p-3 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-110 active:scale-95 min-w-[48px] min-h-[48px] flex items-center justify-center"
+              title="Swap airports"
             >
-              <ArrowLeftRight className="w-4 h-4" />
+              <ArrowLeftRight className="w-5 h-5" />
             </button>
           </div>
 
@@ -192,8 +193,8 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
         </div>
 
         {/* Date and Details Section */}
-        <div className="bg-gray-50 rounded-2xl p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-gray-50 rounded-2xl p-4 sm:p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Departure Date */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
@@ -207,7 +208,12 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                 className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium"
               />
               {errors.departDate && (
-                <p className="text-red-500 text-xs mt-1 font-medium">{errors.departDate.message}</p>
+                <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-600 text-xs font-medium flex items-center">
+                    <span className="mr-1">⚠️</span>
+                    {errors.departDate.message}
+                  </p>
+                </div>
               )}
             </div>
 
@@ -225,7 +231,12 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                   className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium"
                 />
                 {errors.returnDate && (
-                  <p className="text-red-500 text-xs mt-1 font-medium">{errors.returnDate.message}</p>
+                  <div className="mt-1 p-2 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-600 text-xs font-medium flex items-center">
+                      <span className="mr-1">⚠️</span>
+                      {errors.returnDate.message}
+                    </p>
+                  </div>
                 )}
               </div>
             )}

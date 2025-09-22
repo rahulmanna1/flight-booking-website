@@ -42,22 +42,27 @@ export default function Header() {
             <span className="text-xl font-bold text-gray-900">FlightBooker</span>
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation with Enhanced Animations */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Home
+            <Link href="/" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+              <span>Home</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/search" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Search Flights
+            <Link href="/search" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+              <span>Search Flights</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/bookings" className="text-gray-700 hover:text-blue-600 transition-colors">
-              My Bookings
+            <Link href="/bookings" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+              <span>My Bookings</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/price-alerts" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Price Alerts
+            <Link href="/price-alerts" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+              <span>Price Alerts</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
-            <Link href="/support" className="text-gray-700 hover:text-blue-600 transition-colors">
-              Support
+            <Link href="/support" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+              <span>Support</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
             </Link>
           </nav>
 
@@ -142,13 +147,14 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                  className="text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 relative group"
                 >
-                  Sign In
+                  <span>Sign In</span>
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 hover:shadow-lg active:scale-95 active:translate-y-0"
                 >
                   Sign Up
                 </Link>

@@ -180,11 +180,15 @@ export default function RecentSearches({
 
       {/* Recent Searches List */}
       <div className="space-y-3">
-        {recentSearches.map((search) => (
+        {recentSearches.map((search, index) => (
           <div
             key={search.id}
-            className="group flex items-center p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer"
+            className="group flex items-center p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer transform hover:scale-[1.02] hover:-translate-y-1 hover:bg-gradient-to-r hover:from-blue-25 hover:to-white active:scale-[0.98] active:translate-y-0"
             onClick={() => handleSearchSelect(search)}
+            style={{
+              animationDelay: `${index * 100}ms`,
+              animation: 'fadeInScale 0.5s ease-out forwards'
+            }}
           >
             {/* Route Info */}
             <div className="flex-1 min-w-0">
@@ -236,10 +240,10 @@ export default function RecentSearches({
                   e.stopPropagation();
                   handleSearchSelect(search);
                 }}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 transform hover:scale-110 active:scale-95 hover:rotate-12"
                 title="Search again"
               >
-                <RotateCcw className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4 transition-transform group-hover:rotate-180" />
               </button>
               
               <button
@@ -247,10 +251,10 @@ export default function RecentSearches({
                   e.stopPropagation();
                   removeSearch(search.id);
                 }}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-all duration-200 opacity-0 group-hover:opacity-100 transform hover:scale-110 active:scale-95"
                 title="Remove from history"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 transition-transform hover:rotate-90" />
               </button>
             </div>
           </div>
@@ -261,6 +265,19 @@ export default function RecentSearches({
       <div className="mt-4 text-xs text-gray-500 text-center">
         Click any search to use it again
       </div>
+      
+      <style jsx>{`
+        @keyframes fadeInScale {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

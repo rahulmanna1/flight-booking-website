@@ -115,7 +115,7 @@ export default function RecentSearches({
                     )}
                   </div>
                   
-                  <div className="flex items-center space-x-4 text-xs text-gray-500">
+                  <div className="flex items-center space-x-4 text-xs text-gray-600">
                     <span className="flex items-center space-x-1">
                       <Calendar className="w-3 h-3" />
                       <span>
@@ -135,7 +135,7 @@ export default function RecentSearches({
                   </div>
                   
                   {(search.fromName || search.toName) && (
-                    <div className="text-xs text-gray-400 mt-1">
+                    <div className="text-xs text-gray-500 mt-1">
                       {search.fromName && <span>{search.fromName}</span>}
                       {search.fromName && search.toName && <span> → </span>}
                       {search.toName && <span>{search.toName}</span>}
@@ -144,7 +144,7 @@ export default function RecentSearches({
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {formatTimeAgo(search.timestamp)}
                   </span>
                   <button

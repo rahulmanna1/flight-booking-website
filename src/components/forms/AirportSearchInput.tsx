@@ -356,22 +356,39 @@ export default function AirportSearchInput({
         )}
       </div>
       
-      {/* Error Message */}
+      {/* Enhanced Error Message */}
       {error && (
-        <p className="text-red-500 text-sm mt-1">{error}</p>
+        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-1 duration-200">
+          <div className="flex items-start space-x-2">
+            <div className="flex-shrink-0">
+              <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-red-700 text-sm font-medium mb-1">Airport Selection Required</p>
+              <p className="text-red-600 text-xs">{error}</p>
+            </div>
+          </div>
+        </div>
       )}
       
       {/* Dropdown */}
       {isOpen && (displayAirports.length > 0 || loading || (hasSearched && query.length >= 2)) && (
         <div 
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 bg-white shadow-xl rounded-lg mt-2 z-50 max-h-80 overflow-y-auto border border-gray-200"
+          className="absolute top-full left-0 right-0 bg-white shadow-2xl rounded-xl mt-2 z-50 max-h-80 overflow-y-auto border border-gray-100 backdrop-blur-sm"
+          style={{
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(59, 130, 246, 0.05)'
+          }}
         >
           {/* Nearby Airports Section */}
           {showNearbyAirports && (
-            <div className="sticky top-0 bg-gray-50 px-4 py-2 border-b border-gray-200">
-              <h4 className="text-sm font-semibold text-gray-700 flex items-center">
-                <Navigation className="w-4 h-4 mr-2 text-blue-600" />
+            <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-blue-100">
+              <h4 className="text-sm font-semibold text-blue-800 flex items-center">
+                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
+                  <Navigation className="w-3 h-3 text-blue-600" />
+                </div>
                 📍 Nearby Airports
               </h4>
             </div>
@@ -382,15 +399,15 @@ export default function AirportSearchInput({
             <div
               key={`${airport.iataCode}-${index}`}
               onClick={() => handleAirportSelect(airport)}
-              className={`group flex items-center p-4 cursor-pointer transition-colors ${
+              className={`group flex items-center p-4 cursor-pointer transition-all duration-200 ${
                 index === highlightedIndex 
-                  ? 'bg-blue-50 border-l-4 border-blue-500' 
-                  : 'hover:bg-gray-50 border-l-4 border-transparent'
+                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 transform translate-x-1' 
+                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-25 border-l-4 border-transparent hover:border-blue-200 hover:transform hover:translate-x-0.5'
               }`}
             >
               {/* Country Flag */}
               <div className="mr-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-lg shadow-sm">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-white to-gray-50 flex items-center justify-center text-xl shadow-md border border-gray-100 group-hover:shadow-lg group-hover:scale-105 transition-all duration-200">
                   {getCountryFlag(airport.countryCode)}
                 </div>
               </div>
@@ -421,9 +438,9 @@ export default function AirportSearchInput({
               </div>
               
               {/* Arrow */}
-              <div className="ml-4 text-gray-400 group-hover:text-blue-600 transition-colors">
-                <div className="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center">
-                  <span className="text-lg">→</span>
+              <div className="ml-4 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-gray-100 to-gray-50 group-hover:from-blue-500 group-hover:to-blue-600 flex items-center justify-center shadow-sm group-hover:shadow-md transform group-hover:scale-110 transition-all duration-200">
+                  <span className="text-lg group-hover:text-white font-bold">→</span>
                 </div>
               </div>
             </div>

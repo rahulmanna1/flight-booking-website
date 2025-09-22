@@ -155,10 +155,10 @@ export default function PopularDestinations({
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.id)}
-              className={`group relative flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 transform hover:scale-105 ${
+              className={`group relative flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 transform hover:scale-110 active:scale-95 ${
                 selectedCategory === category.id
-                  ? `${category.color} shadow-lg`
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? `${category.color} shadow-lg hover:shadow-xl`
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md'
               }`}
             >
               <div className="flex items-center">
@@ -183,7 +183,7 @@ export default function PopularDestinations({
             <button
               key={`${selectedCategory}-${destination.iataCode}-${index}`}
               onClick={() => handleDestinationClick(destination)}
-              className="group relative bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-md transition-all duration-200 text-left transform hover:scale-[1.02]"
+              className="group relative bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-xl transition-all duration-300 text-left transform hover:scale-[1.05] active:scale-[0.98] hover:-translate-y-1 hover:bg-gradient-to-br hover:from-white hover:to-blue-25"
               style={{
                 animationDelay: `${index * 50}ms`,
                 animation: 'fadeInUp 0.4s ease-out forwards'
@@ -216,7 +216,7 @@ export default function PopularDestinations({
                   </p>
                   
                   {destination.description && (
-                    <p className="text-xs text-gray-500 italic">
+                    <p className="text-xs text-gray-600 italic">
                       {destination.description}
                     </p>
                   )}

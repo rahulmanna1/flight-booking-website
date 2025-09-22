@@ -239,10 +239,10 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               <button
                 type="button"
                 onClick={handleSwapAirports}
-                className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-full p-2 shadow-md transition-all duration-200 hover:scale-105"
+                className="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-50 rounded-full p-2 shadow-md transition-all duration-300 transform hover:scale-110 active:scale-95 hover:rotate-180 hover:shadow-lg group"
                 title="Swap origin and destination"
               >
-                <ArrowUpDown className="w-4 h-4" />
+                <ArrowUpDown className="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" />
               </button>
             </div>
             
@@ -258,12 +258,22 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             </div>
           </div>
           
-          {/* Same Airport Error */}
+          {/* Enhanced Same Airport Error */}
           {hasSameAirportError && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-red-600 text-sm font-medium">
-                ⚠️ Origin and destination airports must be different
-              </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 animate-in slide-in-from-top-1 duration-200">
+              <div className="flex items-start space-x-2">
+                <div className="flex-shrink-0">
+                  <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">!</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-red-700 text-sm font-medium mb-1">Airport Selection Error</p>
+                  <p className="text-red-600 text-xs">
+                    Origin and destination airports must be different. Please select a different destination.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -286,10 +296,42 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                 type="date"
                 min={new Date().toISOString().split('T')[0]}
                 className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 ${
-                  errors.departDate ? 'border-red-300' : 'border-gray-300'
+                  errors.departDate 
+                    ? 'border-red-300 bg-red-50' 
+                    : watch('departDate') 
+                    ? 'border-green-300 bg-green-50' 
+                    : 'border-gray-300'
                 }`}
               />
-              {errors.departDate && <p className="text-red-500 text-sm mt-1">{errors.departDate.message}</p>}
+              
+              {/* Enhanced Error Message */}
+              {errors.departDate && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-start space-x-2">
+                    <div className="flex-shrink-0">
+                      <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-red-700 text-sm font-medium mb-1">Invalid Departure Date</p>
+                      <p className="text-red-600 text-xs">{errors.departDate.message}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Success State */}
+              {watch('departDate') && !errors.departDate && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg animate-in slide-in-from-top-1 duration-200">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">✓</span>
+                    </div>
+                    <p className="text-green-700 text-sm">Departure date selected</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {tripType === 'roundtrip' && (
@@ -303,10 +345,42 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                   type="date"
                   min={watch('departDate') || new Date().toISOString().split('T')[0]}
                   className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 ${
-                    errors.returnDate ? 'border-red-300' : 'border-gray-300'
+                    errors.returnDate 
+                      ? 'border-red-300 bg-red-50' 
+                      : watch('returnDate') 
+                      ? 'border-green-300 bg-green-50' 
+                      : 'border-gray-300'
                   }`}
                 />
-                {errors.returnDate && <p className="text-red-500 text-sm mt-1">{errors.returnDate.message}</p>}
+                
+                {/* Enhanced Error Message */}
+                {errors.returnDate && (
+                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-lg animate-in slide-in-from-top-1 duration-200">
+                    <div className="flex items-start space-x-2">
+                      <div className="flex-shrink-0">
+                        <div className="w-4 h-4 bg-red-500 rounded-full flex items-center justify-center mt-0.5">
+                          <span className="text-white text-xs font-bold">!</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-red-700 text-sm font-medium mb-1">Invalid Return Date</p>
+                        <p className="text-red-600 text-xs">{errors.returnDate.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Success State */}
+                {watch('returnDate') && !errors.returnDate && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg animate-in slide-in-from-top-1 duration-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">✓</span>
+                      </div>
+                      <p className="text-green-700 text-sm">Return date selected</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -373,18 +447,18 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
           <button
             type="submit"
             disabled={hasSameAirportError || !watchedFrom || !watchedTo}
-            className={`w-full py-4 px-8 rounded-xl flex items-center justify-center space-x-3 transition-all duration-200 font-bold text-lg transform hover:scale-[1.02] ${
+            className={`w-full py-4 px-8 rounded-xl flex items-center justify-center space-x-3 transition-all duration-300 font-bold text-lg group relative overflow-hidden ${
               hasSameAirportError || !watchedFrom || !watchedTo
-                ? 'bg-gray-400 text-gray-600 cursor-not-allowed scale-100' 
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl'
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed transform scale-100' 
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-2xl transform hover:scale-[1.03] hover:-translate-y-1 active:scale-[0.98] active:translate-y-0'
             }`}
           >
-            <div className={`p-2 rounded-full ${
+            <div className={`p-2 rounded-full transition-all duration-300 ${
               hasSameAirportError || !watchedFrom || !watchedTo
                 ? 'bg-gray-500' 
-                : 'bg-white/20'
+                : 'bg-white/20 group-hover:bg-white/30 group-hover:scale-110'
             }`}>
-              <Plane className="w-5 h-5" />
+              <Plane className="w-5 h-5 transition-all duration-300 group-hover:translate-x-1" />
             </div>
             <span>
               {hasSameAirportError 

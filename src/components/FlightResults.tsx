@@ -654,13 +654,16 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                   <span>Back to Search</span>
                 </button>
                 
-                {/* Mobile Filter Toggle */}
+                {/* Mobile Filter Toggle - Enhanced touch target */}
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="md:hidden flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  className="md:hidden flex items-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 transform active:scale-95 min-w-[48px] min-h-[48px] justify-center touch-manipulation"
                 >
                   <Filter className="w-4 h-4" />
-                  <span>Filters</span>
+                  <span className="font-medium">Filters</span>
+                  {showFilters && (
+                    <div className="w-2 h-2 bg-white rounded-full ml-1"></div>
+                  )}
                 </button>
               </div>
               
@@ -762,45 +765,49 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
               
               <div className="flex items-center space-x-4">
                 {/* Advanced Search Tools */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2 sm:space-x-3">
                   <button
                     onClick={() => setShowAdvancedSearch(true)}
-                    className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all duration-200 transform hover:scale-105 min-w-[44px] min-h-[44px] justify-center"
                   >
                     <Settings className="w-4 h-4" />
-                    <span>Advanced</span>
+                    <span className="hidden sm:inline">Advanced</span>
                   </button>
                   
                   <button
                     onClick={() => setShowFlexibleDates(true)}
-                    className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+                    className="flex items-center space-x-2 px-3 py-2 text-sm font-medium border-2 border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 text-gray-700 hover:text-green-600 transition-all duration-200 transform hover:scale-105 min-w-[44px] min-h-[44px] justify-center"
                   >
                     <Calendar className="w-4 h-4" />
-                    <span>Flexible Dates</span>
+                    <span className="hidden sm:inline">Flexible Dates</span>
                   </button>
                   
                   <button
                     onClick={() => setShowComparison(true)}
                     disabled={selectedFlightsForComparison.length < 2}
-                    className={`flex items-center space-x-2 px-3 py-2 text-sm border rounded-md ${
+                    className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium border-2 rounded-lg transition-all duration-200 transform min-w-[44px] min-h-[44px] justify-center ${
                       selectedFlightsForComparison.length >= 2 
-                        ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100' 
-                        : 'border-gray-300 text-gray-400 cursor-not-allowed'
+                        ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-400 hover:scale-105' 
+                        : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
                     }`}
                   >
                     <GitCompare className="w-4 h-4" />
-                    <span>Compare ({selectedFlightsForComparison.length})</span>
+                    <span className="hidden sm:inline">Compare ({selectedFlightsForComparison.length})</span>
+                    <span className="sm:hidden">({selectedFlightsForComparison.length})</span>
                   </button>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  <Filter className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-700">Sort by:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
-                  >
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 text-gray-600">
+                    <Filter className="w-4 h-4" />
+                    <span className="text-sm font-medium">Sort by:</span>
+                  </div>
+                  <div className="relative">
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value)}
+                      className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-300 transition-colors cursor-pointer min-w-[180px]"
+                    >
                     <optgroup label="Price">
                       <option value="price-asc">Price: Low to High</option>
                       <option value="price-desc">Price: High to Low</option>
@@ -819,7 +826,13 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                       <option value="stops-asc">Stops: Non-stop First</option>
                       <option value="stops-desc">Stops: Most Connections</option>
                     </optgroup>
-                  </select>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -914,19 +927,21 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                       searchData={searchData}
                     />
                     
-                    {/* Comparison Checkbox - positioned below the card for better UX */}
-                    <div className="absolute bottom-4 left-6 z-10">
-                      <label className="flex items-center space-x-2 bg-blue-600 text-white px-3 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 cursor-pointer">
+                    {/* Comparison Checkbox - positioned at top-right corner */}
+                    <div className="absolute top-4 right-4 z-10">
+                      <label className="flex items-center space-x-2 bg-white border-2 border-blue-600 text-blue-600 px-3 py-2 rounded-lg shadow-md hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
                         <input
                           type="checkbox"
                           checked={selectedFlightsForComparison.includes(flight.id)}
                           onChange={() => toggleFlightForComparison(flight.id)}
-                          className="rounded border-white text-blue-600 focus:ring-blue-500 bg-white"
+                          className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
                           disabled={!selectedFlightsForComparison.includes(flight.id) && selectedFlightsForComparison.length >= 4}
                         />
-                        <span className="text-sm font-medium">Add to Compare</span>
+                        <span className="text-sm font-medium hidden sm:inline">
+                          {selectedFlightsForComparison.includes(flight.id) ? 'Added' : 'Compare'}
+                        </span>
                         {selectedFlightsForComparison.includes(flight.id) && (
-                          <span className="bg-white text-blue-600 px-2 py-1 rounded text-xs font-bold">✓</span>
+                          <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">✓</span>
                         )}
                       </label>
                     </div>
