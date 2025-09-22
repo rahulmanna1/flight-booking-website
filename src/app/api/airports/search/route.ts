@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Amadeus from 'amadeus';
-import { enhanceAirportData, searchLocalAirports, getAirportData } from '@/lib/airportDatabase';
+import { searchGlobalAirports, getGlobalAirportByCode, GlobalAirportData } from '@/data/globalAirports';
+import { prisma } from '@/lib/prisma';
 
 // Initialize Amadeus client
 const amadeus = new Amadeus({
@@ -27,29 +28,50 @@ export interface Airport {
   distance?: number; // Distance from user location in km
 }
 
-// Convert Amadeus location data to our Airport interface with enhanced fallback data
+// Convert global airport data to API format
+const convertGlobalAirportToAPI = (airport: GlobalAirportData): Airport => {
+  return {
+    iataCode: airport.iataCode,
+    icaoCode: airport.icaoCode,
+    name: airport.name,
+    city: airport.city,
+    country: airport.country,
+    countryCode: airport.countryCode,
+    region: airport.region,
+    coordinates: airport.coordinates,
+    timeZone: airport.timezone,
+    type: airport.type,
+    subtype: airport.subtype
+  };
+};
+
+// Convert Amadeus location data with global database fallback
 const convertAmadeusLocation = (location: any): Airport => {
   const iataCode = location.iataCode || location.id;
-  const enhancedData = enhanceAirportData(location, iataCode);
-  const fallbackData = getAirportData(iataCode);
+  const globalAirport = getGlobalAirportByCode(iataCode);
   
+  if (globalAirport) {
+    // Use global database data as primary source
+    return convertGlobalAirportToAPI(globalAirport);
+  }
+  
+  // Fallback to Amadeus data if not in global database
   return {
     iataCode: iataCode,
-    icaoCode: location.icaoCode || enhancedData.icaoCode || fallbackData?.icaoCode,
-    name: location.name || enhancedData.name || fallbackData?.name || `${iataCode} Airport`,
-    city: location.address?.cityName || enhancedData.city || fallbackData?.city || 'Unknown City',
-    country: location.address?.countryName || enhancedData.country || fallbackData?.country || 'Unknown Country',
-    countryCode: location.address?.countryCode || enhancedData.countryCode || fallbackData?.countryCode || 'XX',
-    region: location.address?.regionCode || enhancedData.region || fallbackData?.region,
+    icaoCode: location.icaoCode,
+    name: location.name || `${iataCode} Airport`,
+    city: location.address?.cityName || 'Unknown City',
+    country: location.address?.countryName || 'Unknown Country',
+    countryCode: location.address?.countryCode || 'XX',
+    region: location.address?.regionCode,
     coordinates: location.geoCode ? {
       latitude: parseFloat(location.geoCode.latitude),
       longitude: parseFloat(location.geoCode.longitude)
-    } : enhancedData.coordinates || fallbackData?.coordinates,
-    timeZone: location.timeZone || enhancedData.timeZone || fallbackData?.timeZone,
+    } : undefined,
+    timeZone: location.timeZone,
     type: location.subType?.toLowerCase() === 'airport' ? 'airport' : 
-          location.subType?.toLowerCase() === 'city' ? 'city' : 
-          enhancedData.type || fallbackData?.type || 'airport',
-    subtype: location.category || enhancedData.subtype || fallbackData?.subtype
+          location.subType?.toLowerCase() === 'city' ? 'city' : 'airport',
+    subtype: location.category
   };
 };
 
@@ -88,44 +110,59 @@ export async function GET(request: NextRequest) {
 
     let airports: Airport[] = [];
     
-    try {
-      // Search airports and cities using Amadeus API
-      const response = await amadeus.referenceData.locations.get({
-        keyword: query,
-        subType: 'AIRPORT,CITY',
-        page: { limit: Math.min(limit, 20) } // Max 20 results from Amadeus
-      });
-
-      if (response.data && response.data.length > 0) {
-        // Convert Amadeus results to our airport format
-        airports = response.data.map(convertAmadeusLocation);
-      }
-    } catch (amadeusError: any) {
-      console.warn('Amadeus search failed, falling back to local search:', amadeusError.message);
-    }
+    // First, search our comprehensive global database
+    const globalResults = searchGlobalAirports(query, limit);
+    airports = globalResults.map(convertGlobalAirportToAPI);
     
-    // If Amadeus returned few results or failed, supplement with local search
-    if (airports.length < 5) {
-      const localResults = searchLocalAirports(query, limit - airports.length);
-      
-      // Convert local results to Airport format and filter out duplicates
-      const localAirports: Airport[] = localResults
-        .filter(local => !airports.some(amadeus => amadeus.iataCode === local.iataCode))
-        .map(local => ({
-          iataCode: local.iataCode,
-          icaoCode: local.icaoCode,
-          name: local.name,
-          city: local.city,
-          country: local.country,
-          countryCode: local.countryCode,
-          region: local.region,
-          coordinates: local.coordinates,
-          timeZone: local.timeZone,
-          type: local.type,
-          subtype: local.subtype
-        }));
-        
-      airports = [...airports, ...localAirports];
+    console.log(`Found ${airports.length} airports from global database for "${query}"`);
+    
+    // If we have good results from global database, use them primarily
+    if (airports.length >= 5) {
+      // Optionally try Amadeus for additional results only if we need more
+      if (airports.length < limit) {
+        try {
+          const response = await amadeus.referenceData.locations.get({
+            keyword: query,
+            subType: 'AIRPORT,CITY',
+            page: { limit: Math.min(limit - airports.length, 5) }
+          });
+
+          if (response.data && response.data.length > 0) {
+            const amadeusResults = response.data
+              .map(convertAmadeusLocation)
+              .filter(amadeus => !airports.some(existing => existing.iataCode === amadeus.iataCode));
+            
+            airports = [...airports, ...amadeusResults];
+          }
+        } catch (amadeusError: any) {
+          console.warn('Amadeus supplementary search failed:', amadeusError.message);
+        }
+      }
+    } else {
+      // If global database has few results, try Amadeus as primary
+      try {
+        const response = await amadeus.referenceData.locations.get({
+          keyword: query,
+          subType: 'AIRPORT,CITY',
+          page: { limit: Math.min(limit, 20) }
+        });
+
+        if (response.data && response.data.length > 0) {
+          const amadeusResults = response.data.map(convertAmadeusLocation);
+          
+          // Merge with global results, prioritizing global data for duplicates
+          const mergedResults = [...airports];
+          amadeusResults.forEach(amadeus => {
+            if (!airports.some(existing => existing.iataCode === amadeus.iataCode)) {
+              mergedResults.push(amadeus);
+            }
+          });
+          
+          airports = mergedResults;
+        }
+      } catch (amadeusError: any) {
+        console.warn('Amadeus search failed, using global database only:', amadeusError.message);
+      }
     }
     
     if (airports.length === 0) {

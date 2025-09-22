@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Plane, X, Loader2, Search } from 'lucide-react';
+import { MapPin, Plane, X, Loader2, Search, Navigation } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useLocationPermission } from '@/hooks/useLocationPermission';
 import { Airport } from '@/app/api/airports/search/route';

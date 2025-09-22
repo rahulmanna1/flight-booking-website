@@ -244,9 +244,9 @@ export default function FlightFilters({
   }
   
   return (
-    <div className="bg-white border-r border-gray-200 h-full overflow-y-auto">
+    <div className="bg-white border-r border-gray-200">
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 sticky top-0 bg-white z-10">
+      <div className="p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Filter className="w-5 h-5 text-blue-600" />

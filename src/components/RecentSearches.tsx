@@ -15,6 +15,13 @@ interface RecentSearchesProps {
     toName?: string;
     count: number;
   }>;
+  popularDestinations?: Array<{
+    code: string;
+    count: number;
+    name?: string;
+    city?: string;
+  }>;
+  onSelectDestination?: (destination: string) => void;
 }
 
 export default function RecentSearches({
@@ -22,7 +29,9 @@ export default function RecentSearches({
   onSelectSearch,
   onRemoveSearch,
   onClearAll,
-  popularRoutes
+  popularRoutes,
+  popularDestinations = [],
+  onSelectDestination
 }: RecentSearchesProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -187,6 +196,46 @@ export default function RecentSearches({
                   <span className="text-xs bg-white px-1.5 py-0.5 rounded text-blue-600">
                     {route.count}x
                   </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+      
+      {/* Popular Destinations */}
+      {popularDestinations.length > 0 && (
+        <>
+          {(searches.length > 0 || popularRoutes.length > 0) && <div className="border-t my-4"></div>}
+          
+          <div className="mb-3">
+            <h3 className="text-sm font-semibold text-gray-900 flex items-center space-x-2">
+              <span className="text-purple-500">✈️</span>
+              <span>Popular Destinations</span>
+            </h3>
+            <p className="text-xs text-gray-500 mt-1">Places you search for most often</p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {popularDestinations.map((destination) => (
+              <button
+                key={destination.code}
+                onClick={() => onSelectDestination?.(destination.code)}
+                className="group p-3 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg hover:from-purple-100 hover:to-pink-100 transition-all duration-200 text-left"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="font-bold text-purple-700 text-lg">{destination.code}</div>
+                  <span className="text-xs bg-purple-200 text-purple-700 px-2 py-1 rounded-full font-medium">
+                    {destination.count}x
+                  </span>
+                </div>
+                <div className="text-sm text-gray-700 font-medium mb-1">
+                  {destination.city || destination.code}
+                </div>
+                {destination.name && (
+                  <div className="text-xs text-gray-500 truncate">
+                    {destination.name}
+                  </div>
                 )}
               </button>
             ))}

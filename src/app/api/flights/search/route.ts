@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchFlights, convertAmadeusFlightToOurFormat, AIRLINE_NAMES } from '@/lib/amadeus';
+import { searchFlightsMultiProvider, checkProviderHealth, getProviderStats } from '@/lib/flightProviders';
 import SimpleCache, { flightSearchCache } from '@/lib/cache';
 
 // Mock data fallback (your existing generateMockFlights logic)
@@ -52,111 +53,68 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
     
-    console.log('Flight search request:', searchData);
+    console.log('🔍 Enhanced flight search request:', searchData);
     
-    // Check if we should use real API or mock data
-    const useRealAPI = process.env.USE_REAL_API === 'true';
-    const hasCredentials = process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET;
-    
-    if (useRealAPI && hasCredentials) {
-      // Generate cache key
-      const cacheKey = SimpleCache.generateKey('flight-search', {
+    try {
+      // Use the new multi-provider search system
+      const searchResult = await searchFlightsMultiProvider({
         from,
         to,
         departDate,
-        returnDate,
-        passengers,
+        returnDate: tripType === 'roundtrip' ? returnDate : undefined,
+        passengers: parseInt(passengers),
         tripType,
         travelClass
       });
       
-      // Check cache first
-      const cachedResult = flightSearchCache.get<any[]>(cacheKey);
-      if (cachedResult) {
-        console.log(`Returning ${cachedResult.length} cached flights`);
-        return NextResponse.json({
-          success: true,
-          flights: cachedResult,
-          source: 'amadeus_cached',
-          count: cachedResult.length,
-          cached: true
-        });
-      }
+      console.log(`✅ Multi-provider search completed: ${searchResult.flights.length} flights from ${searchResult.sources.length} sources`);
       
-      try {
-        // Use Amadeus API
-        const amadeusOffers = await searchFlights({
-          from,
-          to,
-          departDate,
-          returnDate: tripType === 'roundtrip' ? returnDate : undefined,
-          passengers: parseInt(passengers),
-          tripType,
-          travelClass
-        });
-        
-        // Convert Amadeus offers to our format
-        const flights = amadeusOffers.map((offer: any) => 
-          convertAmadeusFlightToOurFormat(offer, AIRLINE_NAMES, travelClass)
+      // Prepare response with enhanced metadata
+      const response = {
+        success: true,
+        flights: searchResult.flights,
+        count: searchResult.flights.length,
+        sources: searchResult.sources,
+        cached: searchResult.cached,
+        searchTime: searchResult.searchTime,
+        metadata: {
+          searchDuration: `${searchResult.searchTime}ms`,
+          dataProviders: searchResult.sources,
+          totalResults: searchResult.flights.length,
+          enhancedFeatures: {
+            multiProvider: true,
+            realTimeData: searchResult.sources.some(s => s.includes('Real-time')),
+            priceComparison: true,
+            amenityInfo: true,
+            layoverDetails: searchResult.flights.some(f => f.layovers?.length)
+          }
+        }
+      };
+      
+      // Add warnings if there were provider errors
+      if (searchResult.errors.length > 0) {
+        response.warnings = searchResult.errors.map(error => 
+          `Provider issue: ${error}`
         );
-        
-        // Cache the results
-        if (flights.length > 0) {
-          flightSearchCache.set(cacheKey, flights, 10 * 60 * 1000); // Cache for 10 minutes
-        }
-        
-        console.log(`Returning ${flights.length} real flights from Amadeus`);
-        
-        return NextResponse.json({
-          success: true,
-          flights,
-          source: 'amadeus',
-          count: flights.length
-        });
-        
-      } catch (amadeusError: any) {
-        console.warn('Amadeus API failed:', amadeusError.message);
-        
-        // Check if it's a rate limit error
-        if (amadeusError.message?.includes('429') || amadeusError.message?.includes('rate limit')) {
-          console.log('Rate limit detected, using mock data');
-          
-          // For rate limits, use a shorter cache time for mock data
-          const mockFlights = generateMockFlights(from, to, departDate);
-          const mockCacheKey = SimpleCache.generateKey('flight-search-mock', searchData);
-          flightSearchCache.set(mockCacheKey, mockFlights, 2 * 60 * 1000); // Cache mock for 2 minutes
-          
-          return NextResponse.json({
-            success: true,
-            flights: mockFlights,
-            source: 'mock_ratelimit',
-            count: mockFlights.length,
-            warning: 'API rate limit reached. Using demo data temporarily.'
-          });
-        }
-        
-        // Fallback to mock data if Amadeus fails
-        const mockFlights = generateMockFlights(from, to, departDate);
-        
-        return NextResponse.json({
-          success: true,
-          flights: mockFlights,
-          source: 'mock_fallback',
-          count: mockFlights.length,
-          warning: 'Using mock data due to API error'
-        });
       }
-    } else {
-      // Use mock data
-      const mockFlights = generateMockFlights(from, to, departDate);
       
-      console.log(`Returning ${mockFlights.length} mock flights`);
+      return NextResponse.json(response);
+      
+    } catch (multiProviderError: any) {
+      console.error('❌ Multi-provider search failed:', multiProviderError.message);
+      
+      // Ultimate fallback to simple mock data
+      console.log('🔧 Falling back to simple mock data generation');
+      const fallbackFlights = generateMockFlights(from, to, departDate);
       
       return NextResponse.json({
         success: true,
-        flights: mockFlights,
-        source: 'mock',
-        count: mockFlights.length
+        flights: fallbackFlights,
+        count: fallbackFlights.length,
+        sources: ['Fallback System'],
+        cached: false,
+        warning: 'Using fallback system due to search service unavailability',
+        error: multiProviderError.message
       });
     }
     

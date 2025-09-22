@@ -13,6 +13,24 @@ interface Flight {
   stops?: number;
   aircraft?: string;
   travelClass?: string;
+  // Enhanced booking availability information
+  availability?: {
+    economyAvailable: number;
+    businessAvailable: number;
+    firstAvailable: number;
+    totalSeats: number;
+    bookingClass: string;
+  };
+  // Route information
+  routeType?: 'domestic' | 'international' | 'regional';
+  distance?: number; // in kilometers
+  // Pricing breakdown
+  priceBreakdown?: {
+    baseFare: number;
+    taxes: number;
+    fees: number;
+    total: number;
+  };
 }
 
 // Regional pricing data
@@ -394,6 +412,71 @@ export const generateMockFlights = (from: string, to: string, date: string): Fli
     }
     
     const adjustedPrice = Math.round(finalPrice * classPriceMultiplier);
+    const finalPriceWithFloor = Math.max(adjustedPrice, 150);
+    
+    // Generate realistic seat availability
+    const aircraftCapacity = {
+      '320': { total: 180, economy: 156, business: 24, first: 0 },
+      '321': { total: 220, economy: 184, business: 36, first: 0 },
+      '737': { total: 189, economy: 162, business: 27, first: 0 },
+      '738': { total: 189, economy: 162, business: 27, first: 0 },
+      '77W': { total: 350, economy: 264, business: 68, first: 18 },
+      '380': { total: 525, economy: 399, business: 96, first: 30 },
+      '787': { total: 290, economy: 228, business: 50, first: 12 },
+      '788': { total: 290, economy: 228, business: 50, first: 12 },
+      '789': { total: 290, economy: 228, business: 50, first: 12 },
+      '350': { total: 325, economy: 253, business: 60, first: 12 },
+      '359': { total: 325, economy: 253, business: 60, first: 12 },
+      '333': { total: 300, economy: 237, business: 51, first: 12 },
+    };
+    
+    const capacity = aircraftCapacity[aircraft] || aircraftCapacity['320'];
+    const loadFactor = 0.6 + Math.random() * 0.3; // 60-90% load factor
+    
+    const economyAvailable = Math.floor(capacity.economy * (1 - loadFactor) + Math.random() * 20);
+    const businessAvailable = Math.floor(capacity.business * (1 - loadFactor * 0.7) + Math.random() * 10);
+    const firstAvailable = capacity.first > 0 ? Math.floor(capacity.first * (1 - loadFactor * 0.5) + Math.random() * 5) : 0;
+    
+    // Determine route type and distance
+    const isInternalRoute = fromCountry === toCountry;
+    const routeType = isInternalRoute ? 'domestic' : 
+                     (fromCountry === toCountry || 
+                      ['US', 'CA'].includes(fromCountry) && ['US', 'CA'].includes(toCountry) ||
+                      ['GB', 'FR', 'DE', 'ES', 'IT'].includes(fromCountry) && ['GB', 'FR', 'DE', 'ES', 'IT'].includes(toCountry)
+                     ) ? 'regional' : 'international';
+    
+    // Estimate distance (rough calculation)
+    const getDistance = (from: string, to: string) => {
+      const routeKey = `${from}-${to}`;
+      const reverseKey = `${to}-${from}`;
+      
+      // Known route distances (in km)
+      const knownDistances: { [key: string]: number } = {
+        'JFK-LAX': 3944, 'LAX-JFK': 3944,
+        'JFK-LHR': 5549, 'LHR-JFK': 5549,
+        'LAX-NRT': 8815, 'NRT-LAX': 8815,
+        'BOM-DXB': 1925, 'DXB-BOM': 1925,
+        'DEL-BOM': 1138, 'BOM-DEL': 1138,
+        'SYD-LAX': 12051, 'LAX-SYD': 12051,
+      };
+      
+      if (knownDistances[routeKey]) return knownDistances[routeKey];
+      if (knownDistances[reverseKey]) return knownDistances[reverseKey];
+      
+      // Estimate based on route type and duration
+      if (isInternalRoute) {
+        return flightDuration * 600; // ~600 km/hour average
+      } else {
+        return flightDuration * 800; // ~800 km/hour average for jets
+      }
+    };
+    
+    const distance = getDistance(from, to);
+    
+    // Calculate price breakdown
+    const baseFare = Math.round(finalPriceWithFloor * 0.65);
+    const taxes = Math.round(finalPriceWithFloor * 0.25);
+    const fees = finalPriceWithFloor - baseFare - taxes;
     
     return {
       id: `${airline.code}${Math.floor(Math.random() * 9000) + 1000}-${i}`,
@@ -404,10 +487,35 @@ export const generateMockFlights = (from: string, to: string, date: string): Fli
       departTime,
       arriveTime,
       duration: `${flightDuration}h ${Math.floor(Math.random() * 50) + 10}m`,
-      price: Math.max(adjustedPrice, 150), // Minimum price floor
+      price: finalPriceWithFloor,
       stops,
-      aircraft,
+      aircraft: aircraft === '77W' ? 'Boeing 777-300ER' : 
+               aircraft === '380' ? 'Airbus A380' : 
+               aircraft === '787' ? 'Boeing 787 Dreamliner' : 
+               aircraft === '350' ? 'Airbus A350' : 
+               aircraft === '320' ? 'Airbus A320' : 
+               aircraft === '321' ? 'Airbus A321' : 
+               aircraft === '737' ? 'Boeing 737' : 
+               `Aircraft ${aircraft}`,
       travelClass,
+      // Enhanced information
+      availability: {
+        economyAvailable: Math.max(0, economyAvailable),
+        businessAvailable: Math.max(0, businessAvailable),
+        firstAvailable: Math.max(0, firstAvailable),
+        totalSeats: capacity.total,
+        bookingClass: travelClass === 'economy' ? 'Y' : 
+                     travelClass === 'premium-economy' ? 'W' : 
+                     travelClass === 'business' ? 'J' : 'F'
+      },
+      routeType,
+      distance,
+      priceBreakdown: {
+        baseFare,
+        taxes,
+        fees,
+        total: finalPriceWithFloor
+      }
     };
   }).sort((a, b) => a.price - b.price);
 };

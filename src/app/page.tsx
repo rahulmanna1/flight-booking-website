@@ -6,6 +6,8 @@ import Header from '@/components/ui/Header';
 import FlightResults from '@/components/FlightResults';
 import RecentSearches from '@/components/RecentSearches';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
+import RecentSearchesSkeleton from '@/components/skeletons/RecentSearchesSkeleton';
+import KeyboardNavigationHelp from '@/components/accessibility/KeyboardNavigationHelp';
 import { Plane, Clock, Shield, Globe } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 
@@ -29,7 +31,9 @@ export default function Home() {
     removeRecentSearch, 
     clearRecentSearches,
     getPopularRoutes,
-    isClient 
+    getPopularDestinations,
+    isClient,
+    isLoading 
   } = useRecentSearches();
 
   const handleSearch = (data: SearchData) => {
@@ -65,6 +69,21 @@ export default function Home() {
     handleSearch(data);
   };
 
+  const handleSelectDestination = (destinationCode: string) => {
+    // Pre-fill destination in search form
+    // You could implement this by passing the destination to the search form component
+    // For now, we'll create a basic search with common defaults
+    const data: SearchData = {
+      from: 'JFK', // Default origin, could be user's location or most common origin
+      to: destinationCode,
+      departDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days from now
+      passengers: 1,
+      tripType: 'roundtrip',
+      travelClass: 'economy'
+    };
+    handleSearch(data);
+  };
+
   if (showResults && searchData) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -96,15 +115,23 @@ export default function Home() {
           <ImprovedSearchForm onSearch={handleSearch} />
           
           {/* Recent Searches */}
-          {isClient && (recentSearches.length > 0 || getPopularRoutes().length > 0) && (
+          {isClient && (
             <div className="mt-8">
-              <RecentSearches
-                searches={recentSearches}
-                onSelectSearch={handleSelectRecentSearch}
-                onRemoveSearch={removeRecentSearch}
-                onClearAll={clearRecentSearches}
-                popularRoutes={getPopularRoutes()}
-              />
+              {isLoading ? (
+                <RecentSearchesSkeleton />
+              ) : (recentSearches.length > 0 || getPopularRoutes().length > 0 || getPopularDestinations().length > 0) ? (
+                <div className="animate-fade-in">
+                  <RecentSearches
+                    searches={recentSearches}
+                    onSelectSearch={handleSelectRecentSearch}
+                    onRemoveSearch={removeRecentSearch}
+                    onClearAll={clearRecentSearches}
+                    popularRoutes={getPopularRoutes()}
+                    popularDestinations={getPopularDestinations()}
+                    onSelectDestination={handleSelectDestination}
+                  />
+                </div>
+              ) : null}
             </div>
           )}
         </div>
@@ -220,6 +247,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      {/* Keyboard Navigation Help */}
+      <KeyboardNavigationHelp />
     </div>
   );
 }

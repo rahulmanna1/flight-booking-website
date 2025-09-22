@@ -1,12 +1,34 @@
 'use client';
 
 import Link from 'next/link';
-import { Plane, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Plane, Menu, X, User, LogOut, Settings, BookOpen, Bell } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import CurrencySelector from './CurrencySelector';
+import NotificationCenter from '../notifications/NotificationCenter';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    setIsUserMenuOpen(false);
+  };
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -31,6 +53,9 @@ export default function Header() {
             <Link href="/bookings" className="text-gray-700 hover:text-blue-600 transition-colors">
               My Bookings
             </Link>
+            <Link href="/price-alerts" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Price Alerts
+            </Link>
             <Link href="/support" className="text-gray-700 hover:text-blue-600 transition-colors">
               Support
             </Link>
@@ -39,18 +64,96 @@ export default function Header() {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center space-x-4">
             <CurrencySelector />
-            <Link
-              href="/login"
-              className="text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              Sign Up
-            </Link>
+            
+            {isAuthenticated && user ? (
+              <>
+                <NotificationCenter />
+                <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="font-medium">{user.firstName}</span>
+                </button>
+                
+                {/* User Dropdown Menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                    <div className="py-2">
+                      <div className="px-4 py-2 border-b border-gray-200">
+                        <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                      </div>
+                      
+                      <Link
+                        href="/dashboard"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Profile
+                      </Link>
+                      
+                      <Link
+                        href="/bookings"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        My Bookings
+                      </Link>
+                      
+                      <Link
+                        href="/price-alerts"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Bell className="w-4 h-4 mr-2" />
+                        Price Alerts
+                      </Link>
+                      
+                      <Link
+                        href="/settings"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                      </Link>
+                      
+                      <hr className="my-2" />
+                      
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                      >
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -90,6 +193,13 @@ export default function Header() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 My Bookings
+              </Link>
+              <Link 
+                href="/price-alerts" 
+                className="text-gray-700 hover:text-blue-600 transition-colors"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Price Alerts
               </Link>
               <Link 
                 href="/support" 

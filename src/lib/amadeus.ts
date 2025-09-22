@@ -9,18 +9,51 @@ const amadeus = new Amadeus({
 
 // Airport code mapping for Amadeus (IATA codes)
 export const AMADEUS_AIRPORT_CODES = {
-  'JFK': 'JFK', // John F. Kennedy International
-  'LAX': 'LAX', // Los Angeles International
-  'LHR': 'LHR', // London Heathrow
-  'CDG': 'CDG', // Charles de Gaulle
-  'NRT': 'NRT', // Tokyo Narita International
-  'DXB': 'DXB', // Dubai International
-  'SYD': 'SYD', // Sydney Kingsford Smith
-  'SFO': 'SFO', // San Francisco International
-  'ORD': 'ORD', // Chicago O'Hare International
-  'MIA': 'MIA', // Miami International
-  'FCO': 'FCO', // Leonardo da Vinci–Fiumicino
-  'AMS': 'AMS', // Amsterdam Airport Schiphol
+  // North America
+  'JFK': 'JFK', 'LAX': 'LAX', 'ORD': 'ORD', 'SFO': 'SFO', 'MIA': 'MIA', 'DEN': 'DEN',
+  'SEA': 'SEA', 'ATL': 'ATL', 'DFW': 'DFW', 'LAS': 'LAS', 'PHX': 'PHX', 'BOS': 'BOS',
+  'EWR': 'EWR', 'LGA': 'LGA', 'DCA': 'DCA', 'IAD': 'IAD', 'BWI': 'BWI', 'MCO': 'MCO',
+  'FLL': 'FLL', 'TPA': 'TPA', 'SAN': 'SAN', 'MSP': 'MSP', 'DTW': 'DTW', 'CLT': 'CLT',
+  'PHL': 'PHL', 'SLC': 'SLC', 'PDX': 'PDX', 'HNL': 'HNL', 'ANC': 'ANC',
+  
+  // Canada
+  'YYZ': 'YYZ', 'YVR': 'YVR', 'YUL': 'YUL', 'YYC': 'YYC', 'YOW': 'YOW', 'YHZ': 'YHZ',
+  'YWG': 'YWG', 'YEG': 'YEG',
+  
+  // Mexico
+  'MEX': 'MEX', 'CUN': 'CUN', 'GDL': 'GDL', 'MTY': 'MTY',
+  
+  // Europe
+  'LHR': 'LHR', 'LGW': 'LGW', 'STN': 'STN', 'LTN': 'LTN', 'MAN': 'MAN', 'EDI': 'EDI',
+  'CDG': 'CDG', 'ORY': 'ORY', 'NCE': 'NCE', 'LYS': 'LYS',
+  'FRA': 'FRA', 'MUC': 'MUC', 'DUS': 'DUS', 'TXL': 'TXL',
+  'AMS': 'AMS', 'MAD': 'MAD', 'BCN': 'BCN', 'FCO': 'FCO', 'MXP': 'MXP',
+  'ZUR': 'ZUR', 'GVA': 'GVA', 'VIE': 'VIE', 'BRU': 'BRU', 'LUX': 'LUX',
+  'ARN': 'ARN', 'CPH': 'CPH', 'OSL': 'OSL', 'HEL': 'HEL',
+  'WAW': 'WAW', 'PRG': 'PRG', 'BUD': 'BUD', 'ATH': 'ATH', 'LIS': 'LIS',
+  'DUB': 'DUB', 'KEF': 'KEF', 'IST': 'IST',
+  
+  // Asia-Pacific
+  'NRT': 'NRT', 'HND': 'HND', 'KIX': 'KIX', 'ICN': 'ICN', 'GMP': 'GMP',
+  'PEK': 'PEK', 'PVG': 'PVG', 'CAN': 'CAN', 'SIN': 'SIN', 'HKG': 'HKG',
+  'BKK': 'BKK', 'DMK': 'DMK', 'KUL': 'KUL', 'CGK': 'CGK', 'MNL': 'MNL',
+  'SYD': 'SYD', 'MEL': 'MEL', 'AKL': 'AKL', 'TPE': 'TPE',
+  
+  // India
+  'BOM': 'BOM', 'DEL': 'DEL', 'CCU': 'CCU', 'BLR': 'BLR', 'MAA': 'MAA',
+  'HYD': 'HYD', 'AMD': 'AMD', 'COK': 'COK', 'PNQ': 'PNQ', 'GOI': 'GOI',
+  
+  // Middle East
+  'DXB': 'DXB', 'AUH': 'AUH', 'DOH': 'DOH', 'KWI': 'KWI', 'BAH': 'BAH',
+  'RUH': 'RUH', 'JED': 'JED', 'TLV': 'TLV',
+  
+  // Africa
+  'CAI': 'CAI', 'JNB': 'JNB', 'CPT': 'CPT', 'LOS': 'LOS', 'ADD': 'ADD',
+  'NBO': 'NBO', 'CMN': 'CMN',
+  
+  // South America
+  'GRU': 'GRU', 'GIG': 'GIG', 'EZE': 'EZE', 'BOG': 'BOG', 'LIM': 'LIM',
+  'SCL': 'SCL', 'BSB': 'BSB'
 };
 
 // Flight search interface matching our current structure

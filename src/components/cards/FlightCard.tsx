@@ -1,8 +1,11 @@
 'use client';
 
-import { Clock, Plane, MapPin, Calendar, Users, Info, Wifi, Utensils, Monitor, Zap } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Clock, Plane, MapPin, Calendar, Users, Info, Wifi, Utensils, Monitor, Zap, Eye } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getAircraftAmenities, getFeatureList } from '@/lib/aircraftDatabase';
+import FlightDetailsModal from '../FlightDetailsModal';
+import PriceAlertButton from '../price-alerts/PriceAlertButton';
 
 // Airport name mapping for better user experience
 const AIRPORT_NAMES = {
@@ -44,6 +47,15 @@ interface FlightCardProps {
     travelClass?: string;
   };
   onSelect: (flightId: string) => void;
+  searchData?: {
+    from: string;
+    to: string;
+    departDate: string;
+    returnDate?: string;
+    passengers: number;
+    tripType: 'roundtrip' | 'oneway';
+    travelClass?: string;
+  };
 }
 
 // Get airline logo/color based on airline name
@@ -94,16 +106,61 @@ const getTravelClassInfo = (travelClass: string | undefined) => {
   }
 };
 
-export default function FlightCard({ flight, onSelect }: FlightCardProps) {
+export default function FlightCard({ flight, onSelect, searchData }: FlightCardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { formatPrice } = useCurrency();
   const airlineInfo = getAirlineInfo(flight.airline);
   const aircraftInfo = getAircraftFeatures(flight.aircraft, flight.airline);
   const travelClassInfo = getTravelClassInfo(flight.travelClass);
   
+  // Refs for keyboard navigation
+  const cardRef = useRef<HTMLDivElement>(null);
+  const viewDetailsButtonRef = useRef<HTMLButtonElement>(null);
+  const selectFlightButtonRef = useRef<HTMLButtonElement>(null);
+  const priceAlertButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case 'Enter':
+        // Select flight when Enter is pressed on the card itself
+        if (e.target === cardRef.current) {
+          onSelect(flight.id);
+        }
+        break;
+      case ' ':
+        // Space bar on the card activates the select button
+        if (e.target === cardRef.current) {
+          e.preventDefault(); // Prevent page scrolling
+          selectFlightButtonRef.current?.click();
+        }
+        break;
+      case 'Tab':
+        // Let Tab handle normal browser behavior
+        break;
+      case 'ArrowDown':
+        // Inside the card, move focus to the select button
+        if (e.target === cardRef.current) {
+          e.preventDefault();
+          selectFlightButtonRef.current?.focus();
+        }
+        break;
+      default:
+        break;
+    }
+  };
+  
   const getAirportName = (code: string) => AIRPORT_NAMES[code] || code;
   
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:border-blue-300">
+    <div 
+      ref={cardRef}
+      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      tabIndex={0}
+      role="article"
+      aria-label={`Flight ${flight.flightNumber} from ${flight.origin} to ${flight.destination}, ${formatPrice(flight.price)}`}
+      onKeyDown={handleKeyDown}
+    >
       {/* Header - Airline and Price */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-4">
@@ -238,14 +295,60 @@ export default function FlightCard({ flight, onSelect }: FlightCardProps) {
         <span className="text-xs text-gray-500">Taxes & fees included</span>
       </div>
 
-      {/* Select Button */}
-      <button
-        onClick={() => onSelect(flight.id)}
-        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 shadow-md hover:shadow-lg"
-      >
-        <span>Select This Flight</span>
-        <Plane className="w-4 h-4" />
-      </button>
+      {/* Action Buttons */}
+      <div className="space-y-3">
+        {/* Price Alert and View Details Row */}
+        <div className="flex space-x-3">
+          {/* Price Alert Button */}
+          {searchData && (
+            <div className="flex-1">
+              <PriceAlertButton 
+                flightData={{
+                  origin: flight.origin,
+                  destination: flight.destination,
+                  departTime: flight.departTime,
+                  price: flight.price,
+                  airline: flight.airline,
+                  flightNumber: flight.flightNumber,
+                  travelClass: flight.travelClass
+                }}
+                searchData={searchData}
+              />
+            </div>
+          )}
+          
+          {/* View Details Button */}
+          <div className="flex-1">
+            <button
+              ref={viewDetailsButtonRef}
+              onClick={() => setIsModalOpen(true)}
+              className="w-full bg-white text-blue-600 py-2.5 px-6 rounded-lg hover:bg-blue-50 transition-all duration-200 font-medium flex items-center justify-center space-x-2 border border-blue-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label={`View details for flight ${flight.flightNumber}`}
+            >
+              <Eye className="w-4 h-4" />
+              <span>View Details</span>
+            </button>
+          </div>
+        </div>
+        
+        {/* Select Button */}
+        <button
+          ref={selectFlightButtonRef}
+          onClick={() => onSelect(flight.id)}
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 font-semibold flex items-center justify-center space-x-2 shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label={`Select flight ${flight.flightNumber} for ${formatPrice(flight.price)}`}
+        >
+          <span>Select This Flight</span>
+          <Plane className="w-4 h-4" />
+        </button>
+      </div>
+      
+      {/* Flight Details Modal */}
+      <FlightDetailsModal
+        flight={flight}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

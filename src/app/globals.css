@@ -24,3 +24,51 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Fix text color issues in form inputs and selects */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="password"],
+select,
+textarea {
+  color: #1f2937 !important; /* Dark gray text */
+  background-color: #ffffff !important; /* White background */
+}
+
+/* Ensure placeholder text is visible */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af !important; /* Gray placeholder */
+}
+
+/* Custom animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="password"],
+  select,
+  textarea {
+    color: #1f2937 !important; /* Keep dark text even in dark mode */
+    background-color: #ffffff !important; /* Keep white background */
+  }
+}

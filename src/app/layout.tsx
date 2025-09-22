@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { CurrencyProvider } from '@/contexts/CurrencyContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { PriceAlertProvider } from '@/contexts/PriceAlertContext';
 import Footer from '@/components/ui/Footer';
 import "./globals.css";
 
@@ -29,14 +31,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CurrencyProvider>
-          <div className="min-h-screen flex flex-col">
-            <main className="flex-grow">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </CurrencyProvider>
+        <AuthProvider>
+          <CurrencyProvider>
+            <PriceAlertProvider>
+              <div className="min-h-screen flex flex-col">
+                <main className="flex-grow">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </PriceAlertProvider>
+          </CurrencyProvider>
+        </AuthProvider>
       </body>
     </html>
   );

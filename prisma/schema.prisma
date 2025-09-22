@@ -1,0 +1,293 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and user management
+model User {
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  password              String
+  firstName             String
+  lastName              String
+  avatar                String?
+  phone                 String?
+  dateOfBirth           String?
+  nationality           String?
+  
+  // User preferences stored as JSON
+  preferences           String   @default("{\"currency\":\"USD\",\"language\":\"en\",\"notifications\":{\"email\":true,\"sms\":false,\"push\":true}}")
+  
+  // Frequent flyer numbers stored as JSON array
+  frequentFlyerNumbers  String?  @default("[]")
+  
+  // Timestamps
+  createdAt             DateTime @default(now())
+  lastLogin             DateTime?
+  updatedAt             DateTime @updatedAt
+  
+  // Relations
+  bookings              Booking[]
+  priceAlerts           PriceAlert[]
+  notifications         Notification[]
+  
+  @@map("users")
+}
+
+// Booking model for flight reservations
+model Booking {
+  id                    String      @id @default(cuid())
+  bookingReference      String      @unique
+  confirmationNumber    String      @unique
+  status                BookingStatus @default(CONFIRMED)
+  
+  // User relationship
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Flight information stored as JSON for flexibility
+  flightData            String
+  
+  // Passenger information stored as JSON array
+  passengers            String
+  
+  // Pricing breakdown stored as JSON
+  pricing               String
+  
+  // Contact information stored as JSON
+  contactInfo           String
+  
+  // Payment information stored as JSON (sensitive data should be encrypted)
+  paymentInfo           String
+  
+  // Timestamps
+  bookingDate           DateTime    @default(now())
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  CONFIRMED
+  PENDING
+  CANCELLED
+  COMPLETED
+  REFUNDED
+}
+
+// Price Alert model for flight price monitoring
+model PriceAlert {
+  id                    String      @id @default(cuid())
+  
+  // User relationship
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Flight search parameters
+  origin                String
+  destination           String
+  departureDate         String
+  returnDate            String?
+  tripType              TripType    @default(ONE_WAY)
+  
+  // Passenger information stored as JSON
+  passengers            String      @default("{\"adults\":1,\"children\":0,\"infants\":0}")
+  
+  cabinClass            CabinClass  @default(ECONOMY)
+  
+  // Alert settings
+  targetPrice           Float
+  currency              String      @default("USD")
+  currentPrice          Float?
+  isActive              Boolean     @default(true)
+  alertType             AlertType   @default(PRICE_BELOW)
+  frequency             AlertFrequency @default(DAILY)
+  
+  // Notification preferences
+  emailNotifications    Boolean     @default(true)
+  pushNotifications     Boolean     @default(true)
+  
+  // Price history stored as JSON array
+  priceHistory          String      @default("[]")
+  
+  // Timestamps
+  lastChecked           DateTime?
+  expiresAt             DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  // Relations
+  notifications         Notification[]
+  
+  @@map("price_alerts")
+}
+
+enum TripType {
+  ONE_WAY
+  ROUND_TRIP
+}
+
+enum CabinClass {
+  ECONOMY
+  PREMIUM_ECONOMY
+  BUSINESS
+  FIRST
+}
+
+enum AlertType {
+  PRICE_DROP
+  PRICE_BELOW
+  PRICE_ABOVE
+}
+
+enum AlertFrequency {
+  IMMEDIATE
+  DAILY
+  WEEKLY
+}
+
+// Notification model for price alerts and booking updates
+model Notification {
+  id                    String      @id @default(cuid())
+  
+  // User relationship
+  userId                String
+  user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Price alert relationship (optional - for price alert notifications)
+  priceAlertId          String?
+  priceAlert            PriceAlert? @relation(fields: [priceAlertId], references: [id], onDelete: Cascade)
+  
+  // Notification details
+  type                  NotificationType
+  title                 String
+  message               String
+  
+  // Price change details (for price alerts)
+  previousPrice         Float?
+  currentPrice          Float?
+  changeAmount          Float?
+  changePercent         Float?
+  
+  // Notification delivery
+  channels              String      @default("[]")
+  
+  // Status tracking
+  readAt                DateTime?
+  sentAt                DateTime?
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@map("notifications")
+}
+
+enum NotificationType {
+  PRICE_DROP
+  TARGET_REACHED
+  PRICE_INCREASE
+  BOOKING_CONFIRMATION
+  BOOKING_REMINDER
+  FLIGHT_DELAYED
+  FLIGHT_CANCELLED
+  CHECK_IN_REMINDER
+  GENERAL
+}
+
+// Flight data model for caching and search optimization
+model Flight {
+  id                    String      @id @default(cuid())
+  
+  // Basic flight information
+  airline               String
+  flightNumber          String
+  aircraftType          String?
+  
+  // Route information
+  origin                String
+  destination           String
+  departureTime         String
+  arrivalTime           String
+  departureDate         String
+  arrivalDate           String?
+  duration              String
+  stops                 Int         @default(0)
+  
+  // Pricing and availability
+  basePrice             Float
+  currency              String      @default("USD")
+  availableSeats        Int?
+  
+  // Cabin classes with pricing stored as JSON
+  cabinClasses          String      @default("{}")
+  
+  // Additional flight details stored as JSON
+  additionalInfo        String      @default("{}")
+  
+  // Cache metadata
+  validUntil            DateTime
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  // Indexes for search optimization
+  @@index([origin, destination, departureDate])
+  @@index([airline, flightNumber])
+  @@index([validUntil])
+  @@map("flights")
+}
+
+// Session model for authentication tokens (optional - if not using JWT)
+model Session {
+  id                    String      @id @default(cuid())
+  sessionToken          String      @unique
+  userId                String
+  expires               DateTime
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@map("sessions")
+}
+
+// Airport data model for search and autocomplete
+model Airport {
+  id                    String      @id @default(cuid())
+  iataCode              String      @unique
+  icaoCode              String?
+  name                  String
+  city                  String
+  country               String
+  countryCode           String
+  timezone              String?
+  latitude              Float?
+  longitude             Float?
+  elevation             Int?
+  
+  // Additional airport information stored as JSON
+  additionalInfo        String      @default("{}")
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  // Indexes for search optimization
+  @@index([iataCode])
+  @@index([city, country])
+  @@index([name])
+  @@map("airports")
+}

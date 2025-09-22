@@ -5,9 +5,14 @@ import FlightCard from './cards/FlightCard';
 import BookingForm from './forms/BookingForm';
 import FlightFilters, { FlightFilters as FilterType } from './FlightFilters';
 import FlightResultsSkeleton from './FlightResultsSkeleton';
-import { ArrowLeft, Filter, X, Loader2, Plane, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Filter, X, Loader2, Plane, RefreshCw, AlertCircle, Settings, Calendar, GitCompare } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { hasAmenity } from '@/lib/aircraftDatabase';
+import AdvancedSearch from './search/AdvancedSearch';
+import FlexibleDateSearch from './search/FlexibleDateSearch';
+import EnhancedSorting, { EnhancedSortOptions } from './search/EnhancedSorting';
+import FlightComparison from './search/FlightComparison';
+import KeyboardNavigationHelp from './accessibility/KeyboardNavigationHelp';
 
 // Airport display component
 interface AirportDisplayProps {
@@ -140,6 +145,16 @@ interface Flight {
   stops?: number;
   aircraft?: string;
   travelClass?: string;
+  amenities?: string[] | {
+    wifi?: boolean;
+    meals?: boolean;
+    entertainment?: boolean;
+    powerOutlets?: boolean;
+  };
+  layovers?: Array<{
+    airport: string;
+    duration: string;
+  }>;
 }
 
 interface FlightResultsProps {
@@ -168,6 +183,13 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   const [showFilters, setShowFilters] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [enhancedSortOptions, setEnhancedSortOptions] = useState<EnhancedSortOptions>({
+    primary: { field: 'price', direction: 'asc', weight: 10 }
+  });
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showFlexibleDates, setShowFlexibleDates] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [selectedFlightsForComparison, setSelectedFlightsForComparison] = useState<string[]>([]);
   const { formatPrice, convertPrice } = useCurrency();
 
   // Fetch flights and airport details from APIs
@@ -368,18 +390,72 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
 
   const handleBookingSubmit = async (bookingData: any) => {
     setBookingLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
     
-    console.log('Booking submitted:', {
-      flight: selectedFlight,
-      passenger: bookingData,
-      searchData
-    });
-    
-    alert(`Booking confirmed! Flight ${selectedFlight?.flightNumber} has been booked successfully.`);
-    setBookingLoading(false);
-    setShowBookingModal(false);
-    setSelectedFlight(null);
+    try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        alert('Please log in to complete your booking.');
+        return;
+      }
+
+      const bookingRequest = {
+        flightId: selectedFlight?.id,
+        flightData: {
+          airline: selectedFlight?.airline,
+          flightNumber: selectedFlight?.flightNumber,
+          origin: selectedFlight?.origin || searchData.from,
+          destination: selectedFlight?.destination || searchData.to,
+          departureTime: selectedFlight?.departTime,
+          arrivalTime: selectedFlight?.arriveTime,
+          departureDate: searchData.departDate,
+          duration: selectedFlight?.duration,
+          aircraft: selectedFlight?.aircraft,
+          class: selectedFlight?.travelClass || searchData.travelClass || 'economy'
+        },
+        passengers: [bookingData],
+        pricing: {
+          basePrice: selectedFlight?.price,
+          totalPrice: selectedFlight?.price * searchData.passengers,
+          currency: 'USD',
+          passengers: searchData.passengers
+        },
+        contactInfo: {
+          email: bookingData.email,
+          phone: bookingData.phone
+        },
+        paymentInfo: {
+          method: bookingData.paymentMethod || 'card',
+          // Don't store sensitive payment info in real implementation
+        }
+      };
+
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(bookingRequest),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(`Booking confirmed! Confirmation number: ${result.data.bookingReference}. Flight ${selectedFlight?.flightNumber} has been booked successfully.`);
+        setShowBookingModal(false);
+        setSelectedFlight(null);
+        
+        // Optionally redirect to bookings page
+        // window.location.href = '/bookings';
+      } else {
+        throw new Error(result.error || 'Failed to create booking');
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert(`Booking failed: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   const handleCloseBooking = () => {
@@ -449,6 +525,38 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
     }
   };
 
+  // Handlers for advanced search components
+  const handleAdvancedSearchApply = (filters: any) => {
+    console.log('Advanced search filters:', filters);
+    setShowAdvancedSearch(false);
+  };
+  
+  const handleFlexibleDateSelect = (departDate: string, returnDate?: string) => {
+    const newSearchData = {
+      ...searchData,
+      departDate,
+      returnDate: returnDate || searchData.returnDate
+    };
+    console.log('New dates selected:', { departDate, returnDate });
+    setShowFlexibleDates(false);
+  };
+  
+  const handleEnhancedSortChange = (sortOptions: EnhancedSortOptions) => {
+    setEnhancedSortOptions(sortOptions);
+    setSortBy(''); // Clear simple sort when using enhanced sort
+  };
+  
+  const toggleFlightForComparison = (flightId: string) => {
+    setSelectedFlightsForComparison(prev => {
+      if (prev.includes(flightId)) {
+        return prev.filter(id => id !== flightId);
+      } else if (prev.length < 4) { // Max 4 flights for comparison
+        return [...prev, flightId];
+      }
+      return prev;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Booking Modal */}
@@ -482,10 +590,47 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         </div>
       )}
 
+      {/* Advanced Search Modal */}
+      {showAdvancedSearch && (
+        <AdvancedSearch
+          isOpen={showAdvancedSearch}
+          onClose={() => setShowAdvancedSearch(false)}
+          onApply={handleAdvancedSearchApply}
+        />
+      )}
+      
+      {/* Flexible Date Search Modal */}
+      {showFlexibleDates && (
+        <FlexibleDateSearch
+          origin={searchData.from}
+          destination={searchData.to}
+          initialDepartDate={searchData.departDate}
+          initialReturnDate={searchData.returnDate}
+          tripType={searchData.tripType as 'oneway' | 'roundtrip'}
+          passengers={searchData.passengers}
+          travelClass={searchData.travelClass || 'economy'}
+          onDateSelect={handleFlexibleDateSelect}
+          onClose={() => setShowFlexibleDates(false)}
+        />
+      )}
+      
+      {/* Flight Comparison Modal */}
+      {showComparison && (
+        <FlightComparison
+          flights={flights}
+          selectedFlightIds={selectedFlightsForComparison}
+          onClose={() => setShowComparison(false)}
+          onSelectFlight={(flightId) => {
+            handleFlightSelect(flightId);
+            setShowComparison(false);
+          }}
+        />
+      )}
+
       {/* Main Layout with Sidebar */}
-      <div className="flex h-screen">
+      <div className="flex">
         {/* Filter Sidebar */}
-        <div className={`${showFilters ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden md:block ${showFilters ? '' : 'hidden'}`}>
+        <div className={`${showFilters ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden md:block ${showFilters ? '' : 'hidden'} sticky top-0 h-screen overflow-y-auto`}>
           <FlightFilters
             flights={flights}
             onFiltersChange={handleFiltersChange}
@@ -496,7 +641,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         </div>
         
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -616,6 +761,38 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
               </div>
               
               <div className="flex items-center space-x-4">
+                {/* Advanced Search Tools */}
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => setShowAdvancedSearch(true)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Advanced</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowFlexibleDates(true)}
+                    className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>Flexible Dates</span>
+                  </button>
+                  
+                  <button
+                    onClick={() => setShowComparison(true)}
+                    disabled={selectedFlightsForComparison.length < 2}
+                    className={`flex items-center space-x-2 px-3 py-2 text-sm border rounded-md ${
+                      selectedFlightsForComparison.length >= 2 
+                        ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100' 
+                        : 'border-gray-300 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    <GitCompare className="w-4 h-4" />
+                    <span>Compare ({selectedFlightsForComparison.length})</span>
+                  </button>
+                </div>
+                
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-500" />
                   <span className="text-sm text-gray-700">Sort by:</span>
@@ -715,16 +892,70 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
               </div>
             )}
 
+            {/* Enhanced Sorting Component */}
+            {!loading && !error && flights.length > 0 && (
+              <div className="mb-6">
+                <EnhancedSorting
+                  onSortChange={handleEnhancedSortChange}
+                  initialSort={enhancedSortOptions}
+                  className="mb-4"
+                />
+              </div>
+            )}
+
             {/* Flight Results */}
             {!loading && !error && flights.length > 0 && (
               <div className="space-y-4">
                 {sortedFlights.map((flight) => (
-                  <FlightCard
-                    key={flight.id}
-                    flight={flight}
-                    onSelect={handleFlightSelect}
-                  />
+                  <div key={flight.id} className="relative mb-4">
+                    <FlightCard
+                      flight={flight}
+                      onSelect={handleFlightSelect}
+                      searchData={searchData}
+                    />
+                    
+                    {/* Comparison Checkbox - positioned below the card for better UX */}
+                    <div className="absolute bottom-4 left-6 z-10">
+                      <label className="flex items-center space-x-2 bg-blue-600 text-white px-3 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedFlightsForComparison.includes(flight.id)}
+                          onChange={() => toggleFlightForComparison(flight.id)}
+                          className="rounded border-white text-blue-600 focus:ring-blue-500 bg-white"
+                          disabled={!selectedFlightsForComparison.includes(flight.id) && selectedFlightsForComparison.length >= 4}
+                        />
+                        <span className="text-sm font-medium">Add to Compare</span>
+                        {selectedFlightsForComparison.includes(flight.id) && (
+                          <span className="bg-white text-blue-600 px-2 py-1 rounded text-xs font-bold">✓</span>
+                        )}
+                      </label>
+                    </div>
+                  </div>
                 ))}
+                
+                {/* Comparison Summary */}
+                {selectedFlightsForComparison.length > 0 && (
+                  <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+                    <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-4 py-3 flex items-center space-x-4">
+                      <span className="text-sm text-gray-600">
+                        {selectedFlightsForComparison.length} flight{selectedFlightsForComparison.length !== 1 ? 's' : ''} selected for comparison
+                      </span>
+                      <button
+                        onClick={() => setSelectedFlightsForComparison([])}
+                        className="text-sm text-red-600 hover:text-red-800"
+                      >
+                        Clear
+                      </button>
+                      <button
+                        onClick={() => setShowComparison(true)}
+                        disabled={selectedFlightsForComparison.length < 2}
+                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Compare Now
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -746,6 +977,9 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
           </div>
         </div>
       </div>
+      
+      {/* Keyboard Navigation Help */}
+      <KeyboardNavigationHelp />
     </div>
   );
 }

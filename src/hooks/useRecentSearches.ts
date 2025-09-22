@@ -22,24 +22,36 @@ const MAX_RECENT_SEARCHES = 10;
 export function useRecentSearches() {
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load recent searches from localStorage
   useEffect(() => {
-    setIsClient(true);
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          // Sort by timestamp (most recent first)
-          const sorted = parsed.sort((a: RecentSearch, b: RecentSearch) => b.timestamp - a.timestamp);
-          setRecentSearches(sorted.slice(0, MAX_RECENT_SEARCHES));
+    const loadRecentSearches = async () => {
+      setIsClient(true);
+      setIsLoading(true);
+      
+      if (typeof window !== 'undefined') {
+        try {
+          // Simulate a small delay to show loading state (remove in production if not needed)
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            // Sort by timestamp (most recent first)
+            const sorted = parsed.sort((a: RecentSearch, b: RecentSearch) => b.timestamp - a.timestamp);
+            setRecentSearches(sorted.slice(0, MAX_RECENT_SEARCHES));
+          }
+        } catch (error) {
+          console.error('Error loading recent searches:', error);
+          setRecentSearches([]);
         }
-      } catch (error) {
-        console.error('Error loading recent searches:', error);
-        setRecentSearches([]);
       }
-    }
+      
+      setIsLoading(false);
+    };
+    
+    loadRecentSearches();
   }, []);
 
   // Save recent searches to localStorage
@@ -117,12 +129,63 @@ export function useRecentSearches() {
       });
   };
 
+  // Get popular destinations (cities/airports that appear most frequently as destinations)
+  const getPopularDestinations = () => {
+    const destinationCounts = new Map<string, { count: number; name?: string; city?: string }>();
+    
+    recentSearches.forEach(search => {
+      const existing = destinationCounts.get(search.to) || { count: 0 };
+      destinationCounts.set(search.to, {
+        count: existing.count + 1,
+        name: search.toName || existing.name,
+        city: search.toName?.split(' ')[0] || existing.city // Extract city name from airport name
+      });
+    });
+
+    return Array.from(destinationCounts.entries())
+      .sort(([,a], [,b]) => b.count - a.count)
+      .slice(0, 6)
+      .map(([code, data]) => ({
+        code,
+        count: data.count,
+        name: data.name,
+        city: data.city || code
+      }));
+  };
+
+  // Get popular departure cities/airports
+  const getPopularOrigins = () => {
+    const originCounts = new Map<string, { count: number; name?: string; city?: string }>();
+    
+    recentSearches.forEach(search => {
+      const existing = originCounts.get(search.from) || { count: 0 };
+      originCounts.set(search.from, {
+        count: existing.count + 1,
+        name: search.fromName || existing.name,
+        city: search.fromName?.split(' ')[0] || existing.city
+      });
+    });
+
+    return Array.from(originCounts.entries())
+      .sort(([,a], [,b]) => b.count - a.count)
+      .slice(0, 6)
+      .map(([code, data]) => ({
+        code,
+        count: data.count,
+        name: data.name,
+        city: data.city || code
+      }));
+  };
+
   return {
     recentSearches,
     addRecentSearch,
     removeRecentSearch,
     clearRecentSearches,
     getPopularRoutes,
-    isClient
+    getPopularDestinations,
+    getPopularOrigins,
+    isClient,
+    isLoading
   };
 }
