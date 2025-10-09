@@ -140,9 +140,10 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
         </div>
       </div>
 
-      {/* Form - Single Row Industry Standard Layout */}
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+      {/* Form - Two Row Clean Layout */}
+      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        {/* Row 1: Airport Selection */}
+        <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 items-end">
           {/* FROM - 3 columns */}
           <div className="lg:col-span-3">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -182,9 +183,12 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
               error={errors.to?.message}
             />
           </div>
-          
-          {/* DEPARTURE DATE - 2 columns */}
-          <div className="lg:col-span-2">
+        </div>
+        
+        {/* Row 2: Travel Details + Search Button */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+          {/* DEPARTURE DATE */}
+          <div className="lg:col-span-3">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Departure
             </label>
@@ -196,9 +200,9 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             />
           </div>
           
-          {/* RETURN DATE - 2 columns (conditional) */}
+          {/* RETURN DATE (conditional) */}
           {tripType === 'roundtrip' && (
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-3">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Return
               </label>
@@ -211,8 +215,8 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             </div>
           )}
           
-          {/* TRAVELERS - 1 column */}
-          <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-2'}>
+          {/* TRAVELERS */}
+          <div className={tripType === 'roundtrip' ? 'lg:col-span-2' : 'lg:col-span-3'}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Travelers
             </label>
@@ -235,8 +239,8 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             </div>
           </div>
           
-          {/* CLASS - 1 column */}
-          <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-1'}>
+          {/* CLASS */}
+          <div className={tripType === 'roundtrip' ? 'lg:col-span-2' : 'lg:col-span-3'}>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Class
             </label>
@@ -257,11 +261,34 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
               </div>
             </div>
           </div>
+          
+          {/* SEARCH BUTTON */}
+          <div className={tripType === 'roundtrip' ? 'lg:col-span-2' : 'lg:col-span-3'}>
+            <button
+              type="submit"
+              disabled={!watchedFrom || !watchedTo || watchedFrom === watchedTo}
+              className={`w-full py-4 px-6 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+                !watchedFrom || !watchedTo || watchedFrom === watchedTo
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95'
+              }`}
+            >
+              <Search className="w-5 h-5" />
+              <span>
+                {!watchedFrom || !watchedTo 
+                  ? 'Select Airports' 
+                  : watchedFrom === watchedTo
+                  ? 'Different Airports'
+                  : 'Search'
+                }
+              </span>
+            </button>
+          </div>
         </div>
         
-        {/* Error Messages */}
+        {/* Error Messages - Compact */}
         {(errors.from || errors.to || errors.departDate || errors.returnDate) && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="space-y-1">
               {errors.from && <p className="text-red-600 text-sm">• {errors.from.message}</p>}
               {errors.to && <p className="text-red-600 text-sm">• {errors.to.message}</p>}
@@ -270,69 +297,6 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             </div>
           </div>
         )}
-
-        {/* Search Button */}
-        <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
-          <button
-            type="submit"
-            disabled={!watchedFrom || !watchedTo || watchedFrom === watchedTo}
-            className={`w-full py-6 px-8 rounded-2xl font-bold text-xl transition-all duration-300 flex items-center justify-center gap-4 relative overflow-hidden group ${
-              !watchedFrom || !watchedTo || watchedFrom === watchedTo
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98]'
-            }`}
-          >
-            {/* Animated background shimmer */}
-            {watchedFrom && watchedTo && watchedFrom !== watchedTo && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out"></div>
-            )}
-            
-            <div className="p-3 rounded-full bg-white/20 group-hover:bg-white/30 transition-all relative z-10">
-              <Search className="w-6 h-6" />
-            </div>
-            
-            <span className="relative z-10">
-              {!watchedFrom || !watchedTo 
-                ? 'Please Select Airports' 
-                : watchedFrom === watchedTo
-                ? 'Select Different Airports'
-                : 'Search Flights'
-              }
-            </span>
-            
-            {watchedFrom && watchedTo && watchedFrom !== watchedTo && (
-              <div className="p-2 rounded-full bg-white/20 group-hover:bg-white/30 transition-all relative z-10">
-                <ArrowRight className="w-5 h-5" />
-              </div>
-            )}
-          </button>
-          
-          {/* Route preview */}
-          {watchedFrom && watchedTo && selectedFromAirport && selectedToAirport && watchedFrom !== watchedTo && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-              <div className="flex items-center justify-center gap-6 text-sm">
-                <div className="text-center">
-                  <div className="font-bold text-blue-900">{selectedFromAirport.iataCode}</div>
-                  <div className="text-blue-700 text-xs">{selectedFromAirport.city}</div>
-                </div>
-                <div className="flex items-center gap-2 text-blue-600">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                  <div className="w-8 h-0.5 bg-blue-600"></div>
-                  <Plane className="w-4 h-4" />
-                  <div className="w-8 h-0.5 bg-blue-600"></div>
-                  <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                </div>
-                <div className="text-center">
-                  <div className="font-bold text-blue-900">{selectedToAirport.iataCode}</div>
-                  <div className="text-blue-700 text-xs">{selectedToAirport.city}</div>
-                </div>
-              </div>
-              <div className="text-center mt-2">
-                <span className="text-blue-700 text-xs font-medium">Ready to search flights</span>
-              </div>
-            </div>
-          )}
-        </div>
       </form>
 
       {/* Popular Destinations - Enhanced */}
