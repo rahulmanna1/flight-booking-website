@@ -91,30 +91,30 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-2xl overflow-hidden max-w-7xl mx-auto border border-gray-200">
+    <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-w-7xl mx-auto border border-gray-200">
       {/* Header */}
-      <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-8 py-8">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-            Book Your Perfect Flight
-          </h2>
-          <p className="text-blue-100 text-lg">
-            Search and compare flights from top airlines worldwide
-          </p>
-        </div>
-        
-        {/* Trip Type Toggle */}
-        <div className="flex justify-center">
-          <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-2 inline-flex gap-2">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1">
+              Book Your Perfect Flight
+            </h2>
+            <p className="text-blue-100">
+              Search and compare flights from top airlines worldwide
+            </p>
+          </div>
+          
+          {/* Trip Type Toggle - Compact */}
+          <div className="bg-white/15 backdrop-blur-sm rounded-xl p-1 inline-flex gap-1">
             <button
               type="button"
               onClick={() => {
                 setTripType('roundtrip');
                 setValue('tripType', 'roundtrip');
               }}
-              className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
                 tripType === 'roundtrip' 
-                  ? 'bg-white text-blue-700 shadow-lg transform scale-105' 
+                  ? 'bg-white text-blue-700 shadow-md' 
                   : 'text-white/90 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -127,9 +127,9 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                 setTripType('oneway');
                 setValue('tripType', 'oneway');
               }}
-              className={`px-8 py-3 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 ${
                 tripType === 'oneway' 
-                  ? 'bg-white text-blue-700 shadow-lg transform scale-105' 
+                  ? 'bg-white text-blue-700 shadow-md' 
                   : 'text-white/90 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -140,206 +140,136 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className="p-8 lg:p-12 space-y-10">
-        {/* Airport Selection Section */}
-        <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-3xl p-8 border border-gray-200/50">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Plane className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">Flight Route</h3>
-              <p className="text-sm text-gray-600">Select your departure and destination airports</p>
-            </div>
+      {/* Form - Single Row Industry Standard Layout */}
+      <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+          {/* FROM - 3 columns */}
+          <div className="lg:col-span-3">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              From
+            </label>
+            <AirportSearchInput
+              label=""
+              placeholder="City or airport"
+              value={watchedFrom || ''}
+              onChange={handleFromAirportChange}
+              error={errors.from?.message}
+            />
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* From Airport */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-sm">FROM</span>
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900">Origin</h4>
-                  <p className="text-sm text-gray-600">Where are you flying from?</p>
-                </div>
-              </div>
-              <AirportSearchInput
-                label=""
-                placeholder="Search city or airport code"
-                value={watchedFrom || ''}
-                onChange={handleFromAirportChange}
-                error={errors.from?.message}
-              />
-            </div>
-            
-            {/* To Airport */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <span className="text-green-600 font-bold text-sm">TO</span>
-                </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900">Destination</h4>
-                  <p className="text-sm text-gray-600">Where would you like to go?</p>
-                </div>
-              </div>
-              <AirportSearchInput
-                label=""
-                placeholder="Search city or airport code"
-                value={watchedTo || ''}
-                onChange={handleToAirportChange}
-                error={errors.to?.message}
-              />
-            </div>
-          </div>
-          
-          {/* Swap Button - Centered between cards */}
-          <div className="flex justify-center mt-6">
+          {/* SWAP - 1 column */}
+          <div className="lg:col-span-1 flex justify-center items-end pb-3">
             <button
               type="button"
               onClick={handleSwapAirports}
-              className="group bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 active:scale-95 relative"
-              title="Swap departure and destination airports"
+              className="bg-gray-100 hover:bg-blue-50 border border-gray-300 hover:border-blue-400 text-gray-600 hover:text-blue-600 rounded-full p-2.5 transition-all duration-200"
+              title="Swap airports"
             >
-              <ArrowLeftRight className="w-6 h-6 transition-transform duration-300 group-hover:rotate-180" />
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full border-2 border-blue-500 flex items-center justify-center">
-                <span className="text-blue-600 text-xs font-bold">⇄</span>
-              </div>
+              <ArrowLeftRight className="w-4 h-4" />
             </button>
           </div>
-        </div>
-
-        {/* Travel Details Section */}
-        <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-3xl p-8 border border-gray-200/50">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Calendar className="w-5 h-5 text-blue-600" />
+          
+          {/* TO - 3 columns */}
+          <div className="lg:col-span-3">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              To
+            </label>
+            <AirportSearchInput
+              label=""
+              placeholder="City or airport"
+              value={watchedTo || ''}
+              onChange={handleToAirportChange}
+              error={errors.to?.message}
+            />
+          </div>
+          
+          {/* DEPARTURE DATE - 2 columns */}
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Departure
+            </label>
+            <input
+              {...register('departDate')}
+              type="date"
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300"
+            />
+          </div>
+          
+          {/* RETURN DATE - 2 columns (conditional) */}
+          {tripType === 'roundtrip' && (
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Return
+              </label>
+              <input
+                {...register('returnDate')}
+                type="date"
+                min={watch('departDate') || new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300"
+              />
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-gray-900">Travel Details</h3>
-              <p className="text-sm text-gray-600">Choose your dates and travel preferences</p>
+          )}
+          
+          {/* TRAVELERS - 1 column */}
+          <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-2'}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Travelers
+            </label>
+            <div className="relative">
+              <select
+                {...register('passengers', { valueAsNumber: true })}
+                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all"
+              >
+                {[1,2,3,4,5,6,7,8,9].map(num => (
+                  <option key={num} value={num}>
+                    {num}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
           </div>
           
-          {/* Two-column layout for better organization */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column - Dates */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h4 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-blue-600" />
-                Travel Dates
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Departure Date */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <span className="text-blue-600">🛫</span>
-                    Departure Date
-                  </label>
-                  <input
-                    {...register('departDate')}
-                    type="date"
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300"
-                  />
-                  {errors.departDate && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-red-600 text-sm font-medium flex items-center gap-2">
-                        <span>⚠️</span>
-                        {errors.departDate.message}
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Return Date */}
-                {tripType === 'roundtrip' && (
-                  <div className="space-y-3">
-                    <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                      <span className="text-green-600">🛬</span>
-                      Return Date
-                    </label>
-                    <input
-                      {...register('returnDate')}
-                      type="date"
-                      min={watch('departDate') || new Date().toISOString().split('T')[0]}
-                      className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300"
-                    />
-                    {errors.returnDate && (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-red-600 text-sm font-medium flex items-center gap-2">
-                          <span>⚠️</span>
-                          {errors.returnDate.message}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Column - Passengers & Class */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <h4 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                <Users className="w-4 h-4 text-blue-600" />
-                Travelers & Preferences
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Passengers */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <span className="text-purple-600">👥</span>
-                    Passengers
-                  </label>
-                  <div className="relative">
-                    <select
-                      {...register('passengers', { valueAsNumber: true })}
-                      className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all"
-                    >
-                      {[1,2,3,4,5,6,7,8,9].map(num => (
-                        <option key={num} value={num}>
-                          {num} {num === 1 ? 'Passenger' : 'Passengers'}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Travel Class */}
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-gray-700 flex items-center gap-2">
-                    <span className="text-blue-600">✈️</span>
-                    Travel Class
-                  </label>
-                  <div className="relative">
-                    <select
-                      {...register('travelClass')}
-                      className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all"
-                    >
-                      <option value="economy">💺 Economy</option>
-                      <option value="premium-economy">✈️ Premium Economy</option>
-                      <option value="business">🥂 Business</option>
-                      <option value="first">👑 First Class</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+          {/* CLASS - 1 column */}
+          <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-1'}>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Class
+            </label>
+            <div className="relative">
+              <select
+                {...register('travelClass')}
+                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all"
+              >
+                <option value="economy">Economy</option>
+                <option value="premium-economy">Premium</option>
+                <option value="business">Business</option>
+                <option value="first">First</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </div>
             </div>
           </div>
         </div>
+        
+        {/* Error Messages */}
+        {(errors.from || errors.to || errors.departDate || errors.returnDate) && (
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div className="space-y-1">
+              {errors.from && <p className="text-red-600 text-sm">• {errors.from.message}</p>}
+              {errors.to && <p className="text-red-600 text-sm">• {errors.to.message}</p>}
+              {errors.departDate && <p className="text-red-600 text-sm">• {errors.departDate.message}</p>}
+              {errors.returnDate && <p className="text-red-600 text-sm">• {errors.returnDate.message}</p>}
+            </div>
+          </div>
+        )}
 
         {/* Search Button */}
         <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
