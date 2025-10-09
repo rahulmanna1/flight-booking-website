@@ -230,105 +230,81 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       
       {/* Form Section */}
       <div className="p-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Airport Selection Section - Compact Inline Layout */}
-          <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200/50">
-            <div className="mb-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Unified Search Form - Industry Standard Single Row Layout */}
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+            {/* Form Header */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Plane className="w-5 h-5 mr-2 text-blue-600" />
-                Flight Route
+                Search Flights
               </h3>
-              <p className="text-sm text-gray-600">Select your departure and destination airports</p>
+              <p className="text-sm text-gray-600 mt-1">Find and compare flights from top airlines worldwide</p>
             </div>
             
-            {/* Inline Flight Route Layout */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <div className="flex items-center space-x-3">
-                {/* FROM Section */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center mb-2">
-                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
-                      <span className="text-blue-600 font-bold text-xs">FROM</span>
+            {/* Main Search Row */}
+            <div className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+                {/* FROM Airport - 3 columns */}
+                <div className="lg:col-span-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    From
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 font-bold text-xs">🛫</span>
+                      </div>
                     </div>
-                    <span className="text-sm font-medium text-gray-700">Origin</span>
+                    <AirportSearchInput
+                      label=""
+                      placeholder="Departure city"
+                      value={watchedFrom || ''}
+                      onChange={handleFromAirportChange}
+                      error={errors.from?.message}
+                      className="pl-12"
+                    />
                   </div>
-                  <AirportSearchInput
-                    label=""
-                    placeholder="Where are you flying from?"
-                    value={watchedFrom || ''}
-                    onChange={handleFromAirportChange}
-                    error={errors.from?.message}
-                  />
                 </div>
                 
-                {/* Swap Button */}
-                <div className="flex-shrink-0 pt-6">
+                {/* Swap Button - 1 column */}
+                <div className="lg:col-span-1 flex justify-center">
                   <button
                     type="button"
                     onClick={handleSwapAirports}
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-md transition-all duration-200 transform hover:scale-105 active:scale-95 group"
+                    className="mt-6 bg-gray-100 hover:bg-blue-50 border border-gray-300 hover:border-blue-300 text-gray-600 hover:text-blue-600 rounded-full p-2 transition-all duration-200 transform hover:scale-105"
                     title="Swap airports"
                   >
-                    <ArrowUpDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
+                    <ArrowUpDown className="w-4 h-4" />
                   </button>
                 </div>
                 
-                {/* TO Section */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center mb-2">
-                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
-                      <span className="text-green-600 font-bold text-xs">TO</span>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">Destination</span>
-                  </div>
-                  <AirportSearchInput
-                    label=""
-                    placeholder="Where would you like to go?"
-                    value={watchedTo || ''}
-                    onChange={handleToAirportChange}
-                    error={errors.to?.message}
-                  />
-                </div>
-              </div>
-            </div>
-            
-            {/* Enhanced Same Airport Error */}
-            {hasSameAirportError && (
-              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg animate-in slide-in-from-top-1 duration-200">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">!</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-red-800 text-sm font-semibold mb-1">Airport Selection Error</h4>
-                    <p className="text-red-700 text-sm">
-                      Please select different airports for your departure and arrival destinations.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Travel Details Section - Compact Layout */}
-          <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200/50">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Calendar className="w-5 h-5 mr-2 text-blue-600" />
-                Travel Details
-              </h3>
-              <p className="text-sm text-gray-600">Select your travel dates and preferences</p>
-            </div>
-            
-            {/* Compact Travel Details Layout */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
-                {/* Departure Date */}
-                <div>
+                {/* TO Airport - 3 columns */}
+                <div className="lg:col-span-3">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    🛫 Departure Date
+                    To
+                  </label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
+                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                        <span className="text-green-600 font-bold text-xs">🛬</span>
+                      </div>
+                    </div>
+                    <AirportSearchInput
+                      label=""
+                      placeholder="Arrival city"
+                      value={watchedTo || ''}
+                      onChange={handleToAirportChange}
+                      error={errors.to?.message}
+                      className="pl-12"
+                    />
+                  </div>
+                </div>
+                
+                {/* Departure Date - 2 columns */}
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Departure
                   </label>
                   <input
                     {...register('departDate')}
@@ -336,27 +312,19 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                     min={new Date().toISOString().split('T')[0]}
                     className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
                       errors.departDate 
-                        ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
+                        ? 'border-red-300 bg-red-50' 
                         : watch('departDate') 
-                        ? 'border-green-300 bg-green-50 focus:ring-green-500 focus:border-green-500' 
+                        ? 'border-green-300 bg-green-50' 
                         : 'border-gray-300 hover:border-gray-400'
                     }`}
                   />
-                  {errors.departDate && (
-                    <p className="text-red-600 text-xs flex items-center mt-1">
-                      <span className="w-3 h-3 bg-red-500 rounded-full mr-2 flex items-center justify-center">
-                        <span className="text-white text-xs">!</span>
-                      </span>
-                      {errors.departDate.message}
-                    </p>
-                  )}
                 </div>
                 
-                {/* Return Date */}
+                {/* Return Date - 2 columns (conditional) */}
                 {tripType === 'roundtrip' && (
-                  <div>
+                  <div className="lg:col-span-2">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      🛬 Return Date
+                      Return
                     </label>
                     <input
                       {...register('returnDate')}
@@ -364,27 +332,19 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                       min={watch('departDate') || new Date().toISOString().split('T')[0]}
                       className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
                         errors.returnDate 
-                          ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
+                          ? 'border-red-300 bg-red-50' 
                           : watch('returnDate') 
-                          ? 'border-green-300 bg-green-50 focus:ring-green-500 focus:border-green-500' 
+                          ? 'border-green-300 bg-green-50' 
                           : 'border-gray-300 hover:border-gray-400'
                       }`}
                     />
-                    {errors.returnDate && (
-                      <p className="text-red-600 text-xs flex items-center mt-1">
-                        <span className="w-3 h-3 bg-red-500 rounded-full mr-2 flex items-center justify-center">
-                          <span className="text-white text-xs">!</span>
-                        </span>
-                        {errors.returnDate.message}
-                      </p>
-                    )}
                   </div>
                 )}
                 
-                {/* Passengers */}
-                <div>
+                {/* Passengers - 1 column */}
+                <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-2'}>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    👥 Passengers
+                    Travelers
                   </label>
                   <div className="relative">
                     <select
@@ -393,7 +353,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                     >
                       {[1,2,3,4,5,6,7,8,9].map(num => (
                         <option key={num} value={num}>
-                          {num} Passenger{num > 1 ? 's' : ''}
+                          {num} {num === 1 ? 'Adult' : 'Adults'}
                         </option>
                       ))}
                     </select>
@@ -401,28 +361,61 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                   </div>
                 </div>
                 
-                {/* Travel Class */}
-                <div>
+                {/* Travel Class - 1 column */}
+                <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-1'}>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ✈️ Travel Class
+                    Class
                   </label>
                   <div className="relative">
                     <select
                       {...register('travelClass')}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-900 font-medium hover:border-gray-400 transition-all duration-200"
                     >
-                      <option value="economy">💺 Economy</option>
-                      <option value="premium-economy">✈️ Premium</option>
-                      <option value="business">🥂 Business</option>
-                      <option value="first">👑 First</option>
+                      <option value="economy">Economy</option>
+                      <option value="premium-economy">Premium</option>
+                      <option value="business">Business</option>
+                      <option value="first">First</option>
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
-                  {errors.travelClass && (
-                    <p className="text-red-600 text-xs mt-1">{errors.travelClass.message}</p>
-                  )}
                 </div>
               </div>
+              
+              {/* Error Messages */}
+              {(errors.from || errors.to || errors.departDate || errors.returnDate || hasSameAirportError) && (
+                <div className="mt-4 space-y-2">
+                  {errors.from && (
+                    <p className="text-red-600 text-sm flex items-center">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                      {errors.from.message}
+                    </p>
+                  )}
+                  {errors.to && (
+                    <p className="text-red-600 text-sm flex items-center">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                      {errors.to.message}
+                    </p>
+                  )}
+                  {errors.departDate && (
+                    <p className="text-red-600 text-sm flex items-center">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                      {errors.departDate.message}
+                    </p>
+                  )}
+                  {errors.returnDate && (
+                    <p className="text-red-600 text-sm flex items-center">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                      {errors.returnDate.message}
+                    </p>
+                  )}
+                  {hasSameAirportError && (
+                    <p className="text-red-600 text-sm flex items-center">
+                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                      Please select different departure and arrival airports
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

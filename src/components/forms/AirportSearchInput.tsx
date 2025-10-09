@@ -13,6 +13,7 @@ interface AirportSearchInputProps {
   onChange: (airportCode: string, airport?: Airport) => void;
   error?: string;
   disabled?: boolean;
+  className?: string;
 }
 
 // Get country flag emoji from country code
@@ -41,7 +42,8 @@ export default function AirportSearchInput({
   value, 
   onChange, 
   error,
-  disabled = false 
+  disabled = false,
+  className = ''
 }: AirportSearchInputProps) {
   const [query, setQuery] = useState('');
   const [displayValue, setDisplayValue] = useState('');
@@ -307,7 +309,7 @@ export default function AirportSearchInput({
                 : selectedAirport 
                   ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
                   : 'border-gray-200'
-            } ${disabled ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'bg-white'}`}
+            } ${disabled ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'bg-white'} ${className}`}
           />
           
           {/* Right side buttons */}
