@@ -11,6 +11,12 @@ export interface User {
   phone?: string;
   dateOfBirth?: string;
   nationality?: string;
+  customerId?: string; // Stripe customer ID
+  profile?: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+  };
   frequentFlyerNumbers?: Array<{
     airline: string;
     number: string;

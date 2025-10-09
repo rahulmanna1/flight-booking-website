@@ -23,7 +23,7 @@ const searchSchema = z.object({
   returnDate: z.string().optional(),
   passengers: z.number().min(1, 'At least 1 passenger required'),
   tripType: z.enum(['roundtrip', 'oneway']),
-  travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']).default('economy'),
+  travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']),
 }).refine((data) => {
   if (data.tripType === 'roundtrip' && data.returnDate) {
     const depDate = new Date(data.departDate);

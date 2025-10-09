@@ -47,7 +47,7 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Booking Form, 2: Confirmation
   
-  const flightId = params.id as string;
+  const flightId = params?.id as string;
   const flight = getFlightById(flightId);
 
   if (!flight) {

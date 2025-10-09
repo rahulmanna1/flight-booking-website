@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       console.log(`✅ Multi-provider search completed: ${searchResult.flights.length} flights from ${searchResult.sources.length} sources`);
       
       // Prepare response with enhanced metadata
-      const response = {
+      const response: any = {
         success: true,
         flights: searchResult.flights,
         count: searchResult.flights.length,

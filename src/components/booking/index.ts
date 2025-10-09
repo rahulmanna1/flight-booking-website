@@ -3,8 +3,24 @@ export { default as BookingFlow } from './BookingFlow';
 export { default as SeatSelection } from './SeatSelection';
 export { default as PassengerDetails } from './PassengerDetails';
 export { default as PaymentForm } from './PaymentForm';
-export { default as BookingConfirmation } from './BookingConfirmation';
+
+// Main booking management components
 export { default as BookingManagement } from './BookingManagement';
+export { BookingList } from './BookingList';
+export { BookingCard } from './BookingCard';
+export { BookingDetailsModal } from './BookingDetailsModal';
+
+// Booking process components
+export { default as BookingConfirmation } from './BookingConfirmation';
+export { BookingReceipt } from './BookingReceipt';
+
+// Booking actions and modals
+export { default as BookingCancellationModal } from './BookingCancellationModal';
+export { default as CheckInModal } from './CheckInModal';
+
+// Search and filtering
+export { BookingSearchPanel } from './BookingSearchPanel';
+export type { BookingSearchFilters } from './BookingSearchPanel';
 
 // Enhanced Flight Card with integrated booking
 export { default as EnhancedFlightCard } from '../cards/EnhancedFlightCard';

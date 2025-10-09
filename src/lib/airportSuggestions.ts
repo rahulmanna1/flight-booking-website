@@ -1,5 +1,5 @@
 // Popular destinations from major airports
-export const POPULAR_ROUTES = {
+export const POPULAR_ROUTES: { [key: string]: Array<{ code: string; city: string; country: string; type: string }> } = {
   'JFK': [
     { code: 'LAX', city: 'Los Angeles', country: 'USA', type: 'domestic' },
     { code: 'LHR', city: 'London', country: 'UK', type: 'international' },
@@ -99,7 +99,7 @@ export const POPULAR_ROUTES = {
 };
 
 // Airport names for display
-export const AIRPORT_NAMES = {
+export const AIRPORT_NAMES: { [key: string]: string } = {
   'JFK': 'John F. Kennedy International',
   'LAX': 'Los Angeles International',
   'LHR': 'London Heathrow',

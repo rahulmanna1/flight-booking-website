@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { BookingStatus } from '@/generated/prisma';
+import { BookingSecurityValidator } from '@/lib/security/bookingValidation';
 
 export interface CreateBookingRequest {
   userId: string;
@@ -188,7 +189,7 @@ export class BookingService {
         id: booking.id,
         bookingReference: booking.bookingReference,
         confirmationNumber: booking.confirmationNumber,
-        status: booking.status,
+        status: booking.status as any,
         bookingDate: booking.bookingDate.toISOString(),
         flight: JSON.parse(booking.flightData),
         passengers: JSON.parse(booking.passengers),
@@ -240,7 +241,7 @@ export class BookingService {
         id: booking.id,
         bookingReference: booking.bookingReference,
         confirmationNumber: booking.confirmationNumber,
-        status: booking.status,
+        status: booking.status as any,
         bookingDate: booking.bookingDate.toISOString(),
         flight: JSON.parse(booking.flightData),
         passengers: JSON.parse(booking.passengers),
@@ -289,7 +290,7 @@ export class BookingService {
         id: booking.id,
         bookingReference: booking.bookingReference,
         confirmationNumber: booking.confirmationNumber,
-        status: booking.status,
+        status: booking.status as any,
         bookingDate: booking.bookingDate.toISOString(),
         flight: JSON.parse(booking.flightData),
         passengers: JSON.parse(booking.passengers),
@@ -343,7 +344,7 @@ export class BookingService {
         id: booking.id,
         bookingReference: booking.bookingReference,
         confirmationNumber: booking.confirmationNumber,
-        status: booking.status,
+        status: booking.status as any,
         bookingDate: booking.bookingDate.toISOString(),
         flight: JSON.parse(booking.flightData),
         passengers: JSON.parse(booking.passengers),
@@ -412,8 +413,21 @@ export class BookingService {
     }
   }
 
-  // Validate booking data
-  static validateBookingRequest(request: CreateBookingRequest): { isValid: boolean; errors: string[] } {
+  // Enhanced validation using security validator (backward compatible)
+  static validateBookingRequest(request: CreateBookingRequest): { isValid: boolean; errors: string[]; warnings?: string[]; riskScore?: number } {
+    // Use the enhanced security validator for comprehensive checks
+    const securityValidation = BookingSecurityValidator.validateBookingRequest(request);
+    
+    return {
+      isValid: securityValidation.isValid,
+      errors: securityValidation.errors,
+      warnings: securityValidation.warnings,
+      riskScore: securityValidation.riskScore
+    };
+  }
+  
+  // Legacy validation method for backward compatibility
+  static validateBookingRequestBasic(request: CreateBookingRequest): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
     // Validate required fields

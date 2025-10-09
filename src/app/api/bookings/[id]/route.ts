@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BookingService } from '@/services/BookingService';
 import { EnhancedBookingService } from '@/lib/bookingProviders';
-import { BookingStatus } from '@/generated/prisma';
+import { BookingStatus } from '@/types/booking';
 import { verifyAuth } from '@/lib/auth-prisma';
 
 // GET - Get specific booking
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bookingId = params.id;
+    const bookingId = (await params).id;
     
     if (!bookingId) {
       return NextResponse.json(
@@ -81,10 +81,10 @@ export async function GET(
 // PUT - Update booking status
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bookingId = params.id;
+    const bookingId = (await params).id;
     
     if (!bookingId) {
       return NextResponse.json(
@@ -117,7 +117,7 @@ export async function PUT(
     const { status } = await request.json();
     
     // Validate status
-    const validStatuses: BookingStatus[] = ['CONFIRMED', 'PENDING', 'CANCELLED', 'COMPLETED', 'REFUNDED'];
+    const validStatuses: BookingStatus[] = ['PENDING_PAYMENT', 'PAYMENT_FAILED', 'CONFIRMED', 'TICKETED', 'CHECKED_IN', 'BOARDING', 'DEPARTED', 'COMPLETED', 'CANCELLED', 'REFUNDED', 'EXPIRED'];
     if (!status || !validStatuses.includes(status)) {
       return NextResponse.json(
         { 
@@ -160,10 +160,10 @@ export async function PUT(
 // DELETE - Cancel booking
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const bookingId = params.id;
+    const bookingId = (await params).id;
     
     if (!bookingId) {
       return NextResponse.json(

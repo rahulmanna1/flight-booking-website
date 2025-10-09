@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { CheckCircle, Download, Mail, Calendar, MapPin, Plane, Clock, Users, CreditCard, Phone, AlertCircle, Share2, Smartphone } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { CheckCircle, Download, Mail, Calendar, MapPin, Plane, Clock, Users, CreditCard, Phone, AlertCircle, Share2, Smartphone, Copy, Check } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { useBooking } from '@/contexts/BookingContext';
+import type { FlightBooking as Booking } from '@/types/booking';
 
 interface BookingData {
   bookingReference: string;
@@ -50,8 +52,13 @@ interface BookingData {
 }
 
 interface BookingConfirmationProps {
-  bookingData: BookingData;
-  onNewSearch: () => void;
+  booking?: Booking;
+  bookingData?: BookingData;
+  bookingId?: string;
+  onNewSearch?: () => void;
+  onClose?: () => void;
+  showActions?: boolean;
+  className?: string;
 }
 
 // Generate QR code data (simplified - in real app would use proper QR library)
@@ -60,17 +67,64 @@ const generateQRCode = (data: string) => {
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(data)}`;
 };
 
-export default function BookingConfirmation({ bookingData, onNewSearch }: BookingConfirmationProps) {
+export default function BookingConfirmation({ 
+  booking: propBooking, 
+  bookingData,
+  bookingId, 
+  onNewSearch, 
+  onClose,
+  showActions = true,
+  className = ''
+}: BookingConfirmationProps) {
   const { formatPrice } = useCurrency();
+  const { state, getBookingById, sendConfirmationEmail } = useBooking();
   const [emailSent, setEmailSent] = useState(false);
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [booking, setBooking] = useState<Booking | null>(propBooking || null);
+  const [isLoading, setIsLoading] = useState(!propBooking && !bookingData && !!bookingId);
   const confirmationRef = useRef<HTMLDivElement>(null);
 
+  // Load booking data if bookingId is provided but booking is not
+  useEffect(() => {
+    if (!propBooking && !bookingData && bookingId && getBookingById) {
+      const loadBooking = async () => {
+        setIsLoading(true);
+        try {
+          const result = await getBookingById(bookingId);
+          setBooking(result);
+        } catch (error) {
+          console.error('Failed to load booking:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      loadBooking();
+    }
+  }, [propBooking, bookingData, bookingId, getBookingById]);
+
+  if (isLoading) {
+    return (
+      <div className={`max-w-4xl mx-auto p-6 text-center ${className}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-gray-500">Loading booking details...</p>
+      </div>
+    );
+  }
+
+  if (!booking) {
+    return (
+      <div className={`max-w-4xl mx-auto p-6 text-center ${className}`}>
+        <p className="text-gray-500">Booking not found</p>
+      </div>
+    );
+  }
+
   const qrCodeData = JSON.stringify({
-    bookingReference: bookingData.bookingReference,
-    flight: bookingData.flight.flightNumber,
-    passenger: bookingData.passengers[0]?.firstName + ' ' + bookingData.passengers[0]?.lastName,
-    date: bookingData.flight.departDate,
-    route: `${bookingData.flight.origin}-${bookingData.flight.destination}`
+    bookingReference: booking.bookingReference,
+    flight: booking.flightDetails?.flightNumber || 'N/A',
+    passenger: booking.passengers[0]?.firstName + ' ' + booking.passengers[0]?.lastName,
+    date: booking.flightDetails?.departureDate || 'N/A',
+    route: `${booking.flightDetails?.origin || 'N/A'}-${booking.flightDetails?.destination || 'N/A'}`
   });
 
   const handleDownloadTicket = () => {
@@ -84,7 +138,7 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
         printWindow.document.write(`
           <html>
             <head>
-              <title>Flight Ticket - ${bookingData.bookingReference}</title>
+              <title>Flight Ticket - ${booking.bookingReference}</title>
               <style>
                 body { font-family: Arial, sans-serif; margin: 20px; }
                 .ticket { max-width: 600px; margin: 0 auto; }
@@ -106,9 +160,25 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
   };
 
   const handleResendEmail = async () => {
-    // Simulate email sending
-    setEmailSent(true);
-    setTimeout(() => setEmailSent(false), 3000);
+    try {
+      if (sendConfirmationEmail) {
+        await sendConfirmationEmail(booking.id);
+      }
+      setEmailSent(true);
+      setTimeout(() => setEmailSent(false), 3000);
+    } catch (error) {
+      console.error('Failed to send email:', error);
+    }
+  };
+
+  const handleCopyReference = async () => {
+    try {
+      await navigator.clipboard.writeText(booking.bookingReference);
+      setCopiedToClipboard(true);
+      setTimeout(() => setCopiedToClipboard(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy booking reference:', error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -130,7 +200,7 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <div className={`max-w-4xl mx-auto p-6 space-y-8 ${className}`}>
       {/* Success Header */}
       <div className="text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
@@ -139,39 +209,49 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Confirmed!</h1>
         <p className="text-lg text-gray-600">Your flight has been successfully booked</p>
         <p className="text-sm text-gray-500 mt-2">
-          Confirmation sent to {bookingData.contact.email}
+          Confirmation sent to {booking.contactInfo?.email || booking.bookedBy?.email || 'N/A'}
         </p>
       </div>
 
       {/* Quick Actions */}
-      <div className="flex flex-wrap justify-center gap-4">
-        <button
-          onClick={handleDownloadTicket}
-          className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Download className="w-4 h-4" />
-          <span>Download Ticket</span>
-        </button>
-        <button
-          onClick={handleResendEmail}
-          disabled={emailSent}
-          className="flex items-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <Mail className="w-4 h-4" />
-          <span>{emailSent ? 'Email Sent!' : 'Resend Email'}</span>
-        </button>
-        <button
-          onClick={() => navigator.share && navigator.share({
-            title: 'Flight Booking Confirmation',
-            text: `Flight booking confirmed! Reference: ${bookingData.bookingReference}`,
-            url: window.location.href
-          })}
-          className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <Share2 className="w-4 h-4" />
-          <span>Share</span>
-        </button>
-      </div>
+      {showActions && (
+        <div className="flex flex-wrap justify-center gap-4">
+          <button
+            onClick={handleDownloadTicket}
+            className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            <span>Download Ticket</span>
+          </button>
+          <button
+            onClick={handleResendEmail}
+            disabled={emailSent}
+            className="flex items-center space-x-2 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <Mail className="w-4 h-4" />
+            <span>{emailSent ? 'Email Sent!' : 'Resend Email'}</span>
+          </button>
+          <button
+            onClick={() => navigator.share && navigator.share({
+              title: 'Flight Booking Confirmation',
+              text: `Flight booking confirmed! Reference: ${booking.bookingReference}`,
+              url: window.location.href
+            })}
+            className="flex items-center space-x-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <Share2 className="w-4 h-4" />
+            <span>Share</span>
+          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="flex items-center space-x-2 px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+            >
+              <span>Close</span>
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
@@ -185,22 +265,34 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Booking Reference</label>
-                <p className="text-lg font-bold text-gray-900">{bookingData.bookingReference}</p>
+                <div className="flex items-center space-x-3">
+                  <p className="text-lg font-bold text-gray-900">{booking.bookingReference}</p>
+                  <button
+                    onClick={handleCopyReference}
+                    className="flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                  >
+                    {copiedToClipboard ? (
+                      <Check className="w-3 h-3" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Confirmation Number</label>
-                <p className="text-lg font-bold text-gray-900">{bookingData.confirmationNumber}</p>
+                <p className="text-lg font-bold text-gray-900">{booking.confirmationNumber || booking.bookingReference}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Status</label>
-                <p className={`text-lg font-semibold ${getStatusColor(bookingData.status)} capitalize`}>
-                  {bookingData.status}
+                <p className={`text-lg font-semibold ${getStatusColor(booking.status)} capitalize`}>
+                  {booking.status}
                 </p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-500 mb-1">Booking Date</label>
                 <p className="text-lg font-medium text-gray-900">
-                  {formatDate(bookingData.bookingDate)}
+                  {formatDate(booking.bookingDate || booking.createdAt)}
                 </p>
               </div>
             </div>
@@ -218,13 +310,15 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Airline & Flight</label>
                   <p className="text-lg font-bold text-gray-900">
-                    {bookingData.flight.airline} {bookingData.flight.flightNumber}
+                    {booking.flightDetails?.airline || 'N/A'} {booking.flightDetails?.flightNumber || 'N/A'}
                   </p>
-                  <p className="text-sm text-gray-600">{bookingData.flight.aircraft}</p>
+                  {booking.flightDetails?.aircraft && (
+                    <p className="text-sm text-gray-600">{booking.flightDetails.aircraft}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-500 mb-1">Duration</label>
-                  <p className="text-lg font-medium text-gray-900">{bookingData.flight.duration}</p>
+                  <p className="text-lg font-medium text-gray-900">{booking.flightDetails?.duration || 'N/A'}</p>
                 </div>
               </div>
 
@@ -233,23 +327,28 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
                   <label className="block text-sm font-medium text-gray-500">Departure</label>
                   <div className="flex items-center space-x-2">
                     <MapPin className="w-4 h-4 text-green-600" />
-                    <span className="font-bold text-lg">{bookingData.flight.origin}</span>
+                    <span className="font-bold text-lg">{booking.flightDetails?.origin || 'N/A'}</span>
                   </div>
-                  <p className="text-lg font-medium">{bookingData.flight.departTime}</p>
-                  <p className="text-sm text-gray-600">{formatDate(bookingData.flight.departDate)}</p>
-                  <p className="text-xs text-gray-500">Terminal {bookingData.flight.terminal}</p>
+                  <p className="text-lg font-medium">{booking.flightDetails?.departureTime || 'N/A'}</p>
+                  <p className="text-sm text-gray-600">{booking.flightDetails?.departureDate ? formatDate(booking.flightDetails.departureDate) : 'N/A'}</p>
+                  {booking.flightDetails?.departureTerminal && (
+                    <p className="text-xs text-gray-500">Terminal {booking.flightDetails.departureTerminal}</p>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-500">Arrival</label>
                   <div className="flex items-center space-x-2">
                     <MapPin className="w-4 h-4 text-red-600" />
-                    <span className="font-bold text-lg">{bookingData.flight.destination}</span>
+                    <span className="font-bold text-lg">{booking.flightDetails?.destination || 'N/A'}</span>
                   </div>
-                  <p className="text-lg font-medium">{bookingData.flight.arriveTime}</p>
-                  <p className="text-sm text-gray-600">{formatDate(bookingData.flight.arriveDate)}</p>
-                  {bookingData.flight.gate && (
-                    <p className="text-xs text-gray-500">Gate {bookingData.flight.gate}</p>
+                  <p className="text-lg font-medium">{booking.flightDetails?.arrivalTime || 'N/A'}</p>
+                  <p className="text-sm text-gray-600">{booking.flightDetails?.arrivalDate ? formatDate(booking.flightDetails.arrivalDate) : 'N/A'}</p>
+                  {booking.flightDetails?.arrivalTerminal && (
+                    <p className="text-xs text-gray-500">Terminal {booking.flightDetails.arrivalTerminal}</p>
+                  )}
+                  {booking.flightDetails?.gate && (
+                    <p className="text-xs text-gray-500">Gate {booking.flightDetails.gate}</p>
                   )}
                 </div>
               </div>
@@ -264,8 +363,8 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
             </h2>
             
             <div className="space-y-4">
-              {bookingData.passengers.map((passenger, index) => (
-                <div key={passenger.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              {booking.passengers.map((passenger, index) => (
+                <div key={passenger.id || index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
                     <p className="font-medium text-gray-900">
                       {passenger.firstName} {passenger.lastName}
@@ -292,27 +391,29 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
             
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span>{formatPrice(bookingData.pricing.subtotal)}</span>
+                <span className="text-gray-600">Base Fare</span>
+                <span>{formatPrice(booking.pricing.basePrice || booking.pricing.baseFare || 0)}</span>
               </div>
-              {bookingData.pricing.seatFees > 0 && (
+              {(booking.pricing.servicesFee || 0) > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Seat Selection</span>
-                  <span>{formatPrice(bookingData.pricing.seatFees)}</span>
+                  <span className="text-gray-600">Services</span>
+                  <span>{formatPrice(booking.pricing.servicesFee || 0)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-600">Taxes & Fees</span>
-                <span>{formatPrice(bookingData.pricing.taxes + bookingData.pricing.fees)}</span>
+                <span>{formatPrice(booking.pricing.taxes)}</span>
               </div>
               <div className="flex justify-between pt-3 border-t border-gray-200">
                 <span className="text-lg font-semibold">Total Paid</span>
-                <span className="text-lg font-bold text-green-600">{formatPrice(bookingData.pricing.total)}</span>
+                <span className="text-lg font-bold text-green-600">{formatPrice(booking.pricing.total)}</span>
               </div>
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Paid with {bookingData.payment.method}</span>
-                <span>****{bookingData.payment.lastFourDigits}</span>
-              </div>
+              {booking.paymentInfo && (
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Paid with {booking.paymentInfo.method}</span>
+                  <span>****{booking.paymentInfo.lastFourDigits}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -357,13 +458,20 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
             </p>
             
             <button
-              onClick={() => {
-                // In a real app, this would save the QR code to device
-                navigator.clipboard?.writeText(bookingData.bookingReference);
-              }}
-              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+              onClick={handleCopyReference}
+              className="w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm flex items-center justify-center space-x-2"
             >
-              Copy Booking Reference
+              {copiedToClipboard ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4" />
+                  <span>Copy Reference</span>
+                </>
+              )}
             </button>
           </div>
 
@@ -374,11 +482,11 @@ export default function BookingConfirmation({ bookingData, onNewSearch }: Bookin
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Mail className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{bookingData.contact.email}</span>
+                <span className="text-sm text-gray-600">{booking.contactInfo?.email || booking.bookedBy?.email || 'N/A'}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">{bookingData.contact.phone}</span>
+                <span className="text-sm text-gray-600">{booking.contactInfo?.phone || booking.bookedBy?.phone || 'N/A'}</span>
               </div>
             </div>
           </div>

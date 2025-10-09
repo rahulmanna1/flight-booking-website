@@ -240,7 +240,7 @@ export default function PopularDestinations({
             <Star className="w-4 h-4 text-yellow-500" />
             <span>
               {selectedCategory === 'trending' && 'Most searched destinations this month'}
-              {selectedCategory === currentSeason && selectedCategory !== 'trending' && `Perfect for ${selectedCategory} travel`}
+              {selectedCategory === currentSeason && `Perfect for ${selectedCategory} travel`}
               {selectedCategory !== currentSeason && selectedCategory !== 'trending' && `Great destinations for ${selectedCategory}`}
             </span>
           </div>

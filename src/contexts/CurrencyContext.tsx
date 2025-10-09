@@ -23,9 +23,11 @@ export const currencies: Currency[] = [
 
 interface CurrencyContextType {
   selectedCurrency: Currency;
+  currency: Currency; // Alias for selectedCurrency
   setCurrency: (currency: Currency) => void;
   convertPrice: (usdPrice: number) => number;
   formatPrice: (usdPrice: number) => string;
+  formatAmount: (amount: number) => string; // Alias for formatPrice
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -62,9 +64,11 @@ export const CurrencyProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const value: CurrencyContextType = {
     selectedCurrency,
+    currency: selectedCurrency, // Alias
     setCurrency,
     convertPrice,
     formatPrice,
+    formatAmount: formatPrice, // Alias
   };
 
   return (

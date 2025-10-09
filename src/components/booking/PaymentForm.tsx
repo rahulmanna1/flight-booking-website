@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CreditCard, Lock, Shield, AlertCircle, Check, Calendar, User, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CreditCard, Lock, Shield, AlertCircle, Check, Loader2 } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import StripeProvider from '../payment/StripeProvider';
+import StripePaymentForm from '../payment/StripePaymentForm';
 
 interface PaymentInfo {
   cardNumber: string;
@@ -38,6 +40,7 @@ interface PaymentFormProps {
   };
   onSubmit: (paymentInfo: PaymentInfo) => void;
   onBack: () => void;
+  isProcessing?: boolean;
 }
 
 const countries = [
@@ -46,457 +49,161 @@ const countries = [
   'Netherlands', 'Switzerland', 'Sweden', 'Norway', 'Denmark', 'Belgium', 'Austria'
 ];
 
-export default function PaymentForm({ bookingDetails, onSubmit, onBack }: PaymentFormProps) {
+export default function PaymentForm({ bookingDetails, onSubmit, onBack, isProcessing: externalIsProcessing }: PaymentFormProps) {
   const { formatPrice } = useCurrency();
-  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo>({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardholderName: '',
-    billingAddress: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: 'United States'
-    },
-    saveCard: false,
-    paymentMethod: 'credit'
-  });
+  const [paymentIntent, setPaymentIntent] = useState<any>(null);
+  const [isCreatingPaymentIntent, setIsCreatingPaymentIntent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const isProcessing = externalIsProcessing || false;
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isProcessing, setIsProcessing] = useState(false);
+  // Create payment intent when component mounts
+  useEffect(() => {
+    createPaymentIntent();
+  }, []);
 
-  const formatCardNumber = (value: string) => {
-    // Remove all non-digits
-    const digits = value.replace(/\D/g, '');
+  const createPaymentIntent = async () => {
+    setIsCreatingPaymentIntent(true);
+    setError(null);
     
-    // Add spaces every 4 digits
-    const formatted = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-    
-    // Limit to 19 characters (16 digits + 3 spaces)
-    return formatted.slice(0, 19);
-  };
+    try {
+      const response = await fetch('/api/payments/create-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount: Math.round(bookingDetails.totalAmount * 100), // Convert to cents
+          currency: 'usd',
+          description: `Flight booking: ${bookingDetails.flightInfo.flightNumber} from ${bookingDetails.flightInfo.origin} to ${bookingDetails.flightInfo.destination}`,
+          bookingId: `flight_${bookingDetails.flightInfo.flightNumber}_${Date.now()}`,
+          metadata: {
+            flightNumber: bookingDetails.flightInfo.flightNumber,
+            origin: bookingDetails.flightInfo.origin,
+            destination: bookingDetails.flightInfo.destination,
+            passengers: bookingDetails.passengers.toString(),
+            departDate: bookingDetails.flightInfo.departDate,
+          },
+        }),
+      });
 
-  const formatExpiryDate = (value: string) => {
-    // Remove all non-digits
-    const digits = value.replace(/\D/g, '');
-    
-    // Add slash after first 2 digits
-    if (digits.length >= 2) {
-      return digits.slice(0, 2) + '/' + digits.slice(2, 4);
-    }
-    return digits;
-  };
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment intent');
+      }
 
-  const getCardType = (cardNumber: string) => {
-    const digits = cardNumber.replace(/\D/g, '');
-    
-    if (digits.startsWith('4')) return 'visa';
-    if (digits.startsWith('5') || digits.startsWith('2')) return 'mastercard';
-    if (digits.startsWith('3')) return 'amex';
-    if (digits.startsWith('6')) return 'discover';
-    
-    return 'unknown';
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    // Card number validation
-    const cardDigits = paymentInfo.cardNumber.replace(/\D/g, '');
-    if (!cardDigits) {
-      newErrors.cardNumber = 'Card number is required';
-    } else if (cardDigits.length < 13 || cardDigits.length > 19) {
-      newErrors.cardNumber = 'Invalid card number';
-    }
-
-    // Expiry date validation
-    if (!paymentInfo.expiryDate) {
-      newErrors.expiryDate = 'Expiry date is required';
-    } else {
-      const [month, year] = paymentInfo.expiryDate.split('/');
-      const currentYear = new Date().getFullYear() % 100;
-      const currentMonth = new Date().getMonth() + 1;
+      const data = await response.json();
       
-      if (!month || !year || parseInt(month) < 1 || parseInt(month) > 12) {
-        newErrors.expiryDate = 'Invalid expiry date';
-      } else if (parseInt(year) < currentYear || (parseInt(year) === currentYear && parseInt(month) < currentMonth)) {
-        newErrors.expiryDate = 'Card has expired';
+      if (data.success && data.paymentIntent) {
+        setPaymentIntent(data.paymentIntent);
+      } else {
+        throw new Error(data.error || 'Invalid response from payment service');
       }
-    }
-
-    // CVV validation
-    if (!paymentInfo.cvv) {
-      newErrors.cvv = 'CVV is required';
-    } else if (paymentInfo.cvv.length < 3 || paymentInfo.cvv.length > 4) {
-      newErrors.cvv = 'Invalid CVV';
-    }
-
-    // Cardholder name validation
-    if (!paymentInfo.cardholderName.trim()) {
-      newErrors.cardholderName = 'Cardholder name is required';
-    }
-
-    // Billing address validation
-    if (!paymentInfo.billingAddress.street.trim()) {
-      newErrors.street = 'Street address is required';
-    }
-    if (!paymentInfo.billingAddress.city.trim()) {
-      newErrors.city = 'City is required';
-    }
-    if (!paymentInfo.billingAddress.state.trim()) {
-      newErrors.state = 'State/Province is required';
-    }
-    if (!paymentInfo.billingAddress.zipCode.trim()) {
-      newErrors.zipCode = 'ZIP/Postal code is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) return;
-
-    setIsProcessing(true);
-    
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    setIsProcessing(false);
-    onSubmit(paymentInfo);
-  };
-
-  const updatePaymentInfo = (field: string, value: any) => {
-    setPaymentInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+    } catch (error: any) {
+      console.error('Payment intent creation failed:', error);
+      setError(`Payment setup failed: ${error.message}`);
+    } finally {
+      setIsCreatingPaymentIntent(false);
     }
   };
 
-  const updateBillingAddress = (field: string, value: string) => {
-    setPaymentInfo(prev => ({
-      ...prev,
+  const handleStripePaymentSuccess = (stripePaymentIntent: any) => {
+    console.log('Stripe payment successful:', stripePaymentIntent);
+    
+    // Create mock payment info to match expected interface
+    const mockPaymentInfo: PaymentInfo = {
+      cardNumber: '****',
+      expiryDate: '',
+      cvv: '',
+      cardholderName: '',
       billingAddress: {
-        ...prev.billingAddress,
-        [field]: value
-      }
-    }));
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: 'United States'
+      },
+      saveCard: false,
+      paymentMethod: 'credit'
+    };
     
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    // Call the original onSubmit with successful result
+    onSubmit(mockPaymentInfo);
   };
 
+  const handleStripePaymentError = (error: string) => {
+    console.error('Stripe payment failed:', error);
+    setError(error);
+  };
+
+  const handlePaymentCancel = () => {
+    setPaymentIntent(null);
+    onBack();
+  };
+
+  // Show loading state during payment intent creation
+  if (isCreatingPaymentIntent) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mr-3" />
+          <span className="text-lg text-gray-600">Setting up secure payment...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if payment intent creation fails
+  if (error && !paymentIntent) {
+    return (
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+          <div className="flex items-center mb-4">
+            <AlertCircle className="w-6 h-6 text-red-600 mr-2" />
+            <h3 className="text-lg font-semibold text-red-800">Payment Setup Failed</h3>
+          </div>
+          <p className="text-red-700 mb-4">{error}</p>
+          <div className="flex space-x-3">
+            <button
+              onClick={onBack}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+            >
+              Go Back
+            </button>
+            <button
+              onClick={createPaymentIntent}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Render Stripe payment form with order summary
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-7xl mx-auto p-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* Payment Form */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Header */}
-          <div>
-            <h2 className="text-3xl font-bold text-gray-900">Payment Details</h2>
-            <p className="text-gray-600 mt-2">Secure payment processing</p>
-          </div>
-
-          {/* Payment Methods */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">Payment Method</h3>
-            
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
-              <button
-                onClick={() => updatePaymentInfo('paymentMethod', 'credit')}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  paymentInfo.paymentMethod === 'credit'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <CreditCard className="w-6 h-6 mx-auto mb-1" />
-                <span className="text-xs">Credit Card</span>
-              </button>
-              
-              <button
-                onClick={() => updatePaymentInfo('paymentMethod', 'debit')}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  paymentInfo.paymentMethod === 'debit'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <CreditCard className="w-6 h-6 mx-auto mb-1" />
-                <span className="text-xs">Debit Card</span>
-              </button>
-              
-              <button
-                onClick={() => updatePaymentInfo('paymentMethod', 'paypal')}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  paymentInfo.paymentMethod === 'paypal'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-6 h-6 mx-auto mb-1 bg-blue-600 rounded text-white text-xs flex items-center justify-center">PP</div>
-                <span className="text-xs">PayPal</span>
-              </button>
-              
-              <button
-                onClick={() => updatePaymentInfo('paymentMethod', 'applepay')}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  paymentInfo.paymentMethod === 'applepay'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-6 h-6 mx-auto mb-1 bg-black rounded text-white text-xs flex items-center justify-center">🍎</div>
-                <span className="text-xs">Apple Pay</span>
-              </button>
-              
-              <button
-                onClick={() => updatePaymentInfo('paymentMethod', 'googlepay')}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  paymentInfo.paymentMethod === 'googlepay'
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-              >
-                <div className="w-6 h-6 mx-auto mb-1 bg-green-600 rounded text-white text-xs flex items-center justify-center">G</div>
-                <span className="text-xs">Google Pay</span>
-              </button>
-            </div>
-
-            {/* Card Details */}
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Card Number *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={paymentInfo.cardNumber}
-                    onChange={(e) => updatePaymentInfo('cardNumber', formatCardNumber(e.target.value))}
-                    className={`w-full px-4 py-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.cardNumber ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="1234 5678 9012 3456"
-                    maxLength={19}
-                  />
-                  <CreditCard className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  {getCardType(paymentInfo.cardNumber) !== 'unknown' && (
-                    <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-                      <span className="text-xs font-medium text-gray-600">
-                        {getCardType(paymentInfo.cardNumber).toUpperCase()}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                {errors.cardNumber && (
-                  <p className="text-red-600 text-xs mt-1">{errors.cardNumber}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Expiry Date *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={paymentInfo.expiryDate}
-                      onChange={(e) => updatePaymentInfo('expiryDate', formatExpiryDate(e.target.value))}
-                      className={`w-full px-4 py-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.expiryDate ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      placeholder="MM/YY"
-                      maxLength={5}
-                    />
-                    <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  </div>
-                  {errors.expiryDate && (
-                    <p className="text-red-600 text-xs mt-1">{errors.expiryDate}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    CVV *
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={paymentInfo.cvv}
-                      onChange={(e) => updatePaymentInfo('cvv', e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      className={`w-full px-4 py-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                        errors.cvv ? 'border-red-300' : 'border-gray-300'
-                      }`}
-                      placeholder="123"
-                      maxLength={4}
-                    />
-                    <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  </div>
-                  {errors.cvv && (
-                    <p className="text-red-600 text-xs mt-1">{errors.cvv}</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Cardholder Name *
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={paymentInfo.cardholderName}
-                    onChange={(e) => updatePaymentInfo('cardholderName', e.target.value)}
-                    className={`w-full px-4 py-3 pl-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.cardholderName ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="John Doe"
-                  />
-                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                </div>
-                {errors.cardholderName && (
-                  <p className="text-red-600 text-xs mt-1">{errors.cardholderName}</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Billing Address */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
-              Billing Address
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Street Address *
-                </label>
-                <input
-                  type="text"
-                  value={paymentInfo.billingAddress.street}
-                  onChange={(e) => updateBillingAddress('street', e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.street ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="123 Main Street"
-                />
-                {errors.street && (
-                  <p className="text-red-600 text-xs mt-1">{errors.street}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    value={paymentInfo.billingAddress.city}
-                    onChange={(e) => updateBillingAddress('city', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.city ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="New York"
-                  />
-                  {errors.city && (
-                    <p className="text-red-600 text-xs mt-1">{errors.city}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    State/Province *
-                  </label>
-                  <input
-                    type="text"
-                    value={paymentInfo.billingAddress.state}
-                    onChange={(e) => updateBillingAddress('state', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.state ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="NY"
-                  />
-                  {errors.state && (
-                    <p className="text-red-600 text-xs mt-1">{errors.state}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ZIP/Postal Code *
-                  </label>
-                  <input
-                    type="text"
-                    value={paymentInfo.billingAddress.zipCode}
-                    onChange={(e) => updateBillingAddress('zipCode', e.target.value)}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                      errors.zipCode ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                    placeholder="10001"
-                  />
-                  {errors.zipCode && (
-                    <p className="text-red-600 text-xs mt-1">{errors.zipCode}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Country *
-                  </label>
-                  <select
-                    value={paymentInfo.billingAddress.country}
-                    onChange={(e) => updateBillingAddress('country', e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    {countries.map(country => (
-                      <option key={country} value={country}>{country}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Save Card Option */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={paymentInfo.saveCard}
-                  onChange={(e) => updatePaymentInfo('saveCard', e.target.checked)}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <span className="ml-2 text-sm text-gray-700">Save this card for future bookings</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Security Notice */}
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start space-x-2">
-              <Lock className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-green-800">
-                <p className="font-medium mb-1">Your payment is secure</p>
-                <p>We use industry-standard SSL encryption to protect your payment information. Your data is encrypted and never stored on our servers.</p>
-              </div>
-            </div>
-          </div>
+        {/* Stripe Payment Form */}
+        <div className="lg:col-span-2">
+          {paymentIntent && (
+            <StripeProvider clientSecret={paymentIntent.client_secret}>
+              <StripePaymentForm
+                clientSecret={paymentIntent.client_secret}
+                amount={Math.round(bookingDetails.totalAmount * 100)}
+                currency="usd"
+                onSuccess={handleStripePaymentSuccess}
+                onError={handleStripePaymentError}
+                onCancel={handlePaymentCancel}
+                bookingDetails={{
+                  flightInfo: bookingDetails.flightInfo,
+                  totalAmount: bookingDetails.totalAmount
+                }}
+              />
+            </StripeProvider>
+          )}
         </div>
 
         {/* Order Summary */}
@@ -541,41 +248,12 @@ export default function PaymentForm({ bookingDetails, onSubmit, onBack }: Paymen
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <button
-                onClick={onBack}
-                className="w-full px-6 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-              >
-                Back to Passenger Details
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={isProcessing}
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center space-x-2"
-              >
-                {isProcessing ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Processing Payment...</span>
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>Complete Payment</span>
-                  </>
-                )}
-              </button>
-            </div>
-
             {/* Payment methods accepted */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-xs text-gray-500 text-center mb-2">We accept:</p>
-              <div className="flex justify-center space-x-2 opacity-60">
-                <div className="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center">VISA</div>
-                <div className="w-8 h-5 bg-red-600 rounded text-white text-xs flex items-center justify-center">MC</div>
-                <div className="w-8 h-5 bg-blue-400 rounded text-white text-xs flex items-center justify-center">AMEX</div>
-                <div className="w-8 h-5 bg-orange-600 rounded text-white text-xs flex items-center justify-center">DISC</div>
+            <div className="pt-6 border-t border-gray-200">
+              <p className="text-xs text-gray-500 text-center mb-2">Secure payments powered by</p>
+              <div className="flex justify-center items-center space-x-2">
+                <Shield className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-medium text-green-600">Stripe</span>
               </div>
             </div>
           </div>

@@ -8,7 +8,7 @@ import FlightDetailsModal from '../FlightDetailsModal';
 import PriceAlertButton from '../price-alerts/PriceAlertButton';
 
 // Airport name mapping for better user experience
-const AIRPORT_NAMES = {
+const AIRPORT_NAMES: { [key: string]: string } = {
   'JFK': 'John F. Kennedy Intl',
   'LAX': 'Los Angeles Intl',
   'LHR': 'London Heathrow',
@@ -380,6 +380,8 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
         flight={flight}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onBookNow={handleFlightSelect}
+        passengers={searchData?.passengers || 1}
       />
     </div>
   );

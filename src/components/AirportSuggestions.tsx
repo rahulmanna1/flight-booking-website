@@ -43,7 +43,7 @@ export default function AirportSuggestions({
                 Popular destinations from {origin}:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {suggestionData.suggestions.map((suggestion) => (
+                {suggestionData.suggestions.map((suggestion: any) => (
                   <button
                     key={suggestion.code}
                     onClick={() => onSuggestionClick(suggestion.code)}

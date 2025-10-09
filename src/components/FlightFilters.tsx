@@ -29,6 +29,7 @@ interface Flight {
   price: number;
   stops?: number;
   aircraft?: string;
+  travelClass?: string;
 }
 
 // Filter interface

@@ -544,7 +544,7 @@ export default function FlightComparison({
                 {COMPARISON_CATEGORIES.map((category, index) => (
                   <button
                     key={category.id}
-                    ref={(el) => categoryButtonsRef.current[index] = el}
+                    ref={(el) => { categoryButtonsRef.current[index] = el; }}
                     onClick={() => setActiveCategory(category.id)}
                     className={`whitespace-nowrap lg:w-full text-left flex items-center space-x-2 lg:space-x-3 px-3 lg:px-3 py-3 rounded-md text-xs lg:text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 touch-manipulation min-h-[44px] ${
                       activeCategory === category.id
@@ -583,7 +583,7 @@ export default function FlightComparison({
                         </div>
                       </div>
                       <button
-                        ref={(el) => selectButtonsRef.current[index] = el}
+                        ref={(el) => { selectButtonsRef.current[index] = el; }}
                         onClick={() => onSelectFlight(flight.id)}
                         className="px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform active:scale-95 min-w-[80px] min-h-[44px] flex items-center justify-center touch-manipulation"
                         aria-label={`Select ${flight.airline} flight ${flight.flightNumber}`}
@@ -627,7 +627,7 @@ export default function FlightComparison({
                           {flight.departTime} - {flight.arriveTime}
                         </div>
                         <button
-                          ref={(el) => selectButtonsRef.current[index] = el}
+                          ref={(el) => { selectButtonsRef.current[index] = el; }}
                           onClick={() => onSelectFlight(flight.id)}
                           className="w-full px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                           aria-label={`Select ${flight.airline} flight ${flight.flightNumber}`}

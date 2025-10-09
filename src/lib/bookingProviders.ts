@@ -158,8 +158,14 @@ class AmadeusBookingProvider {
         throw new Error('Flight offer data required for real booking');
       }
 
+      // Check if amadeus client and APIs are available
+      const amadeusClient = amadeus.client;
+      if (!amadeusClient || !(amadeusClient as any).shopping) {
+        throw new Error('Amadeus booking API not available');
+      }
+
       // Step 1: Price the offer to confirm current pricing
-      const priceConfirmation = await amadeus.shopping.flightOffers.pricing.post(
+      const priceConfirmation = await (amadeusClient as any).shopping.flightOffers.pricing.post(
         JSON.stringify({
           'data': {
             'type': 'flight-offers-pricing',
@@ -201,7 +207,7 @@ class AmadeusBookingProvider {
         }] : undefined
       }));
 
-      const bookingOrder = await amadeus.booking.flightOrders.post(
+      const bookingOrder = await (amadeusClient as any).booking.flightOrders.post(
         JSON.stringify({
           'data': {
             'type': 'flight-order',
@@ -431,8 +437,13 @@ export class EnhancedBookingService {
       // Try to get real-time status from Amadeus
       if (process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET) {
         try {
+          const amadeusClient = amadeus.client;
+          if (!amadeusClient || !(amadeusClient as any).schedule) {
+            throw new Error('Amadeus schedule API not available');
+          }
+          
           const flightData = booking.flight;
-          const statusResponse = await amadeus.schedule.flights.get({
+          const statusResponse = await (amadeusClient as any).schedule.flights.get({
             carrierCode: flightData.flightNumber.split(' ')[0],
             flightNumber: flightData.flightNumber.split(' ')[1],
             scheduledDepartureDate: flightData.departDate
@@ -481,9 +492,10 @@ export class EnhancedBookingService {
       const enhancedBooking = booking as EnhancedBookingResponse;
       if (enhancedBooking.airlineBookingReference && process.env.AMADEUS_CLIENT_ID) {
         try {
+          const amadeusClient = amadeus.client;
           // Real airline cancellation would go here
           console.log('🔄 Processing real airline cancellation...');
-          // await amadeus.booking.flightOrders(enhancedBooking.airlineBookingReference).delete();
+          // await (amadeusClient as any).booking.flightOrders(enhancedBooking.airlineBookingReference).delete();
         } catch (airlineCancelError) {
           console.warn('⚠️ Airline cancellation failed, proceeding with local cancellation');
         }

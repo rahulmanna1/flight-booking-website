@@ -1,14 +1,172 @@
 import Amadeus from 'amadeus';
 
-// Initialize Amadeus client
-const amadeus = new Amadeus({
-  clientId: process.env.AMADEUS_CLIENT_ID!,
-  clientSecret: process.env.AMADEUS_CLIENT_SECRET!,
-  hostname: process.env.AMADEUS_ENVIRONMENT === 'production' ? 'production' : 'test'
-});
+// Token management and retry configuration
+interface AmadeusConfig {
+  client: Amadeus | null;
+  lastTokenRefresh?: number;
+  tokenExpiryBuffer: number; // Buffer time before token expires (in ms)
+  maxRetries: number;
+  retryDelay: number;
+  requestTimeout: number;
+}
+
+const config: AmadeusConfig = {
+  client: null,
+  tokenExpiryBuffer: 5 * 60 * 1000, // 5 minutes before expiry
+  maxRetries: 3,
+  retryDelay: 1000, // 1 second base delay
+  requestTimeout: 10000 // 10 seconds timeout
+};
+
+// Initialize Amadeus client with error handling
+const initializeAmadeusClient = (): Amadeus | null => {
+  try {
+    if (!process.env.AMADEUS_CLIENT_ID || !process.env.AMADEUS_CLIENT_SECRET) {
+      console.warn('⚠️ Amadeus API credentials not configured');
+      return null;
+    }
+
+    const client = new Amadeus({
+      clientId: process.env.AMADEUS_CLIENT_ID,
+      clientSecret: process.env.AMADEUS_CLIENT_SECRET,
+      hostname: process.env.AMADEUS_ENVIRONMENT === 'production' ? 'production' : 'test'
+    });
+
+    console.log('✅ Amadeus client initialized successfully');
+    return client;
+  } catch (error: any) {
+    console.error('❌ Failed to initialize Amadeus client:', error.message);
+    return null;
+  }
+};
+
+// Get or initialize the Amadeus client
+const getAmadeusClient = (): Amadeus | null => {
+  if (!config.client) {
+    config.client = initializeAmadeusClient();
+  }
+  return config.client;
+};
+
+// Exponential backoff delay calculation
+const calculateRetryDelay = (retryCount: number): number => {
+  return config.retryDelay * Math.pow(2, retryCount) + Math.random() * 1000;
+};
+
+// Enhanced error handling with specific error types
+interface AmadeusError {
+  type: 'auth' | 'rate_limit' | 'validation' | 'network' | 'server' | 'unknown';
+  message: string;
+  retryable: boolean;
+  statusCode?: number;
+  originalError?: any;
+}
+
+const parseAmadeusError = (error: any): AmadeusError => {
+  if (!error.response) {
+    return {
+      type: 'network',
+      message: `Network error: ${error.message}`,
+      retryable: true,
+      originalError: error
+    };
+  }
+
+  const statusCode = error.response.statusCode || error.response.status;
+  const errorBody = error.response.body || error.response.data;
+
+  switch (statusCode) {
+    case 401:
+    case 403:
+      return {
+        type: 'auth',
+        message: 'Authentication failed - check API credentials',
+        retryable: false,
+        statusCode,
+        originalError: error
+      };
+    
+    case 429:
+      return {
+        type: 'rate_limit',
+        message: 'Rate limit exceeded - too many requests',
+        retryable: true,
+        statusCode,
+        originalError: error
+      };
+    
+    case 400:
+      return {
+        type: 'validation',
+        message: errorBody?.error_description || 'Invalid request parameters',
+        retryable: false,
+        statusCode,
+        originalError: error
+      };
+    
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return {
+        type: 'server',
+        message: 'Server error - Amadeus API temporarily unavailable',
+        retryable: true,
+        statusCode,
+        originalError: error
+      };
+    
+    default:
+      return {
+        type: 'unknown',
+        message: errorBody?.error_description || error.message || 'Unknown API error',
+        retryable: statusCode >= 500,
+        statusCode,
+        originalError: error
+      };
+  }
+};
+
+// Retry wrapper for API calls with exponential backoff
+const withRetry = async <T>(
+  operation: () => Promise<T>,
+  operationName: string
+): Promise<T> => {
+  let lastError: AmadeusError;
+  
+  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
+    try {
+      if (attempt > 0) {
+        const delay = calculateRetryDelay(attempt - 1);
+        console.log(`⏳ Retrying ${operationName} (attempt ${attempt + 1}/${config.maxRetries + 1}) after ${Math.round(delay)}ms delay`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+      
+      return await operation();
+    } catch (error: any) {
+      lastError = parseAmadeusError(error);
+      
+      console.warn(`⚠️ ${operationName} attempt ${attempt + 1} failed:`, lastError.message);
+      
+      // Don't retry if error is not retryable
+      if (!lastError.retryable) {
+        console.error(`❌ ${operationName} failed with non-retryable error:`, lastError.message);
+        throw new Error(lastError.message);
+      }
+      
+      // Don't retry on the last attempt
+      if (attempt === config.maxRetries) {
+        console.error(`❌ ${operationName} failed after ${config.maxRetries + 1} attempts:`, lastError.message);
+        throw new Error(`${operationName} failed: ${lastError.message}`);
+      }
+    }
+  }
+  
+  throw new Error(`${operationName} failed: ${lastError!.message}`);
+};
 
 // Airport code mapping for Amadeus (IATA codes)
-export const AMADEUS_AIRPORT_CODES = {
+export const AMADEUS_AIRPORT_CODES: { [key: string]: string } = {
   // North America
   'JFK': 'JFK', 'LAX': 'LAX', 'ORD': 'ORD', 'SFO': 'SFO', 'MIA': 'MIA', 'DEN': 'DEN',
   'SEA': 'SEA', 'ATL': 'ATL', 'DFW': 'DFW', 'LAS': 'LAS', 'PHX': 'PHX', 'BOS': 'BOS',
@@ -345,17 +503,89 @@ const mapTravelClass = (travelClass?: string) => {
   }
 };
 
-// Search flights using Amadeus API
+// Validate search parameters
+const validateSearchParams = (params: AmadeusSearchParams): void => {
+  const errors: string[] = [];
+
+  if (!params.from || params.from.length < 3) {
+    errors.push('Origin airport code is required (minimum 3 characters)');
+  }
+
+  if (!params.to || params.to.length < 3) {
+    errors.push('Destination airport code is required (minimum 3 characters)');
+  }
+
+  if (!params.departDate) {
+    errors.push('Departure date is required');
+  } else {
+    const departDate = new Date(params.departDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (departDate < today) {
+      errors.push('Departure date cannot be in the past');
+    }
+  }
+
+  if (params.tripType === 'roundtrip' && params.returnDate) {
+    const returnDate = new Date(params.returnDate);
+    const departDate = new Date(params.departDate);
+    
+    if (returnDate <= departDate) {
+      errors.push('Return date must be after departure date');
+    }
+  }
+
+  if (!params.passengers || params.passengers < 1 || params.passengers > 9) {
+    errors.push('Passengers must be between 1 and 9');
+  }
+
+  if (errors.length > 0) {
+    throw new Error(`Invalid search parameters: ${errors.join(', ')}`);
+  }
+};
+
+// Check if Amadeus client is available
+const checkAmadeusAvailability = (): boolean => {
+  const client = getAmadeusClient();
+  if (!client) {
+    console.warn('⚠️ Amadeus client not available - API credentials missing');
+    return false;
+  }
+  return true;
+};
+
+// Search flights using Amadeus API with enhanced error handling and retry logic
 export const searchFlights = async (params: AmadeusSearchParams): Promise<any> => {
+  const startTime = Date.now();
+  
   try {
-    console.log('Searching flights with Amadeus API...', params);
+    // Validate input parameters
+    validateSearchParams(params);
+    
+    // Check if client is available
+    if (!checkAmadeusAvailability()) {
+      throw new Error('Amadeus API not available - missing credentials');
+    }
+    
+    const client = getAmadeusClient()!;
+    
+    console.log('🛩️ Searching flights with Amadeus API...', {
+      from: params.from,
+      to: params.to,
+      departDate: params.departDate,
+      returnDate: params.returnDate,
+      passengers: params.passengers,
+      travelClass: params.travelClass,
+      tripType: params.tripType
+    });
     
     const searchParams: any = {
       originLocationCode: AMADEUS_AIRPORT_CODES[params.from] || params.from,
       destinationLocationCode: AMADEUS_AIRPORT_CODES[params.to] || params.to,
       departureDate: params.departDate,
       adults: params.passengers.toString(),
-      max: '20', // Maximum number of flight offers to return
+      max: '20',
       currencyCode: 'USD',
       travelClass: mapTravelClass(params.travelClass)
     };
@@ -365,22 +595,111 @@ export const searchFlights = async (params: AmadeusSearchParams): Promise<any> =
       searchParams.returnDate = params.returnDate;
     }
     
-    const response = await amadeus.shopping.flightOffersSearch.get(searchParams);
+    // Execute the search with retry logic and timeout
+    const response = await withRetry(async () => {
+      // Check if shopping API is available
+      const clientWithShopping = client as any;
+      if (!clientWithShopping.shopping?.flightOffersSearch) {
+        throw new Error('Amadeus shopping API not available in this SDK version');
+      }
+      
+      return Promise.race([
+        clientWithShopping.shopping.flightOffersSearch.get(searchParams),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Request timeout')), config.requestTimeout)
+        )
+      ]);
+    }, 'Amadeus flight search');
     
-    console.log(`Found ${response.data.length} flight offers from Amadeus`);
-    return response.data;
+    const duration = Date.now() - startTime;
+    const resultCount = (response as any).data?.length || 0;
     
-  } catch (error: any) {
-    console.error('Amadeus API Error:', error);
+    console.log(`✅ Amadeus search completed: ${resultCount} flights found in ${duration}ms`);
     
-    // Handle specific Amadeus errors
-    if (error.response) {
-      console.error('Error Response:', error.response.body);
-      throw new Error(`Amadeus API Error: ${error.response.body?.error_description || 'Unknown error'}`);
+    // Validate response data
+    if (!(response as any).data || !Array.isArray((response as any).data)) {
+      throw new Error('Invalid response format from Amadeus API');
     }
     
-    throw new Error(`Flight search failed: ${error.message}`);
+    return (response as any).data;
+    
+  } catch (error: any) {
+    const duration = Date.now() - startTime;
+    console.error(`❌ Amadeus flight search failed after ${duration}ms:`, error.message);
+    
+    // Re-throw with enhanced error information
+    throw new Error(`Amadeus flight search failed: ${error.message}`);
   }
 };
 
-export default amadeus;
+// Health check for Amadeus API
+export const checkAmadeusHealth = async (): Promise<{
+  available: boolean;
+  configured: boolean;
+  lastError?: string;
+  responseTime?: number;
+}> => {
+  const configured = !!(process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET);
+  
+  if (!configured) {
+    return {
+      available: false,
+      configured: false,
+      lastError: 'API credentials not configured'
+    };
+  }
+  
+  try {
+    const startTime = Date.now();
+    const client = getAmadeusClient();
+    
+    if (!client) {
+      return {
+        available: false,
+        configured: true,
+        lastError: 'Failed to initialize client'
+      };
+    }
+    
+    // Test with a simple airport search to check connectivity
+    await Promise.race([
+      (client as any).referenceData?.locations?.get({
+        keyword: 'NYC',
+        subType: 'AIRPORT'
+      }) || Promise.resolve({ data: [] }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Health check timeout')), 5000)
+      )
+    ]);
+    
+    const responseTime = Date.now() - startTime;
+    
+    return {
+      available: true,
+      configured: true,
+      responseTime
+    };
+    
+  } catch (error: any) {
+    const parsedError = parseAmadeusError(error);
+    
+    return {
+      available: false,
+      configured: true,
+      lastError: parsedError.message
+    };
+  }
+};
+
+// Export the client getter for backward compatibility
+const amadeus = getAmadeusClient();
+
+export default {
+  client: amadeus,
+  searchFlights,
+  checkAmadeusHealth,
+  convertAmadeusFlightToOurFormat,
+  AMADEUS_AIRPORT_CODES,
+  AIRLINE_NAMES,
+  AIRCRAFT_NAMES
+};

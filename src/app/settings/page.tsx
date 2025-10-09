@@ -35,10 +35,17 @@ export default function SettingsPage() {
   });
 
   // Notification preferences
-  const [notifications, setNotifications] = useState({
-    email: user?.preferences?.notifications?.email || true,
-    sms: user?.preferences?.notifications?.sms || false,
-    push: user?.preferences?.notifications?.push || true,
+  const [notifications, setNotifications] = useState<{
+    email: boolean;
+    sms: boolean;
+    push: boolean;
+    priceDrops: boolean;
+    bookingUpdates: boolean;
+    promotions: boolean;
+  }>({
+    email: user?.preferences?.notifications?.email ?? true,
+    sms: user?.preferences?.notifications?.sms ?? false,
+    push: user?.preferences?.notifications?.push ?? true,
     priceDrops: true,
     bookingUpdates: true,
     promotions: false

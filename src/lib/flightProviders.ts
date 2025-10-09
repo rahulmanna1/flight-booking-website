@@ -1,7 +1,7 @@
 // Advanced multi-provider flight search service
 // Integrates multiple flight data sources for comprehensive results
 
-import { AmadeusSearchParams, searchFlights as amadeusSearch, convertAmadeusFlightToOurFormat, AIRLINE_NAMES } from './amadeus';
+import { AmadeusSearchParams, searchFlights as amadeusSearch, convertAmadeusFlightToOurFormat, AIRLINE_NAMES, checkAmadeusHealth } from './amadeus';
 import { generateMockFlights } from './mockFlights';
 import SimpleCache, { flightSearchCache } from './cache';
 
@@ -22,6 +22,7 @@ export interface FlightOffer {
   provider: 'amadeus' | 'mock' | 'skyscanner' | 'kayak' | 'aggregated';
   reliability?: 'high' | 'medium' | 'low';
   bookingUrl?: string;
+  rawOffer?: any; // Original provider data for booking
   priceBreakdown?: {
     baseFare: number;
     taxes: number;
@@ -199,8 +200,8 @@ const searchMockFlights = async (params: AmadeusSearchParams): Promise<FlightOff
     layovers: flight.stops ? generateLayovers(flight.stops, params.from, params.to) : undefined,
     amenities: {
       wifi: Math.random() > 0.5,
-      meals: flight.travelClass !== 'economy' || (flight.duration && parseInt(flight.duration) > 2),
-      entertainment: flight.aircraft?.includes('Boeing 777') || flight.aircraft?.includes('Airbus A380'),
+      meals: Boolean(flight.travelClass !== 'economy' || (flight.duration && parseInt(flight.duration) > 2)),
+      entertainment: Boolean(flight.aircraft?.includes('Boeing 777') || flight.aircraft?.includes('Airbus A380')),
       powerOutlets: flight.travelClass === 'business' || flight.travelClass === 'first'
     }
   }));
@@ -345,8 +346,8 @@ export const searchFlightsMultiProvider = async (params: AmadeusSearchParams): P
 
     // Collect successful results
     providerResults.forEach((result, index) => {
-      if (result.status === 'fulfilled' && result.value.length > 0) {
-        results.push(result.value);
+      if (result.status === 'fulfilled' && Array.isArray(result.value) && result.value.length > 0) {
+        results.push(result.value as FlightOffer[]);
       } else if (result.status === 'rejected') {
         const providerName = enabledProviders[index][0];
         errors.push(`${providerName}: ${result.reason.message}`);
@@ -393,29 +394,53 @@ export const searchFlightsMultiProvider = async (params: AmadeusSearchParams): P
   }
 };
 
-// Provider health check
-export const checkProviderHealth = async (): Promise<Record<string, boolean>> => {
-  const healthStatus: Record<string, boolean> = {};
+// Enhanced provider health check with detailed status
+export const checkProviderHealth = async (): Promise<Record<string, {
+  available: boolean;
+  configured: boolean;
+  lastError?: string;
+  responseTime?: number;
+}>> => {
+  const healthStatus: Record<string, any> = {};
 
   for (const [providerName, config] of Object.entries(PROVIDERS)) {
     if (!config.enabled) {
-      healthStatus[providerName] = false;
+      healthStatus[providerName] = {
+        available: false,
+        configured: false,
+        lastError: 'Provider disabled'
+      };
       continue;
     }
 
     try {
       switch (providerName) {
         case 'amadeus':
-          healthStatus[providerName] = !!(process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET);
+          console.log('🔍 Checking Amadeus API health...');
+          healthStatus[providerName] = await checkAmadeusHealth();
           break;
+        
         case 'mock':
-          healthStatus[providerName] = true; // Mock is always available
+          healthStatus[providerName] = {
+            available: true,
+            configured: true,
+            responseTime: 1
+          };
           break;
+        
         default:
-          healthStatus[providerName] = false;
+          healthStatus[providerName] = {
+            available: false,
+            configured: false,
+            lastError: 'Unknown provider'
+          };
       }
-    } catch {
-      healthStatus[providerName] = false;
+    } catch (error: any) {
+      healthStatus[providerName] = {
+        available: false,
+        configured: true,
+        lastError: error.message
+      };
     }
   }
 

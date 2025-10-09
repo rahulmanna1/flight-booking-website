@@ -8,7 +8,7 @@ import FlightDetailsModal from '../FlightDetailsModal';
 import BookingFlow from '../booking/BookingFlow';
 
 // Airport name mapping for better user experience
-const AIRPORT_NAMES = {
+const AIRPORT_NAMES: { [key: string]: string } = {
   'JFK': 'John F. Kennedy Intl',
   'LAX': 'Los Angeles Intl',
   'LHR': 'London Heathrow',
@@ -150,6 +150,7 @@ export default function EnhancedFlightCard({
       <BookingFlow
         flight={{
           ...flight,
+          aircraft: flight.aircraft || 'Unknown',
           departDate: searchParams.departDate,
           arriveDate: flight.arriveDate || searchParams.departDate
         }}
@@ -344,6 +345,8 @@ export default function EnhancedFlightCard({
         flight={flight}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        onBookNow={handleSelectFlight}
+        passengers={searchParams.passengers + searchParams.children + searchParams.infants}
       />
     </div>
   );

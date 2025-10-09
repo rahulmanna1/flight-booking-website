@@ -27,7 +27,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState({ score: 0, feedback: [] });
+  const [passwordStrength, setPasswordStrength] = useState<{ score: number; feedback: string[] }>({ score: 0, feedback: [] });
 
   const countries = [
     'United States', 'Canada', 'United Kingdom', 'Germany', 'France', 'Italy', 'Spain',

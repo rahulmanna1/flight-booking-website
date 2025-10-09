@@ -205,6 +205,31 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
       }
       setError(null);
       
+      // Debug: Log search data to understand what's being passed
+      console.log('🔍 FlightResults search data:', {
+        from: searchData.from,
+        to: searchData.to,
+        departDate: searchData.departDate,
+        passengers: searchData.passengers,
+        tripType: searchData.tripType
+      });
+      
+      // Client-side validation: Check if origin and destination are the same
+      if (searchData.from === searchData.to) {
+        console.error('❌ Same airport error:', { from: searchData.from, to: searchData.to });
+        throw new Error('Origin and destination airports must be different. Please select different airports.');
+      }
+      
+      // Validate required fields
+      if (!searchData.from || !searchData.to || !searchData.departDate) {
+        console.error('❌ Missing required fields:', {
+          from: searchData.from,
+          to: searchData.to,
+          departDate: searchData.departDate
+        });
+        throw new Error('Missing required search parameters. Please check your search criteria.');
+      }
+      
       // Add timeout for long requests
       controller = new AbortController();
       timeoutId = setTimeout(() => {
@@ -414,8 +439,8 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         },
         passengers: [bookingData],
         pricing: {
-          basePrice: selectedFlight?.price,
-          totalPrice: selectedFlight?.price * searchData.passengers,
+          basePrice: selectedFlight?.price || 0,
+          totalPrice: (selectedFlight?.price || 0) * searchData.passengers,
           currency: 'USD',
           passengers: searchData.passengers
         },
@@ -857,9 +882,23 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-lg mx-auto">
                   <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                   <p className="text-red-600 text-lg font-semibold mb-2">
-                    {error.includes('timeout') ? 'Request Timed Out' : 'Search Error'}
+                    {error.includes('timeout') ? 'Request Timed Out' : 
+                     error.includes('airports must be different') ? 'Invalid Airport Selection' :
+                     'Search Error'}
                   </p>
                   <p className="text-red-700 mb-4">{error}</p>
+                  
+                  {/* Special handling for same airport error */}
+                  {error.includes('airports must be different') && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-left">
+                      <h4 className="font-semibold text-blue-800 mb-2">How to fix this:</h4>
+                      <ul className="text-sm text-blue-700 space-y-1">
+                        <li>• Make sure your origin and destination cities are different</li>
+                        <li>• Double-check the airport codes you selected</li>
+                        <li>• Use the search suggestions to select valid airports</li>
+                      </ul>
+                    </div>
+                  )}
                   
                   {retryCount > 0 && (
                     <p className="text-sm text-red-600 mb-4">
@@ -868,29 +907,43 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                   )}
                   
                   <div className="flex justify-center space-x-3">
-                    <button
-                      onClick={() => fetchFlights(true)}
-                      disabled={isRetrying}
-                      className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      {isRetrying ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Retrying...</span>
-                        </>
-                      ) : (
-                        <>
-                          <RefreshCw className="w-4 h-4" />
-                          <span>Try Again</span>
-                        </>
-                      )}
-                    </button>
-                    <button
-                      onClick={onBack}
-                      className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors"
-                    >
-                      Modify Search
-                    </button>
+                    {error.includes('airports must be different') ? (
+                      // Show only "Go Back" button for airport validation errors
+                      <button
+                        onClick={onBack}
+                        className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2 font-semibold"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Go Back to Search</span>
+                      </button>
+                    ) : (
+                      // Show retry and modify buttons for other errors
+                      <>
+                        <button
+                          onClick={() => fetchFlights(true)}
+                          disabled={isRetrying}
+                          className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                        >
+                          {isRetrying ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Retrying...</span>
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="w-4 h-4" />
+                              <span>Try Again</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          onClick={onBack}
+                          className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                        >
+                          Modify Search
+                        </button>
+                      </>
+                    )}
                   </div>
                   
                   <div className="mt-4 text-xs text-gray-600">

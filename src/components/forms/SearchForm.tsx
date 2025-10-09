@@ -27,7 +27,7 @@ const searchSchema = z.object({
   returnDate: z.string().optional(),
   passengers: z.number().min(1, 'At least 1 passenger required'),
   tripType: z.enum(['roundtrip', 'oneway']),
-  travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']).default('economy'),
+  travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']),
 }).refine((data) => {
   if (data.tripType === 'roundtrip' && data.returnDate) {
     const depDate = new Date(data.departDate);
@@ -55,7 +55,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   const [tripType, setTripType] = useState<'roundtrip' | 'oneway'>('roundtrip');
   const [showPopularDestinations, setShowPopularDestinations] = useState(false);
   const [showRecentSearches, setShowRecentSearches] = useState(true);
-  const [userLocation, setUserLocation] = useState<GeolocationPosition | null>(null);
+  const [userLocation, setUserLocation] = useState<GeolocationPosition | undefined>(undefined);
   const [selectedFromAirport, setSelectedFromAirport] = useState<Airport | null>(null);
   const [selectedToAirport, setSelectedToAirport] = useState<Airport | null>(null);
   
@@ -88,7 +88,19 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   }, [watchedFrom, watchedTo]);
 
   const onSubmit = (data: SearchFormData) => {
-    console.log('Search data:', data);
+    // Additional validation: ensure origin and destination are different
+    if (data.from === data.to) {
+      console.error('❌ SearchForm: Same airport validation failed', { from: data.from, to: data.to });
+      return; // Prevent form submission
+    }
+    
+    console.log('✅ SearchForm: Submitting valid search data', {
+      from: data.from,
+      to: data.to,
+      departDate: data.departDate,
+      tripType: data.tripType,
+      passengers: data.passengers
+    });
     
     // Save to recent searches if we have full airport objects
     if (selectedFromAirport && selectedToAirport) {

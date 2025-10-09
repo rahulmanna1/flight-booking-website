@@ -230,13 +230,13 @@ const calculateDistancePrice = (from: string, to: string): { base: number, range
   
   // Same country (domestic)
   if (fromCountry === toCountry) {
-    const pricing = regionalPricing[fromCountry] || regionalPricing['DEFAULT'];
+    const pricing = (regionalPricing as any)[fromCountry] || regionalPricing['DEFAULT'];
     return { base: pricing.base * 0.6, range: pricing.range * 0.6 };
   }
   
   // International flights
-  const fromPricing = regionalPricing[fromCountry] || regionalPricing['DEFAULT'];
-  const toPricing = regionalPricing[toCountry] || regionalPricing['DEFAULT'];
+  const fromPricing = (regionalPricing as any)[fromCountry] || regionalPricing['DEFAULT'];
+  const toPricing = (regionalPricing as any)[toCountry] || regionalPricing['DEFAULT'];
   
   // Average the regional pricing and add international premium
   const avgBase = (fromPricing.base + toPricing.base) / 2;
@@ -251,7 +251,7 @@ const calculateDistancePrice = (from: string, to: string): { base: number, range
 // Get route price with fallback to distance-based pricing
 const getRoutePrice = (from: string, to: string) => {
   const route = `${from}-${to}`;
-  return routePricing[route] || calculateDistancePrice(from, to);
+  return (routePricing as any)[route] || calculateDistancePrice(from, to);
 };
 
 // Mock flight data generator with realistic schedules and pricing
@@ -430,7 +430,7 @@ export const generateMockFlights = (from: string, to: string, date: string): Fli
       '333': { total: 300, economy: 237, business: 51, first: 12 },
     };
     
-    const capacity = aircraftCapacity[aircraft] || aircraftCapacity['320'];
+    const capacity = (aircraftCapacity as any)[aircraft] || aircraftCapacity['320'];
     const loadFactor = 0.6 + Math.random() * 0.3; // 60-90% load factor
     
     const economyAvailable = Math.floor(capacity.economy * (1 - loadFactor) + Math.random() * 20);
@@ -439,11 +439,10 @@ export const generateMockFlights = (from: string, to: string, date: string): Fli
     
     // Determine route type and distance
     const isInternalRoute = fromCountry === toCountry;
-    const routeType = isInternalRoute ? 'domestic' : 
-                     (fromCountry === toCountry || 
-                      ['US', 'CA'].includes(fromCountry) && ['US', 'CA'].includes(toCountry) ||
+    const routeType = isInternalRoute ? 'domestic' as const : 
+                     (['US', 'CA'].includes(fromCountry) && ['US', 'CA'].includes(toCountry) ||
                       ['GB', 'FR', 'DE', 'ES', 'IT'].includes(fromCountry) && ['GB', 'FR', 'DE', 'ES', 'IT'].includes(toCountry)
-                     ) ? 'regional' : 'international';
+                     ) ? 'regional' as const : 'international' as const;
     
     // Estimate distance (rough calculation)
     const getDistance = (from: string, to: string) => {

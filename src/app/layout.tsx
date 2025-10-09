@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { CurrencyProvider } from '@/contexts/CurrencyContext';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { PriceAlertProvider } from '@/contexts/PriceAlertContext';
+import { ClientProviders } from '@/components/providers/ClientProviders';
 import Footer from '@/components/ui/Footer';
+import FlightBookerSEO from '@/lib/seo/metadata';
+import { PerformanceInit } from '@/components/monitoring/PerformanceInit';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,10 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "FlightBooker - Flight Booking Made Easy",
-  description: "Book flights worldwide with FlightBooker. Compare prices, find deals, and enjoy seamless booking experience.",
-};
+export const metadata: Metadata = FlightBookerSEO.getDefaultMetadata();
 
 export default function RootLayout({
   children,
@@ -30,19 +27,17 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning={true}
       >
-        <AuthProvider>
-          <CurrencyProvider>
-            <PriceAlertProvider>
-              <div className="min-h-screen flex flex-col">
-                <main className="flex-grow">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-            </PriceAlertProvider>
-          </CurrencyProvider>
-        </AuthProvider>
+        <ClientProviders>
+          <PerformanceInit />
+          <div className="min-h-screen flex flex-col">
+            <main className="flex-grow">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </ClientProviders>
       </body>
     </html>
   );

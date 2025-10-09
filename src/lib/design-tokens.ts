@@ -148,7 +148,14 @@ export const designTokens = {
 // Helper functions for consistent usage
 export const getColor = (color: string, shade: number = 500) => {
   const [colorName] = color.split('-');
-  return designTokens.colors[colorName as keyof typeof designTokens.colors]?.[shade as keyof typeof designTokens.colors.primary] || color;
+  const colorPalette = designTokens.colors[colorName as keyof typeof designTokens.colors];
+  
+  if (!colorPalette || typeof colorPalette !== 'object') {
+    return color;
+  }
+  
+  // Type assertion for shade as valid color shade key
+  return (colorPalette as any)[shade.toString()] || color;
 };
 
 export const getSpacing = (size: keyof typeof designTokens.spacing) => {
