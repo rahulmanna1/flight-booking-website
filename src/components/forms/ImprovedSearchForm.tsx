@@ -192,12 +192,14 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Departure
             </label>
-            <input
-              {...register('departDate')}
-              type="date"
-              min={new Date().toISOString().split('T')[0]}
-              className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300"
-            />
+            <div className="relative">
+              <input
+                {...register('departDate')}
+                type="date"
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full pl-4 pr-4 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white"
+              />
+            </div>
           </div>
           
           {/* RETURN DATE (conditional) */}
@@ -206,12 +208,14 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Return
               </label>
-              <input
-                {...register('returnDate')}
-                type="date"
-                min={watch('departDate') || new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300"
-              />
+              <div className="relative">
+                <input
+                  {...register('returnDate')}
+                  type="date"
+                  min={watch('departDate') || new Date().toISOString().split('T')[0]}
+                  className="w-full pl-4 pr-4 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white"
+                />
+              </div>
             </div>
           )}
           
@@ -223,16 +227,16 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             <div className="relative">
               <select
                 {...register('passengers', { valueAsNumber: true })}
-                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all"
+                className="w-full pl-4 pr-10 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
               >
                 {[1,2,3,4,5,6,7,8,9].map(num => (
                   <option key={num} value={num}>
-                    {num}
+                    {num} {num === 1 ? 'Traveler' : 'Travelers'}
                   </option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -247,15 +251,15 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             <div className="relative">
               <select
                 {...register('travelClass')}
-                className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all"
+                className="w-full pl-4 pr-10 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
               >
                 <option value="economy">Economy</option>
-                <option value="premium-economy">Premium</option>
+                <option value="premium-economy">Premium Economy</option>
                 <option value="business">Business</option>
-                <option value="first">First</option>
+                <option value="first">First Class</option>
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -267,10 +271,10 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             <button
               type="submit"
               disabled={!watchedFrom || !watchedTo || watchedFrom === watchedTo}
-              className={`w-full py-4 px-6 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+              className={`w-full h-[54px] px-6 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2 ${
                 !watchedFrom || !watchedTo || watchedFrom === watchedTo
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95'
+                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
               }`}
             >
               <Search className="w-5 h-5" />
@@ -279,7 +283,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                   ? 'Select Airports' 
                   : watchedFrom === watchedTo
                   ? 'Different Airports'
-                  : 'Search'
+                  : 'Search Flights'
                 }
               </span>
             </button>
