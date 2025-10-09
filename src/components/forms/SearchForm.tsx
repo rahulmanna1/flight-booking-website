@@ -231,64 +231,59 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       {/* Form Section */}
       <div className="p-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          {/* Airport Selection Section */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          {/* Airport Selection Section - Compact Inline Layout */}
+          <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200/50">
+            <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Plane className="w-5 h-5 mr-2 text-blue-600" />
                 Flight Route
               </h3>
+              <p className="text-sm text-gray-600">Select your departure and destination airports</p>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* From Airport - Takes 5 columns */}
-              <div className="lg:col-span-5">
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                      <span className="text-blue-600 font-semibold text-sm">FROM</span>
+            {/* Inline Flight Route Layout */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <div className="flex items-center space-x-3">
+                {/* FROM Section */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center mb-2">
+                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
+                      <span className="text-blue-600 font-bold text-xs">FROM</span>
                     </div>
-                    Origin
-                  </label>
+                    <span className="text-sm font-medium text-gray-700">Origin</span>
+                  </div>
                   <AirportSearchInput
                     label=""
-                    placeholder="City or airport"
+                    placeholder="Where are you flying from?"
                     value={watchedFrom || ''}
                     onChange={handleFromAirportChange}
                     error={errors.from?.message}
                   />
                 </div>
-              </div>
-              
-              {/* Swap Button - Takes 2 columns */}
-              <div className="lg:col-span-2 flex items-end justify-center pb-4">
-                <div className="relative">
+                
+                {/* Swap Button */}
+                <div className="flex-shrink-0 pt-6">
                   <button
                     type="button"
                     onClick={handleSwapAirports}
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full p-3 shadow-lg transition-all duration-300 transform hover:scale-110 active:scale-95 hover:rotate-180 hover:shadow-xl group relative"
-                    title="Swap origin and destination"
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 shadow-md transition-all duration-200 transform hover:scale-105 active:scale-95 group"
+                    title="Swap airports"
                   >
-                    <ArrowUpDown className="w-5 h-5 transition-transform duration-300 group-hover:rotate-180" />
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full border-2 border-blue-600 flex items-center justify-center">
-                      <span className="text-blue-600 text-xs font-bold">⇄</span>
-                    </div>
+                    <ArrowUpDown className="w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
                   </button>
                 </div>
-              </div>
-              
-              {/* To Airport - Takes 5 columns */}
-              <div className="lg:col-span-5">
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mr-2">
-                      <span className="text-green-600 font-semibold text-sm">TO</span>
+                
+                {/* TO Section */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center mb-2">
+                    <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
+                      <span className="text-green-600 font-bold text-xs">TO</span>
                     </div>
-                    Destination
-                  </label>
+                    <span className="text-sm font-medium text-gray-700">Destination</span>
+                  </div>
                   <AirportSearchInput
                     label=""
-                    placeholder="City or airport"
+                    placeholder="Where would you like to go?"
                     value={watchedTo || ''}
                     onChange={handleToAirportChange}
                     error={errors.to?.message}
@@ -317,135 +312,115 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             )}
           </div>
 
-          {/* Travel Details Section */}
-          <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-8 border border-gray-200/50">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center mb-2">
+          {/* Travel Details Section - Compact Layout */}
+          <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border border-gray-200/50">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
                 <Calendar className="w-5 h-5 mr-2 text-blue-600" />
                 Travel Details
               </h3>
               <p className="text-sm text-gray-600">Select your travel dates and preferences</p>
             </div>
             
-            {/* Date and Passenger Selection */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6">
-              {/* Left Side - Dates */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                  <h4 className="text-base font-medium text-gray-900 mb-4 flex items-center">
-                    <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                    Travel Dates
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Departure Date */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        🛫 Departure
-                      </label>
-                      <input
-                        {...register('departDate')}
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
-                          errors.departDate 
-                            ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
-                            : watch('departDate') 
-                            ? 'border-green-300 bg-green-50 focus:ring-green-500 focus:border-green-500' 
-                            : 'border-gray-300 hover:border-gray-400'
-                        }`}
-                      />
-                      {errors.departDate && (
-                        <p className="text-red-600 text-xs flex items-center mt-1">
-                          <span className="w-3 h-3 bg-red-500 rounded-full mr-2 flex items-center justify-center">
-                            <span className="text-white text-xs">!</span>
-                          </span>
-                          {errors.departDate.message}
-                        </p>
-                      )}
-                    </div>
-                    
-                    {/* Return Date */}
-                    {tripType === 'roundtrip' && (
-                      <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700">
-                          🛬 Return
-                        </label>
-                        <input
-                          {...register('returnDate')}
-                          type="date"
-                          min={watch('departDate') || new Date().toISOString().split('T')[0]}
-                          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
-                            errors.returnDate 
-                              ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
-                              : watch('returnDate') 
-                              ? 'border-green-300 bg-green-50 focus:ring-green-500 focus:border-green-500' 
-                              : 'border-gray-300 hover:border-gray-400'
-                          }`}
-                        />
-                        {errors.returnDate && (
-                          <p className="text-red-600 text-xs flex items-center mt-1">
-                            <span className="w-3 h-3 bg-red-500 rounded-full mr-2 flex items-center justify-center">
-                              <span className="text-white text-xs">!</span>
-                            </span>
-                            {errors.returnDate.message}
-                          </p>
-                        )}
-                      </div>
+            {/* Compact Travel Details Layout */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                {/* Departure Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    🛫 Departure Date
+                  </label>
+                  <input
+                    {...register('departDate')}
+                    type="date"
+                    min={new Date().toISOString().split('T')[0]}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
+                      errors.departDate 
+                        ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
+                        : watch('departDate') 
+                        ? 'border-green-300 bg-green-50 focus:ring-green-500 focus:border-green-500' 
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                  />
+                  {errors.departDate && (
+                    <p className="text-red-600 text-xs flex items-center mt-1">
+                      <span className="w-3 h-3 bg-red-500 rounded-full mr-2 flex items-center justify-center">
+                        <span className="text-white text-xs">!</span>
+                      </span>
+                      {errors.departDate.message}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Return Date */}
+                {tripType === 'roundtrip' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      🛬 Return Date
+                    </label>
+                    <input
+                      {...register('returnDate')}
+                      type="date"
+                      min={watch('departDate') || new Date().toISOString().split('T')[0]}
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
+                        errors.returnDate 
+                          ? 'border-red-300 bg-red-50 focus:ring-red-500 focus:border-red-500' 
+                          : watch('returnDate') 
+                          ? 'border-green-300 bg-green-50 focus:ring-green-500 focus:border-green-500' 
+                          : 'border-gray-300 hover:border-gray-400'
+                      }`}
+                    />
+                    {errors.returnDate && (
+                      <p className="text-red-600 text-xs flex items-center mt-1">
+                        <span className="w-3 h-3 bg-red-500 rounded-full mr-2 flex items-center justify-center">
+                          <span className="text-white text-xs">!</span>
+                        </span>
+                        {errors.returnDate.message}
+                      </p>
                     )}
                   </div>
-                </div>
-              </div>
-              
-              {/* Right Side - Passengers & Class */}
-              <div className="space-y-6">
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                  <h4 className="text-base font-medium text-gray-900 mb-4 flex items-center">
-                    <Users className="w-4 h-4 mr-2 text-blue-600" />
-                    Travelers & Preferences
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Passengers */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        👥 Passengers
-                      </label>
-                      <div className="relative">
-                        <select
-                          {...register('passengers', { valueAsNumber: true })}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-900 font-medium hover:border-gray-400 transition-all duration-200"
-                        >
-                          {[1,2,3,4,5,6,7,8,9].map(num => (
-                            <option key={num} value={num}>
-                              {num} Passenger{num > 1 ? 's' : ''}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                      </div>
-                    </div>
-                    
-                    {/* Travel Class */}
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-700">
-                        ✈️ Class
-                      </label>
-                      <div className="relative">
-                        <select
-                          {...register('travelClass')}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-900 font-medium hover:border-gray-400 transition-all duration-200"
-                        >
-                          <option value="economy">💺 Economy</option>
-                          <option value="premium-economy">✈️ Premium</option>
-                          <option value="business">🥂 Business</option>
-                          <option value="first">👑 First</option>
-                        </select>
-                        <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                      </div>
-                      {errors.travelClass && (
-                        <p className="text-red-600 text-xs mt-1">{errors.travelClass.message}</p>
-                      )}
-                    </div>
+                )}
+                
+                {/* Passengers */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    👥 Passengers
+                  </label>
+                  <div className="relative">
+                    <select
+                      {...register('passengers', { valueAsNumber: true })}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-900 font-medium hover:border-gray-400 transition-all duration-200"
+                    >
+                      {[1,2,3,4,5,6,7,8,9].map(num => (
+                        <option key={num} value={num}>
+                          {num} Passenger{num > 1 ? 's' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                   </div>
+                </div>
+                
+                {/* Travel Class */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ✈️ Travel Class
+                  </label>
+                  <div className="relative">
+                    <select
+                      {...register('travelClass')}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-900 font-medium hover:border-gray-400 transition-all duration-200"
+                    >
+                      <option value="economy">💺 Economy</option>
+                      <option value="premium-economy">✈️ Premium</option>
+                      <option value="business">🥂 Business</option>
+                      <option value="first">👑 First</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
+                  {errors.travelClass && (
+                    <p className="text-red-600 text-xs mt-1">{errors.travelClass.message}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -473,66 +448,59 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
         </div>
 
           {/* Search Button Section */}
-          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
+          <div className="text-center">
             <button
               type="submit"
               disabled={hasSameAirportError || !watchedFrom || !watchedTo}
-              className={`w-full py-5 px-8 rounded-2xl flex items-center justify-center space-x-4 transition-all duration-300 font-bold text-lg group relative overflow-hidden ${
+              className={`inline-flex items-center justify-center space-x-3 py-4 px-12 rounded-2xl transition-all duration-300 font-bold text-lg group relative overflow-hidden min-w-[300px] ${
                 hasSameAirportError || !watchedFrom || !watchedTo
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] hover:-translate-y-1 active:scale-[0.98] active:translate-y-0'
+                  : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95'
               }`}
             >
               {/* Animated background */}
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out"></div>
               
-              <div className={`p-3 rounded-full transition-all duration-300 relative z-10 ${
+              <div className={`p-2 rounded-full transition-all duration-300 relative z-10 ${
                 hasSameAirportError || !watchedFrom || !watchedTo
                   ? 'bg-gray-400' 
-                  : 'bg-white/20 group-hover:bg-white/30 group-hover:scale-110 group-hover:rotate-12'
+                  : 'bg-white/20 group-hover:bg-white/30 group-hover:scale-110'
               }`}>
-                <Plane className="w-6 h-6 transition-all duration-300 group-hover:translate-x-2" />
+                <Plane className="w-5 h-5 transition-all duration-300 group-hover:translate-x-1" />
               </div>
               
-              <span className="relative z-10 text-xl">
+              <span className="relative z-10">
                 {hasSameAirportError 
                   ? 'Select Different Airports' 
                   : !watchedFrom || !watchedTo
-                  ? 'Select Departure & Destination'
+                  ? 'Please Select Airports'
                   : 'Search Flights'
                 }
               </span>
               
               {/* Success arrow */}
               {watchedFrom && watchedTo && !hasSameAirportError && (
-                <div className="p-2 rounded-full bg-white/20 group-hover:bg-white/30 transition-all duration-300 relative z-10">
-                  <span className="text-white font-bold">→</span>
+                <div className="relative z-10">
+                  <span className="text-white font-bold text-xl">→</span>
                 </div>
               )}
             </button>
             
-            {/* Flight Route Preview */}
+            {/* Flight Route Preview - Compact */}
             {(watchedFrom && watchedTo && selectedFromAirport && selectedToAirport && !hasSameAirportError) && (
-              <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
-                <div className="flex items-center justify-center space-x-4 text-sm">
-                  <div className="text-center">
-                    <div className="font-bold text-blue-900">{selectedFromAirport.iataCode}</div>
-                    <div className="text-blue-700 text-xs">{selectedFromAirport.city}</div>
-                  </div>
-                  <div className="flex items-center space-x-2 text-blue-600">
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                    <div className="w-8 h-0.5 bg-blue-600"></div>
-                    <Plane className="w-4 h-4 text-blue-600" />
-                    <div className="w-8 h-0.5 bg-blue-600"></div>
-                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-blue-900">{selectedToAirport.iataCode}</div>
-                    <div className="text-blue-700 text-xs">{selectedToAirport.city}</div>
-                  </div>
+              <div className="mt-4 inline-flex items-center space-x-3 bg-blue-50 px-6 py-3 rounded-full border border-blue-200">
+                <div className="text-center">
+                  <span className="font-bold text-blue-900 text-sm">{selectedFromAirport.iataCode}</span>
                 </div>
-                <div className="text-center mt-2">
-                  <span className="text-blue-700 text-xs font-medium">Ready to search flights</span>
+                <div className="flex items-center space-x-1 text-blue-600">
+                  <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
+                  <div className="w-6 h-px bg-blue-600"></div>
+                  <Plane className="w-3 h-3 text-blue-600" />
+                  <div className="w-6 h-px bg-blue-600"></div>
+                  <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
+                </div>
+                <div className="text-center">
+                  <span className="font-bold text-blue-900 text-sm">{selectedToAirport.iataCode}</span>
                 </div>
               </div>
             )}
