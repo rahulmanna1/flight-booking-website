@@ -277,10 +277,12 @@ export default function AirportSearchInput({
 
   return (
     <div className="relative">
-      <label className="block text-sm font-medium text-gray-700 mb-2">
-        <MapPin className="inline w-4 h-4 mr-1" />
-        {label}
-      </label>
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          <MapPin className="inline w-4 h-4 mr-1" />
+          {label}
+        </label>
+      )}
       
       <div className="relative">
         {/* Input Field */}
@@ -299,12 +301,12 @@ export default function AirportSearchInput({
             placeholder={placeholder}
             disabled={disabled}
             autoComplete="off"
-            className={`w-full pl-10 pr-20 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 ${
+            className={`w-full pl-10 pr-20 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 ${
               error 
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                 : selectedAirport 
                   ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
-                  : 'border-gray-300'
+                  : 'border-gray-200'
             } ${disabled ? 'bg-gray-50 cursor-not-allowed text-gray-500' : 'bg-white'}`}
           />
           

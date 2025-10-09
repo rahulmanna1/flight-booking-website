@@ -143,24 +143,27 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
       {/* Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="p-8 lg:p-12 space-y-10">
         {/* Airport Selection Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 mb-6">
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-3xl p-8 border border-gray-200/50">
+          <div className="flex items-center gap-3 mb-8">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Plane className="w-5 h-5 text-blue-600" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900">Flight Route</h3>
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Flight Route</h3>
+              <p className="text-sm text-gray-600">Select your departure and destination airports</p>
+            </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* From Airport - 5 columns */}
-            <div className="lg:col-span-5 space-y-3">
-              <div className="flex items-center gap-3 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* From Airport */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                   <span className="text-blue-600 font-bold text-sm">FROM</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">Origin</p>
-                  <p className="text-sm text-gray-500">Where are you flying from?</p>
+                  <h4 className="text-lg font-semibold text-gray-900">Origin</h4>
+                  <p className="text-sm text-gray-600">Where are you flying from?</p>
                 </div>
               </div>
               <AirportSearchInput
@@ -172,34 +175,15 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
               />
             </div>
             
-            {/* Swap Button - 2 columns */}
-            <div className="lg:col-span-2 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="hidden lg:block w-24 h-0.5 bg-gray-300"></div>
-                <button
-                  type="button"
-                  onClick={handleSwapAirports}
-                  className="group bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 active:scale-95 relative"
-                  title="Swap airports"
-                >
-                  <ArrowLeftRight className="w-6 h-6 transition-transform duration-300 group-hover:rotate-180" />
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full border-2 border-blue-500 flex items-center justify-center">
-                    <span className="text-blue-600 text-xs font-bold">⇄</span>
-                  </div>
-                </button>
-                <div className="hidden lg:block w-24 h-0.5 bg-gray-300"></div>
-              </div>
-            </div>
-            
-            {/* To Airport - 5 columns */}
-            <div className="lg:col-span-5 space-y-3">
-              <div className="flex items-center gap-3 mb-4">
+            {/* To Airport */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                   <span className="text-green-600 font-bold text-sm">TO</span>
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">Destination</p>
-                  <p className="text-sm text-gray-500">Where would you like to go?</p>
+                  <h4 className="text-lg font-semibold text-gray-900">Destination</h4>
+                  <p className="text-sm text-gray-600">Where would you like to go?</p>
                 </div>
               </div>
               <AirportSearchInput
@@ -210,6 +194,21 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                 error={errors.to?.message}
               />
             </div>
+          </div>
+          
+          {/* Swap Button - Centered between cards */}
+          <div className="flex justify-center mt-6">
+            <button
+              type="button"
+              onClick={handleSwapAirports}
+              className="group bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 active:scale-95 relative"
+              title="Swap departure and destination airports"
+            >
+              <ArrowLeftRight className="w-6 h-6 transition-transform duration-300 group-hover:rotate-180" />
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full border-2 border-blue-500 flex items-center justify-center">
+                <span className="text-blue-600 text-xs font-bold">⇄</span>
+              </div>
+            </button>
           </div>
         </div>
 
