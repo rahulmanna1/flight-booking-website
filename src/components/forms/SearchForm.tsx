@@ -189,7 +189,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden max-w-5xl mx-auto">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
         <div className="text-center mb-6">
           <h1 className="text-2xl font-bold text-white mb-2">Find Your Perfect Flight</h1>
           <p className="text-blue-100">Search from thousands of airports worldwide</p>
@@ -203,7 +203,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               setTripType('roundtrip');
               setValue('tripType', 'roundtrip');
             }}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-semibold transition-colors duration-200 ${
               tripType === 'roundtrip' 
                 ? 'bg-white text-blue-600 shadow-sm' 
                 : 'text-white hover:bg-white/10'
@@ -217,7 +217,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               setTripType('oneway');
               setValue('tripType', 'oneway');
             }}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+            className={`flex-1 px-4 py-2 rounded-md text-sm font-semibold transition-colors duration-200 ${
               tripType === 'oneway' 
                 ? 'bg-white text-blue-600 shadow-sm' 
                 : 'text-white hover:bg-white/10'
@@ -236,7 +236,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             {/* Form Header */}
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Plane className="w-5 h-5 mr-2 text-blue-600" />
+                <Plane className="w-5 h-5 mr-2 text-blue-500" />
                 Search Flights
               </h3>
               <p className="text-sm text-gray-600 mt-1">Find and compare flights from top airlines worldwide</p>
@@ -272,7 +272,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                   <button
                     type="button"
                     onClick={handleSwapAirports}
-                    className="mt-6 bg-gray-100 hover:bg-blue-50 border border-gray-300 hover:border-blue-300 text-gray-600 hover:text-blue-600 rounded-full p-2 transition-all duration-200 transform hover:scale-105"
+                    className="mt-6 bg-gray-100 hover:bg-blue-50 border border-gray-300 hover:border-blue-300 text-gray-600 hover:text-blue-600 rounded-full p-2 transition-colors duration-200"
                     title="Swap airports"
                   >
                     <ArrowUpDown className="w-4 h-4" />
@@ -445,24 +445,21 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             <button
               type="submit"
               disabled={hasSameAirportError || !watchedFrom || !watchedTo}
-              className={`inline-flex items-center justify-center space-x-3 py-4 px-12 rounded-2xl transition-all duration-300 font-bold text-lg group relative overflow-hidden min-w-[300px] ${
+              className={`inline-flex items-center justify-center space-x-3 py-4 px-12 rounded-xl transition-colors duration-200 font-semibold text-lg group min-w-[300px] ${
                 hasSameAirportError || !watchedFrom || !watchedTo
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transform hover:scale-105 active:scale-95'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 shadow-lg'
               }`}
             >
-              {/* Animated background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-out"></div>
-              
-              <div className={`p-2 rounded-full transition-all duration-300 relative z-10 ${
+              <div className={`p-2 rounded-full transition-colors duration-200 ${
                 hasSameAirportError || !watchedFrom || !watchedTo
                   ? 'bg-gray-400' 
-                  : 'bg-white/20 group-hover:bg-white/30 group-hover:scale-110'
+                  : 'bg-white/20'
               }`}>
-                <Plane className="w-5 h-5 transition-all duration-300 group-hover:translate-x-1" />
+                <Plane className="w-5 h-5" />
               </div>
               
-              <span className="relative z-10">
+              <span>
                 {hasSameAirportError 
                   ? 'Select Different Airports' 
                   : !watchedFrom || !watchedTo
@@ -470,13 +467,6 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                   : 'Search Flights'
                 }
               </span>
-              
-              {/* Success arrow */}
-              {watchedFrom && watchedTo && !hasSameAirportError && (
-                <div className="relative z-10">
-                  <span className="text-white font-bold text-xl">→</span>
-                </div>
-              )}
             </button>
             
             {/* Flight Route Preview - Compact */}
@@ -485,12 +475,12 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                 <div className="text-center">
                   <span className="font-bold text-blue-900 text-sm">{selectedFromAirport.iataCode}</span>
                 </div>
-                <div className="flex items-center space-x-1 text-blue-600">
-                  <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
-                  <div className="w-6 h-px bg-blue-600"></div>
-                  <Plane className="w-3 h-3 text-blue-600" />
-                  <div className="w-6 h-px bg-blue-600"></div>
-                  <div className="w-1 h-1 bg-blue-600 rounded-full"></div>
+                <div className="flex items-center space-x-1 text-blue-500">
+                  <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                  <div className="w-6 h-px bg-blue-500"></div>
+                  <Plane className="w-3 h-3 text-blue-500" />
+                  <div className="w-6 h-px bg-blue-500"></div>
+                  <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
                 </div>
                 <div className="text-center">
                   <span className="font-bold text-blue-900 text-sm">{selectedToAirport.iataCode}</span>

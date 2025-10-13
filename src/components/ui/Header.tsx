@@ -42,27 +42,27 @@ export default function Header() {
             <span className="text-xl font-bold text-gray-900">FlightBooker</span>
           </Link>
 
-          {/* Desktop Navigation with Enhanced Animations */}
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+            <Link href="/" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200 group">
               <span>Home</span>
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
             </Link>
-            <Link href="/search" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+            <Link href="/search" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200 group">
               <span>Search Flights</span>
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
             </Link>
-            <Link href="/bookings" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+            <Link href="/bookings" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200 group">
               <span>My Bookings</span>
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
             </Link>
-            <Link href="/price-alerts" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+            <Link href="/price-alerts" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200 group">
               <span>Price Alerts</span>
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
             </Link>
-            <Link href="/support" className="relative text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-110 hover:-translate-y-0.5 group">
+            <Link href="/support" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200 group">
               <span>Support</span>
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
             </Link>
           </nav>
 
@@ -147,14 +147,13 @@ export default function Header() {
               <>
                 <Link
                   href="/login"
-                  className="text-gray-700 hover:text-blue-600 transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 relative group"
+                  className="text-gray-700 hover:text-blue-600 transition-colors duration-200 font-medium"
                 >
-                  <span>Sign In</span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                  Sign In
                 </Link>
                 <Link
                   href="/register"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 hover:shadow-lg active:scale-95 active:translate-y-0"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 font-medium"
                 >
                   Sign Up
                 </Link>
@@ -227,7 +226,7 @@ export default function Header() {
               </Link>
               <Link 
                 href="/register" 
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-center"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 text-center font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Sign Up

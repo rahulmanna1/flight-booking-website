@@ -169,7 +169,7 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
   return (
     <div 
       ref={cardRef}
-      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-xl transition-all duration-300 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      className="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-shadow duration-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       tabIndex={0}
       role="article"
       aria-label={`Flight ${flight.flightNumber} from ${flight.origin} to ${flight.destination}, ${formatPrice(flight.price)}. Press Enter to select, Space to view details, or Tab to navigate options.`}
@@ -195,7 +195,7 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
           </div>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold text-blue-600">{formatPrice(flight.price)}</p>
+          <p className="text-3xl font-bold text-blue-500">{formatPrice(flight.price)}</p>
           <p className="text-sm text-gray-500">per person</p>
           <div className="flex items-center justify-end mt-1">
             <Users className="w-3 h-3 text-gray-500 mr-1" />
@@ -220,14 +220,14 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
         {/* Duration and Stops */}
         <div className="text-center">
           <div className="flex items-center justify-center space-x-2 mb-2">
-            <Clock className="w-4 h-4 text-blue-600" aria-hidden="true" />
+            <Clock className="w-4 h-4 text-blue-500" aria-hidden="true" />
             <span className="text-sm font-semibold text-gray-700" aria-label={`Flight duration ${flight.duration}`}>{flight.duration}</span>
           </div>
           
           {/* Flight path visualization */}
           <div className="flex items-center justify-center mb-2" aria-hidden="true">
             <div className="w-6 h-0.5 bg-blue-200"></div>
-            <Plane className="w-4 h-4 text-blue-600 mx-2 transform rotate-90" />
+            <Plane className="w-4 h-4 text-blue-500 mx-2 transform rotate-90" />
             <div className="w-6 h-0.5 bg-blue-200"></div>
           </div>
           
@@ -338,11 +338,11 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
             <button
               ref={viewDetailsButtonRef}
               onClick={() => setIsModalOpen(true)}
-              className="w-full bg-white text-blue-600 py-2.5 px-6 rounded-lg hover:bg-blue-50 transition-all duration-200 font-medium flex items-center justify-center space-x-2 border border-blue-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
+              className="w-full bg-white text-blue-600 py-2.5 px-6 rounded-lg hover:bg-blue-50 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 border border-blue-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label={`View detailed information for ${flight.airline} flight ${flight.flightNumber} from ${flight.origin} to ${flight.destination}`}
               aria-describedby={`flight-details-${flight.id}`}
             >
-              <Eye className="w-4 h-4 transition-transform group-hover:rotate-12" aria-hidden="true" />
+              <Eye className="w-4 h-4" aria-hidden="true" />
               <span>View Details</span>
             </button>
           </div>
@@ -353,10 +353,10 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
           ref={selectFlightButtonRef}
           onClick={handleFlightSelect}
           disabled={isSelectingFlight}
-          className={`w-full py-3 px-6 rounded-lg font-semibold flex items-center justify-center space-x-2 shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform ${
+          className={`w-full py-3 px-6 rounded-lg font-semibold flex items-center justify-center space-x-2 shadow-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
             isSelectingFlight
-              ? 'bg-blue-500 cursor-not-allowed scale-95'
-              : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:scale-105 active:scale-95'
+              ? 'bg-blue-400 cursor-not-allowed'
+              : 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700'
           }`}
           aria-label={`Select ${flight.airline} flight ${flight.flightNumber} departing ${flight.departTime} for ${formatPrice(flight.price)} per person. This will proceed to booking details.`}
           aria-describedby={`flight-details-${flight.id}`}
