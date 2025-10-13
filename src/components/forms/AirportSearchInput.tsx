@@ -303,7 +303,7 @@ export default function AirportSearchInput({
             placeholder={placeholder}
             disabled={disabled}
             autoComplete="off"
-            className={`w-full pl-10 pr-20 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 ${
+            className={`w-full pl-10 pr-20 py-4 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 text-gray-900 font-medium hover:border-gray-300 ${
               error 
                 ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
                 : selectedAirport 
@@ -319,7 +319,7 @@ export default function AirportSearchInput({
               <button
                 type="button"
                 onClick={handleClearSelection}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
+                className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors duration-200"
                 title="Clear selection"
               >
                 <X className="w-4 h-4" />
@@ -331,7 +331,7 @@ export default function AirportSearchInput({
               <button
                 type="button"
                 onClick={handleCurrentLocation}
-                className="p-1 text-blue-600 hover:text-blue-700 rounded transition-colors"
+                className="p-1 text-blue-500 hover:text-blue-600 rounded transition-colors duration-200"
                 title="Use current location"
               >
                 <Navigation className="w-4 h-4" />
@@ -341,7 +341,7 @@ export default function AirportSearchInput({
             {/* Loading Spinner */}
             {loading && (
               <div className="p-1">
-                <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
               </div>
             )}
           </div>
@@ -388,10 +388,10 @@ export default function AirportSearchInput({
         >
           {/* Nearby Airports Section */}
           {showNearbyAirports && (
-            <div className="sticky top-0 bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 border-b border-blue-100">
+            <div className="sticky top-0 bg-blue-50 px-4 py-3 border-b border-blue-100">
               <h4 className="text-sm font-semibold text-blue-800 flex items-center">
                 <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center mr-2">
-                  <Navigation className="w-3 h-3 text-blue-600" />
+                  <Navigation className="w-3 h-3 text-blue-500" />
                 </div>
                 📍 Nearby Airports
               </h4>
@@ -403,15 +403,15 @@ export default function AirportSearchInput({
             <div
               key={`${airport.iataCode}-${index}`}
               onClick={() => handleAirportSelect(airport)}
-              className={`group flex items-center p-4 cursor-pointer transition-all duration-200 ${
+              className={`group flex items-center p-4 cursor-pointer transition-colors duration-200 ${
                 index === highlightedIndex 
-                  ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 transform translate-x-1' 
-                  : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-25 border-l-4 border-transparent hover:border-blue-200 hover:transform hover:translate-x-0.5'
+                  ? 'bg-blue-50 border-l-4 border-blue-500' 
+                  : 'hover:bg-gray-50 border-l-4 border-transparent hover:border-blue-200'
               }`}
             >
               {/* Country Flag */}
               <div className="mr-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-white to-gray-50 flex items-center justify-center text-xl shadow-md border border-gray-100 group-hover:shadow-lg group-hover:scale-105 transition-all duration-200">
+                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center text-xl shadow-sm border border-gray-100 transition-shadow duration-200">
                   {getCountryFlag(airport.countryCode)}
                 </div>
               </div>
@@ -419,7 +419,7 @@ export default function AirportSearchInput({
               {/* Airport Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="font-bold text-lg text-gray-900 group-hover:text-blue-600">
+                  <span className="font-bold text-lg text-gray-900 group-hover:text-blue-500 transition-colors duration-200">
                     {airport.iataCode}
                   </span>
                   <span className="px-2 py-1 bg-gray-100 rounded text-xs font-medium text-gray-600">
@@ -442,9 +442,9 @@ export default function AirportSearchInput({
               </div>
               
               {/* Arrow */}
-              <div className="ml-4 text-gray-400 group-hover:text-blue-600 transition-all duration-200">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-gray-100 to-gray-50 group-hover:from-blue-500 group-hover:to-blue-600 flex items-center justify-center shadow-sm group-hover:shadow-md transform group-hover:scale-110 transition-all duration-200">
-                  <span className="text-lg group-hover:text-white font-bold">→</span>
+              <div className="ml-4">
+                <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-blue-500 flex items-center justify-center shadow-sm transition-colors duration-200">
+                  <span className="text-lg text-gray-600 group-hover:text-white font-bold transition-colors duration-200">→</span>
                 </div>
               </div>
             </div>
@@ -468,7 +468,7 @@ export default function AirportSearchInput({
           {loading && (
             <div className="p-6 text-center">
               <div className="w-16 h-16 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
               </div>
               <p className="font-medium text-gray-700 mb-1">Searching airports...</p>
               <p className="text-sm text-gray-500">Finding the best matches for "{query}"</p>
