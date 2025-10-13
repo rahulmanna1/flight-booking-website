@@ -371,20 +371,12 @@ export function FlightPayment({
                   onError={handleStripePaymentError}
                   onCancel={handlePaymentCancel}
                   bookingDetails={{
-                    flight: {
+                    flightInfo: {
                       flightNumber: flightDetails.flightNumber,
-                      airline: flightDetails.airline,
-                      from: flightDetails.from,
-                      to: flightDetails.to,
-                      departTime: flightDetails.departTime,
-                      arriveTime: flightDetails.arriveTime
+                      origin: flightDetails.from.code,
+                      destination: flightDetails.to.code
                     },
-                    passenger: {
-                      firstName: passengerDetails.firstName,
-                      lastName: passengerDetails.lastName,
-                      email: passengerDetails.email,
-                      phone: passengerDetails.phone
-                    }
+                    totalAmount: flightDetails.price.total
                   }}
                 />
               </CardContent>

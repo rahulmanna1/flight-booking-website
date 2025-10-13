@@ -96,13 +96,20 @@ export async function POST(request: NextRequest) {
     // Skip CAPTCHA in development mode when DISABLE_CAPTCHA_DEV=true
     const skipCaptcha = isDevelopment && process.env.DISABLE_CAPTCHA_DEV === 'true';
     
-    let captchaResult = { 
+    let captchaResult: {
+      success: boolean;
+      score?: number;
+      riskLevel?: 'low' | 'medium' | 'high';
+      action?: string;
+      hostname?: string;
+      error?: string;
+      shouldChallenge?: boolean;
+    } = { 
       success: true, 
       score: 0.9, 
-      riskLevel: 'low' as const,
+      riskLevel: 'low',
       action: 'booking',
-      hostname: 'localhost',
-      timestamp: new Date().toISOString()
+      hostname: 'localhost'
     };
     
     if (skipCaptcha) {
