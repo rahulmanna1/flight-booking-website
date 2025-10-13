@@ -90,7 +90,7 @@ export default function PriceAlertButton({ flightData, searchData }: PriceAlertB
   if (showSuccess) {
     return (
       <button
-        className="inline-flex items-center space-x-2 px-3 py-2 text-sm font-medium text-green-700 bg-green-100 border border-green-300 rounded-lg transition-colors"
+        className="inline-flex items-center space-x-2 px-3 py-2 text-sm font-medium text-green-700 bg-green-100 border border-green-300 rounded-lg transition-colors duration-200"
         disabled
       >
         <Check className="w-4 h-4" />
@@ -102,7 +102,7 @@ export default function PriceAlertButton({ flightData, searchData }: PriceAlertB
   if (error) {
     return (
       <button
-        className="inline-flex items-center space-x-2 px-3 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-lg transition-colors"
+        className="inline-flex items-center space-x-2 px-3 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-lg transition-colors duration-200"
         disabled
       >
         <X className="w-4 h-4" />
@@ -115,7 +115,7 @@ export default function PriceAlertButton({ flightData, searchData }: PriceAlertB
     <button
       onClick={handleCreateAlert}
       disabled={isCreating}
-      className="inline-flex items-center space-x-2 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-100 border border-blue-300 rounded-lg hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      className="inline-flex items-center space-x-2 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-100 border border-blue-300 rounded-lg hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
       title="Create price alert for this route"
     >
       {isCreating ? (

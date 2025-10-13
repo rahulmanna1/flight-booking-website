@@ -65,7 +65,7 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-t-2xl">
+        <div className="sticky top-0 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-2xl">
@@ -78,7 +78,7 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors"
+              className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors duration-200"
             >
               <X className="w-6 h-6" />
             </button>
@@ -94,7 +94,7 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
             <div className="flex-1 mx-6 relative">
               <div className="h-0.5 bg-white bg-opacity-30"></div>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-2">
-                <Plane className="w-4 h-4 text-blue-600 transform rotate-90" />
+                <Plane className="w-4 h-4 text-blue-500 transform rotate-90" />
               </div>
               <div className="text-center mt-2 text-sm text-blue-100">
                 {flight.duration}
@@ -117,7 +117,7 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
             {/* Aircraft Information */}
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Plane className="w-5 h-5 mr-2 text-blue-600" />
+                <Plane className="w-5 h-5 mr-2 text-blue-500" />
                 Aircraft Details
               </h3>
               <div className="space-y-3">
@@ -160,15 +160,15 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
           </div>
 
           {/* Amenities */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6">
+          <div className="bg-blue-50 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-              <Wifi className="w-5 h-5 mr-2 text-blue-600" />
+              <Wifi className="w-5 h-5 mr-2 text-blue-500" />
               In-Flight Amenities
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {aircraftInfo.features.map((feature, index) => (
                 <div key={index} className="flex items-center space-x-2 text-gray-700">
-                  {feature === 'Wi-Fi' && <Wifi className="w-4 h-4 text-blue-600" />}
+                  {feature === 'Wi-Fi' && <Wifi className="w-4 h-4 text-blue-500" />}
                   {feature.includes('Meal') && <Coffee className="w-4 h-4 text-orange-600" />}
                   {feature === 'Entertainment' && <Tv className="w-4 h-4 text-purple-600" />}
                   {!['Wi-Fi', 'Entertainment'].includes(feature) && !feature.includes('Meal') && 
@@ -222,7 +222,7 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
               </div>
               <div className="border-t pt-3 flex justify-between text-lg font-bold">
                 <span>Total</span>
-                <span className="text-blue-600">{formatPrice(totalPrice)}</span>
+                <span className="text-blue-500">{formatPrice(totalPrice)}</span>
               </div>
             </div>
           </div>
@@ -270,12 +270,12 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
             
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">{formatPrice(totalPrice)}</div>
+                <div className="text-2xl font-bold text-blue-500">{formatPrice(totalPrice)}</div>
                 <div className="text-sm text-gray-500">Total for {passengers} passenger{passengers > 1 ? 's' : ''}</div>
               </div>
               <button
                 onClick={() => onBookNow(flight)}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 shadow-lg"
+                className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg"
               >
                 Book Now
               </button>
