@@ -35,7 +35,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/search" className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
               <Plane className="w-5 h-5 text-white" />
             </div>
@@ -44,10 +44,6 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200 group">
-              <span>Home</span>
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
-            </Link>
             <Link href="/search" className="relative text-gray-700 hover:text-blue-600 transition-colors duration-200 group">
               <span>Search Flights</span>
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-200 group-hover:w-full"></span>
@@ -178,13 +174,6 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden border-t py-4">
             <nav className="flex flex-col space-y-4">
-              <Link 
-                href="/" 
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
               <Link 
                 href="/search" 
                 className="text-gray-700 hover:text-blue-600 transition-colors"
