@@ -140,149 +140,170 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
         </div>
       </div>
 
-      {/* Form - Two Row Clean Layout */}
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
-        {/* Row 1: Airport Selection */}
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 items-end">
-          {/* FROM - 3 columns */}
-          <div className="lg:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              From
-            </label>
-            <AirportSearchInput
-              label=""
-              placeholder="City or airport"
-              value={watchedFrom || ''}
-              onChange={handleFromAirportChange}
-              error={errors.from?.message}
-            />
+      {/* Form - Spacious Two-Row Layout */}
+      <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
+        {/* Row 1: Where - Route Selection with Clear Visual Separation */}
+        <div className="bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-2xl p-6 border-2 border-gray-200">
+          <div className="flex items-center gap-2 mb-4">
+            <Plane className="w-5 h-5 text-blue-600" />
+            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Route</h3>
           </div>
           
-          {/* SWAP - 1 column */}
-          <div className="lg:col-span-1 flex justify-center items-end pb-3">
-            <button
-              type="button"
-              onClick={handleSwapAirports}
-              className="bg-gray-100 hover:bg-blue-50 border border-gray-300 hover:border-blue-400 text-gray-600 hover:text-blue-600 rounded-full p-2.5 transition-all duration-200"
-              title="Swap airports"
-            >
-              <ArrowLeftRight className="w-4 h-4" />
-            </button>
-          </div>
-          
-          {/* TO - 3 columns */}
-          <div className="lg:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              To
-            </label>
-            <AirportSearchInput
-              label=""
-              placeholder="City or airport"
-              value={watchedTo || ''}
-              onChange={handleToAirportChange}
-              error={errors.to?.message}
-            />
-          </div>
-        </div>
-        
-        {/* Row 2: Travel Details + Search Button */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-          {/* DEPARTURE DATE */}
-          <div className="lg:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Departure
-            </label>
-            <div className="relative">
-              <input
-                {...register('departDate')}
-                type="date"
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full pl-4 pr-4 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white"
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-end">
+            {/* FROM */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-gray-500" />
+                From
+              </label>
+              <AirportSearchInput
+                label=""
+                placeholder="Departure city"
+                value={watchedFrom || ''}
+                onChange={handleFromAirportChange}
+                error={errors.from?.message}
+                className="bg-white"
+              />
+            </div>
+            
+            {/* SWAP BUTTON - Styled Circle */}
+            <div className="flex items-end pb-3 md:pb-4">
+              <button
+                type="button"
+                onClick={handleSwapAirports}
+                className="bg-white hover:bg-blue-600 border-2 border-gray-300 hover:border-blue-600 text-gray-600 hover:text-white rounded-full p-3 transition-all duration-200 shadow-sm hover:shadow-md group"
+                title="Swap airports"
+              >
+                <ArrowLeftRight className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* TO */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-gray-500" />
+                To
+              </label>
+              <AirportSearchInput
+                label=""
+                placeholder="Arrival city"
+                value={watchedTo || ''}
+                onChange={handleToAirportChange}
+                error={errors.to?.message}
+                className="bg-white"
               />
             </div>
           </div>
-          
-          {/* RETURN DATE (conditional) */}
-          {tripType === 'roundtrip' && (
-            <div className="lg:col-span-3">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Return
-              </label>
-              <div className="relative">
+        </div>
+        
+        {/* Row 2: When & Who - Travel Details with Search Button */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-10 gap-4">
+          {/* DATES SECTION - Grouped */}
+          <div className="lg:col-span-4 bg-gradient-to-br from-purple-50 to-blue-50/30 rounded-2xl p-6 border-2 border-purple-200/50">
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar className="w-5 h-5 text-purple-600" />
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Travel Dates</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* DEPARTURE */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Departure
+                </label>
                 <input
-                  {...register('returnDate')}
+                  {...register('departDate')}
                   type="date"
-                  min={watch('departDate') || new Date().toISOString().split('T')[0]}
-                  className="w-full pl-4 pr-4 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white"
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white cursor-pointer"
                 />
               </div>
+              
+              {/* RETURN */}
+              {tripType === 'roundtrip' && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Return
+                  </label>
+                  <input
+                    {...register('returnDate')}
+                    type="date"
+                    min={watch('departDate') || new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white cursor-pointer"
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </div>
           
-          {/* TRAVELERS */}
-          <div className={tripType === 'roundtrip' ? 'lg:col-span-2' : 'lg:col-span-3'}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Travelers
-            </label>
-            <div className="relative">
-              <select
-                {...register('passengers', { valueAsNumber: true })}
-                className="w-full pl-4 pr-10 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
-              >
-                {[1,2,3,4,5,6,7,8,9].map(num => (
-                  <option key={num} value={num}>
-                    {num} {num === 1 ? 'Traveler' : 'Travelers'}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+          {/* PASSENGERS & CLASS SECTION - Grouped */}
+          <div className="lg:col-span-3 bg-gradient-to-br from-green-50 to-blue-50/30 rounded-2xl p-6 border-2 border-green-200/50">
+            <div className="flex items-center gap-2 mb-4">
+              <Users className="w-5 h-5 text-green-600" />
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Passengers</h3>
+            </div>
+            
+            <div className="space-y-3">
+              {/* TRAVELERS */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Travelers
+                </label>
+                <div className="relative">
+                  <select
+                    {...register('passengers', { valueAsNumber: true })}
+                    className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
+                  >
+                    {[1,2,3,4,5,6,7,8,9].map(num => (
+                      <option key={num} value={num}>
+                        {num} {num === 1 ? 'Adult' : 'Adults'}
+                      </option>
+                    ))}
+                  </select>
+                  <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+              
+              {/* CLASS */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Class
+                </label>
+                <div className="relative">
+                  <select
+                    {...register('travelClass')}
+                    className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
+                  >
+                    <option value="economy">Economy</option>
+                    <option value="premium-economy">Premium Economy</option>
+                    <option value="business">Business</option>
+                    <option value="first">First Class</option>
+                  </select>
+                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
           
-          {/* CLASS */}
-          <div className={tripType === 'roundtrip' ? 'lg:col-span-2' : 'lg:col-span-3'}>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Class
-            </label>
-            <div className="relative">
-              <select
-                {...register('travelClass')}
-                className="w-full pl-4 pr-10 py-[15px] border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
-              >
-                <option value="economy">Economy</option>
-                <option value="premium-economy">Premium Economy</option>
-                <option value="business">Business</option>
-                <option value="first">First Class</option>
-              </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          
-          {/* SEARCH BUTTON */}
-          <div className={tripType === 'roundtrip' ? 'lg:col-span-2' : 'lg:col-span-3'}>
+          {/* SEARCH BUTTON - Large & Prominent */}
+          <div className="lg:col-span-3 flex items-end">
             <button
               type="submit"
               disabled={!watchedFrom || !watchedTo || watchedFrom === watchedTo}
-              className={`w-full h-[54px] px-6 rounded-xl font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+              className={`w-full h-full min-h-[140px] rounded-2xl font-bold text-lg transition-all duration-200 flex flex-col items-center justify-center gap-3 ${
                 !watchedFrom || !watchedTo || watchedFrom === watchedTo
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
+                  : 'bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transform hover:scale-[1.02] active:scale-[0.98]'
               }`}
             >
-              <Search className="w-5 h-5" />
-              <span>
+              <Search className="w-8 h-8" />
+              <span className="text-center px-4">
                 {!watchedFrom || !watchedTo 
                   ? 'Select Airports' 
                   : watchedFrom === watchedTo
-                  ? 'Different Airports'
+                  ? 'Choose Different Cities'
                   : 'Search Flights'
                 }
               </span>
