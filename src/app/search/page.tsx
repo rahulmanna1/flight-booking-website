@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import Header from '@/components/ui/Header';
 import SearchForm from '@/components/forms/SearchForm';
@@ -24,6 +25,8 @@ export default function SearchPage() {
   const [searchData, setSearchData] = useState<SearchData | null>(null);
   const [showResults, setShowResults] = useState(false);
   const { formatPrice } = useCurrency();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { 
     recentSearches, 
     addRecentSearch, 
@@ -34,10 +37,24 @@ export default function SearchPage() {
     isClient,
     isLoading 
   } = useRecentSearches();
+  
+  // Handle URL changes - reset state when navigating to /search without results param
+  useEffect(() => {
+    const hasResultsParam = searchParams.get('results') === 'true';
+    
+    // If showing results but no results param in URL, user navigated back - reset state
+    if (showResults && !hasResultsParam) {
+      setShowResults(false);
+      setSearchData(null);
+    }
+  }, [searchParams, showResults]);
 
   const handleSearch = (data: SearchData) => {
     setSearchData(data);
     setShowResults(true);
+    
+    // Update URL to indicate results view
+    router.push('/search?results=true', { scroll: false });
     
     // Add to recent searches
     addRecentSearch({
@@ -53,6 +70,8 @@ export default function SearchPage() {
 
   const handleBackToSearch = () => {
     setShowResults(false);
+    setSearchData(null);
+    router.push('/search', { scroll: true });
   };
   
   const handleSelectRecentSearch = (search: any) => {
