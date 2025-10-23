@@ -61,6 +61,26 @@ model Booking {
   // Passenger information stored as JSON array
   passengers            String
   
+  // Seat selections stored as JSON array (per passenger per flight segment)
+  seatSelections        String?     @default("[]")
+  
+  // Meal preferences stored as JSON array (per passenger per flight segment)
+  mealPreferences       String?     @default("[]")
+  
+  // Baggage information stored as JSON
+  baggageInfo           String?     @default("{\"checked\":[],\"carry_on\":[]}")
+  
+  // Travel insurance details stored as JSON
+  insuranceInfo         String?     @default("null")
+  
+  // Group booking indicator
+  isGroupBooking        Boolean     @default(false)
+  groupSize             Int?        @default(1)
+  groupCoordinatorEmail String?
+  
+  // Trip type
+  tripType              TripType    @default(ROUND_TRIP)
+  
   // Pricing breakdown stored as JSON
   pricing               String
   
@@ -137,6 +157,7 @@ model PriceAlert {
 enum TripType {
   ONE_WAY
   ROUND_TRIP
+  MULTI_CITY
 }
 
 enum CabinClass {

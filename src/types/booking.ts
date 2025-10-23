@@ -492,4 +492,335 @@ export interface BookingStats {
   }[];
 }
 
+// ============================================
+// ADVANCED BOOKING FEATURES
+// ============================================
+
+// Multi-City Search Types
+export interface MultiCitySearchForm {
+  segments: {
+    from: string;
+    to: string;
+    departDate: string;
+  }[];
+  passengers: number;
+  travelClass: 'economy' | 'premium-economy' | 'business' | 'first';
+}
+
+// Enhanced Seat Selection Types
+export interface SeatMap {
+  segmentId: string;
+  flightNumber: string;
+  aircraft: string;
+  rows: number;
+  columns: string[];
+  layout: 'narrow-body' | 'wide-body'; // narrow: 3-3, wide: 2-4-2 or 3-4-3
+  seats: SeatInfo[];
+  exitRows: number[];
+}
+
+export interface SeatInfo {
+  row: number;
+  column: string;
+  seatNumber: string; // e.g., "12A"
+  type: 'standard' | 'extra-legroom' | 'preferred' | 'emergency-exit' | 'bassinet';
+  status: 'available' | 'occupied' | 'selected' | 'blocked' | 'reserved';
+  price: number; // Additional price for this seat
+  features: ('window' | 'aisle' | 'middle' | 'extra-legroom' | 'recline-limited' | 'near-lavatory' | 'near-galley')[];
+}
+
+export interface PassengerSeatSelection {
+  passengerId: string;
+  passengerName: string;
+  segmentId: string;
+  flightNumber: string;
+  seatNumber: string;
+  seatType: SeatInfo['type'];
+  additionalCost: number;
+}
+
+// Enhanced Meal Service Types
+export interface MealService {
+  segmentId: string;
+  flightNumber: string;
+  serviceType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'refreshment';
+  availableMeals: MealOption[];
+}
+
+export interface MealOption {
+  id: string;
+  code: string; // e.g., "VGML" for vegetarian
+  name: string;
+  description: string;
+  ingredients: string[];
+  category: 'standard' | 'vegetarian' | 'vegan' | 'kosher' | 'halal' | 'gluten-free' | 'child' | 'special-diet' | 'diabetic' | 'low-salt';
+  allergens?: string[];
+  price: number;
+  available: boolean;
+  imageUrl?: string;
+  nutritionInfo?: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
+}
+
+export interface PassengerMealSelection {
+  passengerId: string;
+  passengerName: string;
+  segmentId: string;
+  flightNumber: string;
+  mealId: string;
+  mealCode: string;
+  mealName: string;
+  price: number;
+  dietaryRestrictions: string[];
+  allergens: string[];
+}
+
+// Enhanced Baggage Types
+export interface BaggageAllowance {
+  segmentId: string;
+  cabinClass: string;
+  carryOn: {
+    pieces: number;
+    weight: number; // kg
+    dimensions: string; // e.g., "55x40x20 cm"
+  };
+  checked: {
+    pieces: number;
+    weight: number; // kg per piece
+    maxPieces: number;
+    additionalPiecePrice: number;
+  };
+  personal: {
+    allowed: boolean;
+    dimensions: string;
+  };
+}
+
+export interface ExtraBaggageOption {
+  id: string;
+  type: 'checked' | 'overweight' | 'oversized' | 'sports-equipment' | 'musical-instrument' | 'pet';
+  description: string;
+  weight?: number;
+  price: number;
+  available: boolean;
+}
+
+export interface PassengerBaggageSelection {
+  passengerId: string;
+  passengerName: string;
+  checkedBags: {
+    count: number;
+    totalWeight: number;
+    price: number;
+  };
+  extraBaggage: {
+    type: ExtraBaggageOption['type'];
+    description: string;
+    price: number;
+  }[];
+  specialItems: {
+    type: string;
+    description: string;
+    price: number;
+  }[];
+  totalCost: number;
+}
+
+// Travel Insurance Types
+export interface TravelInsuranceOption {
+  id: string;
+  provider: string;
+  providerLogo?: string;
+  planName: string;
+  description: string;
+  coverage: InsuranceCoverage;
+  price: number;
+  pricePerPassenger: number;
+  recommended: boolean;
+  popular: boolean;
+  termsUrl: string;
+  policyDocument?: string;
+}
+
+export interface InsuranceCoverage {
+  tripCancellation: {
+    covered: boolean;
+    maxAmount: number;
+    reasons: string[];
+  };
+  tripInterruption: {
+    covered: boolean;
+    maxAmount: number;
+  };
+  tripDelay: {
+    covered: boolean;
+    minimumDelay: number; // hours
+    compensation: number;
+  };
+  medicalExpenses: {
+    covered: boolean;
+    maxAmount: number;
+    emergencyEvacuation: boolean;
+  };
+  baggageLoss: {
+    covered: boolean;
+    maxAmount: number;
+  };
+  baggageDelay: {
+    covered: boolean;
+    minimumDelay: number; // hours
+    compensation: number;
+  };
+  flightAccident: {
+    covered: boolean;
+    maxAmount: number;
+  };
+  covid19: {
+    covered: boolean;
+    maxAmount: number;
+  };
+}
+
+export interface BookingInsurance {
+  insuranceId: string;
+  provider: string;
+  planName: string;
+  policyNumber?: string;
+  totalCost: number;
+  costPerPassenger: number;
+  coverage: InsuranceCoverage;
+  coveredPassengers: string[]; // Array of passenger IDs
+  termsAccepted: boolean;
+  termsAcceptedAt?: string;
+}
+
+// Group Booking Types
+export interface GroupBookingInfo {
+  isGroupBooking: boolean;
+  groupSize: number;
+  groupName?: string;
+  coordinator: {
+    id?: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    company?: string;
+  };
+  groupType: 'family' | 'corporate' | 'tour' | 'event' | 'sports-team' | 'school' | 'other';
+  specialRequests: string;
+  paymentMethod: 'single-payment' | 'split-payment' | 'individual-payment';
+  discount?: {
+    type: 'percentage' | 'fixed';
+    value: number;
+    reason: string;
+  };
+}
+
+export interface BulkPassengerImport {
+  format: 'csv' | 'excel' | 'json';
+  passengers: Omit<PassengerInfo, 'id'>[];
+  validationErrors: {
+    row: number;
+    field: string;
+    error: string;
+  }[];
+}
+
+// Booking Steps and Progress
+export interface BookingProgress {
+  currentStep: number;
+  totalSteps: number;
+  completedSteps: string[];
+  steps: BookingStepInfo[];
+}
+
+export interface BookingStepInfo {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  status: 'pending' | 'in-progress' | 'completed' | 'skipped';
+  required: boolean;
+  order: number;
+}
+
+// Price Breakdown for Advanced Features
+export interface EnhancedPricingBreakdown extends BookingPricing {
+  seatSelectionCosts: {
+    [passengerId: string]: number;
+  };
+  mealCosts: {
+    [passengerId: string]: number;
+  };
+  baggageCosts: {
+    [passengerId: string]: number;
+  };
+  insuranceCost: number;
+  groupDiscount?: number;
+  totalBeforeAddons: number;
+  totalAddons: number;
+}
+
+// Complete Enhanced Booking
+export interface EnhancedFlightBooking extends FlightBooking {
+  // Seat selections per segment
+  seatSelections?: {
+    [segmentId: string]: PassengerSeatSelection[];
+  };
+  
+  // Meal preferences per segment
+  mealSelections?: {
+    [segmentId: string]: PassengerMealSelection[];
+  };
+  
+  // Baggage for all passengers
+  baggageSelections?: PassengerBaggageSelection[];
+  
+  // Travel insurance
+  insurance?: BookingInsurance;
+  
+  // Group booking details
+  groupBooking?: GroupBookingInfo;
+  
+  // Enhanced pricing
+  enhancedPricing?: EnhancedPricingBreakdown;
+}
+
+// API Request/Response Types
+export interface GetSeatMapRequest {
+  segmentId: string;
+  flightNumber: string;
+  date: string;
+}
+
+export interface GetMealOptionsRequest {
+  segmentId: string;
+  flightNumber: string;
+  cabinClass: string;
+}
+
+export interface GetInsuranceQuoteRequest {
+  passengerCount: number;
+  tripCost: number;
+  tripType: 'one-way' | 'round-trip' | 'multi-city';
+  departureDate: string;
+  returnDate?: string;
+}
+
+export interface CreateEnhancedBookingRequest extends CreateBookingRequest {
+  seatSelections?: PassengerSeatSelection[];
+  mealSelections?: PassengerMealSelection[];
+  baggageSelections?: PassengerBaggageSelection[];
+  insurance?: {
+    insuranceId: string;
+    coveredPassengers: string[];
+  };
+  groupBooking?: GroupBookingInfo;
+}
+
 // Note: All types are already exported individually above
