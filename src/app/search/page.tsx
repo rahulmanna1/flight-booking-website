@@ -5,7 +5,10 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import Header from '@/components/ui/Header';
 import SearchForm from '@/components/forms/SearchForm';
 import FlightResults from '@/components/FlightResults';
-import { Plane, TrendingUp } from 'lucide-react';
+import RecentSearches from '@/components/RecentSearches';
+import { useRecentSearches } from '@/hooks/useRecentSearches';
+import RecentSearchesSkeleton from '@/components/skeletons/RecentSearchesSkeleton';
+import { Plane, TrendingUp, Clock } from 'lucide-react';
 
 interface SearchData {
   from: string;
@@ -21,14 +24,60 @@ export default function SearchPage() {
   const [searchData, setSearchData] = useState<SearchData | null>(null);
   const [showResults, setShowResults] = useState(false);
   const { formatPrice } = useCurrency();
+  const { 
+    recentSearches, 
+    addRecentSearch, 
+    removeRecentSearch, 
+    clearRecentSearches,
+    getPopularRoutes,
+    getPopularDestinations,
+    isClient,
+    isLoading 
+  } = useRecentSearches();
 
   const handleSearch = (data: SearchData) => {
     setSearchData(data);
     setShowResults(true);
+    
+    // Add to recent searches
+    addRecentSearch({
+      from: data.from,
+      to: data.to,
+      departDate: data.departDate,
+      returnDate: data.returnDate,
+      passengers: data.passengers,
+      tripType: data.tripType,
+      travelClass: data.travelClass
+    });
   };
 
   const handleBackToSearch = () => {
     setShowResults(false);
+  };
+  
+  const handleSelectRecentSearch = (search: any) => {
+    const data: SearchData = {
+      from: search.from,
+      to: search.to,
+      departDate: search.departDate,
+      returnDate: search.returnDate || '',
+      passengers: search.passengers,
+      tripType: search.tripType,
+      travelClass: search.travelClass
+    };
+    handleSearch(data);
+  };
+
+  const handleSelectDestination = (destinationCode: string) => {
+    const data: SearchData = {
+      from: 'JFK', // Default origin
+      to: destinationCode,
+      departDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      passengers: 1,
+      tripType: 'roundtrip',
+      travelClass: 'economy'
+    };
+    handleSearch(data);
   };
 
   // Popular routes for search suggestions
@@ -74,6 +123,33 @@ export default function SearchPage() {
       <section className="py-12 -mt-8 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <SearchForm onSearch={handleSearch} />
+          
+          {/* Recent Searches */}
+          {isClient && (
+            <div className="mt-8">
+              {isLoading ? (
+                <RecentSearchesSkeleton />
+              ) : (recentSearches.length > 0 || getPopularRoutes().length > 0 || getPopularDestinations().length > 0) ? (
+                <div className="animate-fade-in">
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex items-center gap-2 mb-6">
+                      <Clock className="w-5 h-5 text-blue-600" />
+                      <h2 className="text-lg font-semibold text-gray-900">Recent & Popular Searches</h2>
+                    </div>
+                    <RecentSearches
+                      searches={recentSearches}
+                      onSelectSearch={handleSelectRecentSearch}
+                      onRemoveSearch={removeRecentSearch}
+                      onClearAll={clearRecentSearches}
+                      popularRoutes={getPopularRoutes()}
+                      popularDestinations={getPopularDestinations()}
+                      onSelectDestination={handleSelectDestination}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
       </section>
 
