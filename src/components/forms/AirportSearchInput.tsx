@@ -278,7 +278,7 @@ export default function AirportSearchInput({
   const displayAirports = showNearbyAirports ? nearbyAirports : airports;
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <MapPin className="inline w-4 h-4 mr-1" />
@@ -286,7 +286,7 @@ export default function AirportSearchInput({
         </label>
       )}
       
-      <div className="relative">
+      <div className="relative w-full">
         {/* Input Field */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -381,8 +381,9 @@ export default function AirportSearchInput({
       {isOpen && (displayAirports.length > 0 || loading || (hasSearched && query.length >= 2)) && (
         <div 
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 bg-white shadow-2xl rounded-xl mt-2 z-50 max-h-80 overflow-y-auto border border-gray-100 backdrop-blur-sm"
+          className="absolute top-full left-0 right-0 bg-white shadow-2xl rounded-xl mt-2 max-h-80 overflow-y-auto border border-gray-100 backdrop-blur-sm"
           style={{
+            zIndex: 9999,
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(59, 130, 246, 0.05)'
           }}
         >

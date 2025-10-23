@@ -187,9 +187,9 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden max-w-6xl mx-auto">
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 max-w-6xl mx-auto">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-6">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-6 rounded-t-2xl">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white mb-1 flex items-center gap-2">
