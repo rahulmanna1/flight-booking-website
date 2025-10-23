@@ -346,18 +346,6 @@ export default function AirportSearchInput({
             )}
           </div>
         </div>
-        
-        {/* Selected Airport Indicator */}
-        {selectedAirport && (
-          <div className="mt-2 flex items-center text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
-            <div className="flex items-center space-x-2">
-              <span className="text-lg">{getCountryFlag(selectedAirport.countryCode)}</span>
-              <span className="font-medium">{selectedAirport.iataCode}</span>
-              <span>•</span>
-              <span>{selectedAirport.name}</span>
-            </div>
-          </div>
-        )}
       </div>
       
       {/* Enhanced Error Message */}
