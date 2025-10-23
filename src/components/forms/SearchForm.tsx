@@ -187,309 +187,218 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden max-w-5xl mx-auto">
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden max-w-6xl mx-auto">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-white mb-2">Find Your Perfect Flight</h1>
-          <p className="text-blue-100">Search from thousands of airports worldwide</p>
-        </div>
-        
-        {/* Trip Type Selector */}
-        <div className="flex justify-center space-x-1 bg-white/10 rounded-lg p-1 max-w-sm mx-auto">
-          <button
-            type="button"
-            onClick={() => {
-              setTripType('roundtrip');
-              setValue('tripType', 'roundtrip');
-            }}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-semibold transition-colors duration-200 ${
-              tripType === 'roundtrip' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-white hover:bg-white/10'
-            }`}
-          >
-            ↔ Round Trip
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setTripType('oneway');
-              setValue('tripType', 'oneway');
-            }}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-semibold transition-colors duration-200 ${
-              tripType === 'oneway' 
-                ? 'bg-white text-blue-600 shadow-sm' 
-                : 'text-white hover:bg-white/10'
-            }`}
-          >
-            → One Way
-          </button>
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-1 flex items-center gap-2">
+              <Plane className="w-7 h-7" />
+              Search Flights
+            </h2>
+            <p className="text-blue-100">
+              Compare flights from hundreds of airlines worldwide
+            </p>
+          </div>
+          
+          {/* Trip Type Toggle - Modern Style */}
+          <div className="bg-white/15 backdrop-blur-sm rounded-xl p-1 inline-flex gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setTripType('roundtrip');
+                setValue('tripType', 'roundtrip');
+              }}
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                tripType === 'roundtrip' 
+                  ? 'bg-white text-blue-700 shadow-md' 
+                  : 'text-white/90 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              ↔ Round Trip
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setTripType('oneway');
+                setValue('tripType', 'oneway');
+              }}
+              className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                tripType === 'oneway' 
+                  ? 'bg-white text-blue-700 shadow-md' 
+                  : 'text-white/90 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              → One Way
+            </button>
+          </div>
         </div>
       </div>
       
-      {/* Form Section */}
-      <div className="p-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Unified Search Form - Industry Standard Single Row Layout */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            {/* Form Header */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                <Plane className="w-5 h-5 mr-2 text-blue-500" />
-                Search Flights
-              </h3>
-              <p className="text-sm text-gray-600 mt-1">Find and compare flights from top airlines worldwide</p>
-            </div>
-            
-            {/* Main Search Row */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
-                {/* FROM Airport - 3 columns */}
-                <div className="lg:col-span-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    From
-                  </label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
-                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-bold text-xs">🛫</span>
-                      </div>
-                    </div>
-                    <AirportSearchInput
-                      label=""
-                      placeholder="Departure city"
-                      value={watchedFrom || ''}
-                      onChange={handleFromAirportChange}
-                      error={errors.from?.message}
-                      className="pl-12"
-                    />
-                  </div>
-                </div>
-                
-                {/* Swap Button - 1 column */}
-                <div className="lg:col-span-1 flex justify-center">
-                  <button
-                    type="button"
-                    onClick={handleSwapAirports}
-                    className="mt-6 bg-gray-100 hover:bg-blue-50 border border-gray-300 hover:border-blue-300 text-gray-600 hover:text-blue-600 rounded-full p-2 transition-colors duration-200"
-                    title="Swap airports"
-                  >
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </div>
-                
-                {/* TO Airport - 3 columns */}
-                <div className="lg:col-span-3">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    To
-                  </label>
-                  <div className="relative">
-                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10">
-                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                        <span className="text-green-600 font-bold text-xs">🛬</span>
-                      </div>
-                    </div>
-                    <AirportSearchInput
-                      label=""
-                      placeholder="Arrival city"
-                      value={watchedTo || ''}
-                      onChange={handleToAirportChange}
-                      error={errors.to?.message}
-                      className="pl-12"
-                    />
-                  </div>
-                </div>
-                
-                {/* Departure Date - 2 columns */}
-                <div className="lg:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Departure
-                  </label>
-                  <input
-                    {...register('departDate')}
-                    type="date"
-                    min={new Date().toISOString().split('T')[0]}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
-                      errors.departDate 
-                        ? 'border-red-300 bg-red-50' 
-                        : watch('departDate') 
-                        ? 'border-green-300 bg-green-50' 
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                  />
-                </div>
-                
-                {/* Return Date - 2 columns (conditional) */}
-                {tripType === 'roundtrip' && (
-                  <div className="lg:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Return
-                    </label>
-                    <input
-                      {...register('returnDate')}
-                      type="date"
-                      min={watch('departDate') || new Date().toISOString().split('T')[0]}
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-gray-900 font-medium ${
-                        errors.returnDate 
-                          ? 'border-red-300 bg-red-50' 
-                          : watch('returnDate') 
-                          ? 'border-green-300 bg-green-50' 
-                          : 'border-gray-300 hover:border-gray-400'
-                      }`}
-                    />
-                  </div>
-                )}
-                
-                {/* Passengers - 1 column */}
-                <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-2'}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Travelers
-                  </label>
-                  <div className="relative">
-                    <select
-                      {...register('passengers', { valueAsNumber: true })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-900 font-medium hover:border-gray-400 transition-all duration-200"
-                    >
-                      {[1,2,3,4,5,6,7,8,9].map(num => (
-                        <option key={num} value={num}>
-                          {num} {num === 1 ? 'Adult' : 'Adults'}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                
-                {/* Travel Class - 1 column */}
-                <div className={tripType === 'roundtrip' ? 'lg:col-span-1' : 'lg:col-span-1'}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Class
-                  </label>
-                  <div className="relative">
-                    <select
-                      {...register('travelClass')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white text-gray-900 font-medium hover:border-gray-400 transition-all duration-200"
-                    >
-                      <option value="economy">Economy</option>
-                      <option value="premium-economy">Premium</option>
-                      <option value="business">Business</option>
-                      <option value="first">First</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-              </div>
-              
-              {/* Error Messages */}
-              {(errors.from || errors.to || errors.departDate || errors.returnDate || hasSameAirportError) && (
-                <div className="mt-4 space-y-2">
-                  {errors.from && (
-                    <p className="text-red-600 text-sm flex items-center">
-                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                      {errors.from.message}
-                    </p>
-                  )}
-                  {errors.to && (
-                    <p className="text-red-600 text-sm flex items-center">
-                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                      {errors.to.message}
-                    </p>
-                  )}
-                  {errors.departDate && (
-                    <p className="text-red-600 text-sm flex items-center">
-                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                      {errors.departDate.message}
-                    </p>
-                  )}
-                  {errors.returnDate && (
-                    <p className="text-red-600 text-sm flex items-center">
-                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                      {errors.returnDate.message}
-                    </p>
-                  )}
-                  {hasSameAirportError && (
-                    <p className="text-red-600 text-sm flex items-center">
-                      <span className="w-2 h-2 bg-red-500 rounded-full mr-2"></span>
-                      Please select different departure and arrival airports
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-
-        {/* Suggestions Section */}
-        <div className="space-y-6">
-          {/* Recent Searches */}
-          {showRecentSearches && (
-            <RecentSearches
-              onSearchSelect={handleRecentSearchSelect}
-              className=""
-              maxItems={3}
+      {/* Form Section - Three Row Layout */}
+      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+        {/* Row 1: Route - From and To */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-end">
+          {/* FROM */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              From
+            </label>
+            <AirportSearchInput
+              label=""
+              placeholder="Departure city"
+              value={watchedFrom || ''}
+              onChange={handleFromAirportChange}
+              error={errors.from?.message}
+              className="h-[52px]"
             />
+          </div>
+          
+          {/* SWAP BUTTON */}
+          <div className="flex items-end pb-3">
+            <button
+              type="button"
+              onClick={handleSwapAirports}
+              className="bg-gray-100 hover:bg-blue-600 border-2 border-gray-200 hover:border-blue-600 text-gray-600 hover:text-white rounded-full p-3 transition-all duration-200 shadow-sm hover:shadow-md"
+              title="Swap airports"
+            >
+              <ArrowUpDown className="w-5 h-5" />
+            </button>
+          </div>
+          
+          {/* TO */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              To
+            </label>
+            <AirportSearchInput
+              label=""
+              placeholder="Arrival city"
+              value={watchedTo || ''}
+              onChange={handleToAirportChange}
+              error={errors.to?.message}
+              className="h-[52px]"
+            />
+          </div>
+        </div>
+        
+        {/* Row 2: Travel Details */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* DEPARTURE DATE */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Departure
+            </label>
+            <input
+              {...register('departDate')}
+              type="date"
+              min={new Date().toISOString().split('T')[0]}
+              className="w-full h-[52px] px-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white cursor-pointer"
+            />
+          </div>
+          
+          {/* RETURN DATE */}
+          {tripType === 'roundtrip' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Return
+              </label>
+              <input
+                {...register('returnDate')}
+                type="date"
+                min={watch('departDate') || new Date().toISOString().split('T')[0]}
+                className="w-full h-[52px] px-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white cursor-pointer"
+              />
+            </div>
           )}
           
-          {/* Popular Destinations */}
-          {showPopularDestinations && (
-            <PopularDestinations
-              onDestinationSelect={handlePopularDestinationSelect}
-              userLocation={userLocation}
-              className=""
-            />
-          )}
-        </div>
-
-          {/* Search Button Section */}
-          <div className="text-center">
-            <button
-              type="submit"
-              disabled={hasSameAirportError || !watchedFrom || !watchedTo}
-              className={`inline-flex items-center justify-center space-x-3 py-4 px-12 rounded-xl transition-colors duration-200 font-semibold text-lg group min-w-[300px] ${
-                hasSameAirportError || !watchedFrom || !watchedTo
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                  : 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700 shadow-lg'
-              }`}
-            >
-              <div className={`p-2 rounded-full transition-colors duration-200 ${
-                hasSameAirportError || !watchedFrom || !watchedTo
-                  ? 'bg-gray-400' 
-                  : 'bg-white/20'
-              }`}>
-                <Plane className="w-5 h-5" />
-              </div>
-              
-              <span>
-                {hasSameAirportError 
-                  ? 'Select Different Airports' 
-                  : !watchedFrom || !watchedTo
-                  ? 'Please Select Airports'
-                  : 'Search Flights'
-                }
-              </span>
-            </button>
-            
-            {/* Flight Route Preview - Compact */}
-            {(watchedFrom && watchedTo && selectedFromAirport && selectedToAirport && !hasSameAirportError) && (
-              <div className="mt-4 inline-flex items-center space-x-3 bg-blue-50 px-6 py-3 rounded-full border border-blue-200">
-                <div className="text-center">
-                  <span className="font-bold text-blue-900 text-sm">{selectedFromAirport.iataCode}</span>
-                </div>
-                <div className="flex items-center space-x-1 text-blue-500">
-                  <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
-                  <div className="w-6 h-px bg-blue-500"></div>
-                  <Plane className="w-3 h-3 text-blue-500" />
-                  <div className="w-6 h-px bg-blue-500"></div>
-                  <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
-                </div>
-                <div className="text-center">
-                  <span className="font-bold text-blue-900 text-sm">{selectedToAirport.iataCode}</span>
-                </div>
-              </div>
-            )}
+          {/* TRAVELERS */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Travelers
+            </label>
+            <div className="relative">
+              <select
+                {...register('passengers', { valueAsNumber: true })}
+                className="w-full h-[52px] pl-4 pr-10 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
+              >
+                {[1,2,3,4,5,6,7,8,9].map(num => (
+                  <option key={num} value={num}>
+                    {num} {num === 1 ? 'Adult' : 'Adults'}
+                  </option>
+                ))}
+              </select>
+              <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
           </div>
+          
+          {/* CLASS */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Class</label>
+            <div className="relative">
+              <select
+                {...register('travelClass')}
+                className="w-full h-[52px] pl-4 pr-10 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 font-medium bg-white appearance-none hover:border-gray-300 transition-all cursor-pointer"
+              >
+                <option value="economy">Economy</option>
+                <option value="premium-economy">Premium Economy</option>
+                <option value="business">Business</option>
+                <option value="first">First Class</option>
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+        </div>
+        
+        {/* Row 3: Search Button - Full Width */}
+        <div>
+          <button
+            type="submit"
+            disabled={!watchedFrom || !watchedTo || watchedFrom === watchedTo}
+            className={`w-full h-[56px] px-6 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2 ${
+              !watchedFrom || !watchedTo || watchedFrom === watchedTo
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-[1.01]'
+            }`}
+          >
+            <Plane className="w-5 h-5" />
+            <span>
+              {!watchedFrom || !watchedTo 
+                ? 'Select Airports' 
+                : watchedFrom === watchedTo
+                ? 'Choose Different Cities'
+                : 'Search Flights'
+              }
+            </span>
+          </button>
+        </div>
+        
+        {/* Error Messages */}
+        {(errors.from || errors.to || errors.departDate || errors.returnDate || hasSameAirportError) && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="space-y-1">
+              {errors.from && <p className="text-red-600 text-sm">• {errors.from.message}</p>}
+              {errors.to && <p className="text-red-600 text-sm">• {errors.to.message}</p>}
+              {errors.departDate && <p className="text-red-600 text-sm">• {errors.departDate.message}</p>}
+              {errors.returnDate && <p className="text-red-600 text-sm">• {errors.returnDate.message}</p>}
+              {hasSameAirportError && <p className="text-red-600 text-sm">• Origin and destination must be different</p>}
+            </div>
+          </div>
+        )}
       </form>
-      </div>
+      
+      {/* Popular Destinations Section */}
+      {showPopularDestinations && (
+        <div className="border-t bg-gradient-to-br from-gray-50 to-blue-50/20 px-8 py-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Star className="w-5 h-5 text-yellow-500" />
+            <h3 className="text-lg font-semibold text-gray-900">Popular Destinations</h3>
+          </div>
+          <PopularDestinations 
+            onDestinationSelect={handlePopularDestinationSelect}
+          />
+        </div>
+      )}
     </div>
   );
 }
