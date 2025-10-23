@@ -8,7 +8,7 @@ import FlightResults from '@/components/FlightResults';
 import RecentSearches from '@/components/RecentSearches';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
 import RecentSearchesSkeleton from '@/components/skeletons/RecentSearchesSkeleton';
-import { Plane, TrendingUp, Clock } from 'lucide-react';
+import { Plane, TrendingUp, Clock, MapPin, Sparkles } from 'lucide-react';
 
 interface SearchData {
   from: string;
@@ -80,14 +80,14 @@ export default function SearchPage() {
     handleSearch(data);
   };
 
-  // Popular routes for search suggestions
-  const popularRoutes = [
-    { from: 'JFK', to: 'LAX', route: 'New York → Los Angeles', price: 299 },
-    { from: 'JFK', to: 'LHR', route: 'New York → London', price: 549 },
-    { from: 'LAX', to: 'NRT', route: 'Los Angeles → Tokyo', price: 649 },
-    { from: 'JFK', to: 'CDG', route: 'New York → Paris', price: 519 },
-    { from: 'LAX', to: 'SYD', route: 'Los Angeles → Sydney', price: 849 },
-    { from: 'JFK', to: 'DXB', route: 'New York → Dubai', price: 779 },
+  // Combined popular routes and destinations
+  const popularOptions = [
+    { type: 'route', from: 'JFK', to: 'LAX', label: 'New York → Los Angeles', city: 'Los Angeles', price: 299 },
+    { type: 'route', from: 'JFK', to: 'LHR', label: 'New York → London', city: 'London', price: 549 },
+    { type: 'route', from: 'LAX', to: 'NRT', label: 'Los Angeles → Tokyo', city: 'Tokyo', price: 649 },
+    { type: 'route', from: 'JFK', to: 'CDG', label: 'New York → Paris', city: 'Paris', price: 519 },
+    { type: 'route', from: 'LAX', to: 'SYD', label: 'Los Angeles → Sydney', city: 'Sydney', price: 849 },
+    { type: 'route', from: 'JFK', to: 'DXB', label: 'New York → Dubai', city: 'Dubai', price: 779 },
   ];
 
   if (showResults && searchData) {
@@ -100,160 +100,191 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       <Header />
       
-      {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="flex items-center justify-center mb-4">
-            <Plane className="w-12 h-12 mr-3" />
-            <h1 className="text-4xl md:text-5xl font-bold">
+      {/* Hero Section - Compact & Clean */}
+      <section className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white pt-12 pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-3 flex items-center justify-center gap-3">
+              <Plane className="w-10 h-10" />
               Search Flights
             </h1>
-          </div>
-          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
-            Find and compare flights from hundreds of airlines to destinations worldwide. 
-            Get the best deals on your next trip.
-          </p>
-        </div>
-      </section>
-
-      {/* Search Form Section */}
-      <section className="py-12 -mt-8 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <SearchForm onSearch={handleSearch} />
-          
-          {/* Recent Searches */}
-          {isClient && (
-            <div className="mt-8">
-              {isLoading ? (
-                <RecentSearchesSkeleton />
-              ) : (recentSearches.length > 0 || getPopularRoutes().length > 0 || getPopularDestinations().length > 0) ? (
-                <div className="animate-fade-in">
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center gap-2 mb-6">
-                      <Clock className="w-5 h-5 text-blue-600" />
-                      <h2 className="text-lg font-semibold text-gray-900">Recent & Popular Searches</h2>
-                    </div>
-                    <RecentSearches
-                      searches={recentSearches}
-                      onSelectSearch={handleSelectRecentSearch}
-                      onRemoveSearch={removeRecentSearch}
-                      onClearAll={clearRecentSearches}
-                      popularRoutes={getPopularRoutes()}
-                      popularDestinations={getPopularDestinations()}
-                      onSelectDestination={handleSelectDestination}
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Popular Routes Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center mb-4">
-              <TrendingUp className="w-8 h-8 text-blue-600 mr-2" />
-              <h2 className="text-3xl font-bold text-gray-900">
-                Popular Routes
-              </h2>
-            </div>
-            <p className="text-lg text-gray-600">
-              Discover trending destinations and great deals
+            <p className="text-lg text-blue-100 max-w-2xl mx-auto">
+              Compare prices from hundreds of airlines and find the best deals
             </p>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {popularRoutes.map((route, index) => (
-              <div 
-                key={index}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-200"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">
-                      {route.route}
-                    </h3>
-                    <p className="text-gray-600 text-sm">
-                      {route.from} • {route.to}
-                    </p>
-                  </div>
-                  <Plane className="w-6 h-6 text-blue-600" />
+      {/* Main Content Container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 pb-16">
+        
+        {/* Search Form Card - Elevated & Prominent */}
+        <div className="relative z-10 mb-8">
+          <SearchForm onSearch={handleSearch} />
+        </div>
+
+        {/* Recent Searches - Directly Below Search Form */}
+        {isClient && recentSearches.length > 0 && (
+          <div className="mb-8">
+            {isLoading ? (
+              <RecentSearchesSkeleton />
+            ) : (
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-fade-in">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold text-gray-900">Recent Searches</h2>
+                  {recentSearches.length > 0 && (
+                    <button
+                      onClick={clearRecentSearches}
+                      className="ml-auto text-sm text-gray-500 hover:text-red-600 transition-colors"
+                    >
+                      Clear all
+                    </button>
+                  )}
                 </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Starting from</p>
-                    <p className="text-2xl font-bold text-blue-600">
-                      {formatPrice(route.price)}
-                    </p>
-                  </div>
-                  <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm">
-                    Search Flights
-                  </button>
+                <div className="space-y-2">
+                  {recentSearches.slice(0, 3).map((search, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSelectRecentSearch(search)}
+                      className="w-full flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-all group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 text-gray-900 font-medium">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span>{search.from}</span>
+                          <Plane className="w-4 h-4 text-gray-400 transform rotate-90" />
+                          <span>{search.to}</span>
+                        </div>
+                        <span className="text-sm text-gray-500">
+                          {new Date(search.departDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {search.returnDate && ` - ${new Date(search.returnDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          {search.passengers} {search.passengers === 1 ? 'passenger' : 'passengers'}
+                        </span>
+                      </div>
+                      <div className="text-blue-600 group-hover:translate-x-1 transition-transform">
+                        →
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Popular Routes & Destinations - Combined Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <TrendingUp className="w-6 h-6 text-green-600" />
+            <h2 className="text-2xl font-bold text-gray-900">Popular Destinations & Routes</h2>
+          </div>
+          <p className="text-gray-600 mb-6">
+            Discover trending destinations with the best flight deals
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {popularOptions.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  const data: SearchData = {
+                    from: option.from,
+                    to: option.to,
+                    departDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    returnDate: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    passengers: 1,
+                    tripType: 'roundtrip',
+                    travelClass: 'economy'
+                  };
+                  handleSearch(data);
+                }}
+                className="group relative overflow-hidden rounded-xl border-2 border-gray-200 hover:border-blue-500 transition-all p-5 text-left hover:shadow-lg bg-gradient-to-br from-white to-gray-50"
+              >
+                {/* Background Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/0 to-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg mb-1 group-hover:text-blue-600 transition-colors">
+                        {option.city}
+                      </h3>
+                      <p className="text-sm text-gray-600 flex items-center gap-2">
+                        <span className="font-medium">{option.from}</span>
+                        <Plane className="w-3 h-3 transform rotate-90" />
+                        <span className="font-medium">{option.to}</span>
+                      </p>
+                    </div>
+                    <div className="p-2 rounded-full bg-blue-100 group-hover:bg-blue-500 transition-colors">
+                      <Plane className="w-4 h-4 text-blue-600 group-hover:text-white transition-colors" />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">From</p>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {formatPrice(option.price)}
+                      </p>
+                    </div>
+                    <div className="text-blue-600 group-hover:translate-x-2 transition-transform">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </button>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Search Tips Section */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Flight Search Tips
-            </h2>
-            <p className="text-lg text-gray-600">
-              Get the best deals with these helpful tips
-            </p>
+        {/* Travel Tips - Compact Cards */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
+          <div className="flex items-center gap-2 mb-6">
+            <Sparkles className="w-6 h-6 text-blue-600" />
+            <h2 className="text-2xl font-bold text-gray-900">Tips for Better Deals</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-lg p-5 border border-blue-100 shadow-sm">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3">
                 <span className="text-2xl">📅</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Book in Advance
-              </h3>
-              <p className="text-gray-600">
-                Book domestic flights 1-3 months ahead and international flights 2-8 months ahead for better prices.
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Book in Advance</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Domestic flights: 1-3 months ahead. International: 2-8 months ahead for best prices.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="bg-white rounded-lg p-5 border border-blue-100 shadow-sm">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-3">
                 <span className="text-2xl">📈</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Flexible Dates
-              </h3>
-              <p className="text-gray-600">
-                Flying on weekdays (Tuesday-Thursday) is often cheaper than weekends. Avoid major holidays.
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Flexible Dates</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Tuesday-Thursday flights are often cheaper. Avoid peak holiday travel times.
               </p>
             </div>
 
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="bg-white rounded-lg p-5 border border-blue-100 shadow-sm">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mb-3">
                 <span className="text-2xl">⏰</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Off-Peak Hours
-              </h3>
-              <p className="text-gray-600">
-                Early morning and late evening flights are often cheaper than prime time departures.
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Off-Peak Hours</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                Early morning and late evening flights typically offer lower fares.
               </p>
             </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
