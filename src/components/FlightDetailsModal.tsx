@@ -85,26 +85,34 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
           </div>
 
           {/* Flight Route */}
-          <div className="mt-6 flex items-center justify-between bg-white bg-opacity-10 rounded-xl p-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold">{flight.origin}</div>
-              <div className="text-sm text-white font-medium mt-1">{flight.departTime}</div>
-            </div>
-            
-            <div className="flex-1 mx-6 relative">
-              <div className="h-0.5 bg-white bg-opacity-50"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg">
-                <Plane className="w-5 h-5 text-blue-600 transform rotate-90" />
+          <div className="mt-6 bg-white bg-opacity-10 rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{flight.origin}</div>
+                <div className="text-sm text-white font-medium mt-1 bg-white bg-opacity-20 rounded px-2 py-1 inline-block">{flight.departTime}</div>
               </div>
-              <div className="text-center mt-3 text-sm text-white font-semibold">
-                {flight.duration}
-                {flight.stops ? ` • ${flight.stops} stop${flight.stops > 1 ? 's' : ''}` : ' • Non-stop'}
+              
+              <div className="flex-1 mx-6 relative flex flex-col items-center">
+                <div className="w-full relative mb-2">
+                  <div className="h-1 bg-white bg-opacity-40 rounded-full"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg">
+                    <Plane className="w-5 h-5 text-blue-600 transform rotate-90" />
+                  </div>
+                </div>
+                <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                  <div className="text-sm text-white font-bold">{flight.duration}</div>
+                </div>
+                {flight.stops !== undefined && (
+                  <div className="mt-2 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    {flight.stops === 0 ? 'Non-stop' : `${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <div className="text-center">
-              <div className="text-3xl font-bold">{flight.destination}</div>
-              <div className="text-sm text-white font-medium mt-1">{flight.arriveTime}</div>
+              
+              <div className="text-center">
+                <div className="text-3xl font-bold text-white">{flight.destination}</div>
+                <div className="text-sm text-white font-medium mt-1 bg-white bg-opacity-20 rounded px-2 py-1 inline-block">{flight.arriveTime}</div>
+              </div>
             </div>
           </div>
         </div>
