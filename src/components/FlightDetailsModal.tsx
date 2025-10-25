@@ -87,24 +87,24 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
           {/* Flight Route */}
           <div className="mt-6 flex items-center justify-between bg-white bg-opacity-10 rounded-xl p-4">
             <div className="text-center">
-              <div className="text-2xl font-bold">{flight.origin}</div>
-              <div className="text-sm text-blue-100">{flight.departTime}</div>
+              <div className="text-3xl font-bold">{flight.origin}</div>
+              <div className="text-sm text-white font-medium mt-1">{flight.departTime}</div>
             </div>
             
             <div className="flex-1 mx-6 relative">
-              <div className="h-0.5 bg-white bg-opacity-30"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-2">
-                <Plane className="w-4 h-4 text-blue-500 transform rotate-90" />
+              <div className="h-0.5 bg-white bg-opacity-50"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-2 shadow-lg">
+                <Plane className="w-5 h-5 text-blue-600 transform rotate-90" />
               </div>
-              <div className="text-center mt-2 text-sm text-blue-100">
+              <div className="text-center mt-3 text-sm text-white font-semibold">
                 {flight.duration}
                 {flight.stops ? ` • ${flight.stops} stop${flight.stops > 1 ? 's' : ''}` : ' • Non-stop'}
               </div>
             </div>
             
             <div className="text-center">
-              <div className="text-2xl font-bold">{flight.destination}</div>
-              <div className="text-sm text-blue-100">{flight.arriveTime}</div>
+              <div className="text-3xl font-bold">{flight.destination}</div>
+              <div className="text-sm text-white font-medium mt-1">{flight.arriveTime}</div>
             </div>
           </div>
         </div>
@@ -123,15 +123,15 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Aircraft:</span>
-                  <span className="font-medium">{aircraftInfo.name}</span>
+                  <span className="font-semibold text-gray-900">{aircraftInfo.name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Typical Seats:</span>
-                  <span className="font-medium">{aircraftInfo.seats}</span>
+                  <span className="font-semibold text-gray-900">{aircraftInfo.seats}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Travel Class:</span>
-                  <span className="font-medium capitalize">{flight.travelClass || 'Economy'}</span>
+                  <span className="font-semibold text-gray-900 capitalize">{flight.travelClass || 'Economy'}</span>
                 </div>
               </div>
             </div>
@@ -145,15 +145,15 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Departure:</span>
-                  <span className="font-medium">{flight.departTime}</span>
+                  <span className="font-semibold text-gray-900">{flight.departTime}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Arrival:</span>
-                  <span className="font-medium">{flight.arriveTime}</span>
+                  <span className="font-semibold text-gray-900">{flight.arriveTime}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Duration:</span>
-                  <span className="font-medium">{flight.duration}</span>
+                  <span className="font-semibold text-gray-900">{flight.duration}</span>
                 </div>
               </div>
             </div>
@@ -214,15 +214,15 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-600">Base Fare (×{passengers})</span>
-                <span className="font-medium">{formatPrice(flight.price * passengers)}</span>
+                <span className="font-semibold text-gray-900">{formatPrice(flight.price * passengers)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Taxes & Fees</span>
-                <span className="font-medium">{formatPrice(Math.round(flight.price * 0.15) * passengers)}</span>
+                <span className="font-semibold text-gray-900">{formatPrice(Math.round(flight.price * 0.15) * passengers)}</span>
               </div>
               <div className="border-t pt-3 flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span className="text-blue-500">{formatPrice(totalPrice)}</span>
+                <span className="text-gray-900">Total</span>
+                <span className="text-blue-600">{formatPrice(totalPrice)}</span>
               </div>
             </div>
           </div>
