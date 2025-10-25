@@ -163,7 +163,7 @@ export default function SeatSelection({ flight, passengers, onSeatSelect, onClos
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">Select Your Seats</h2>
-              <p className="text-blue-100 mt-1">
+              <p className="text-white mt-1 opacity-90 font-medium">
                 {flight.airline} {flight.flightNumber} • {flight.origin} → {flight.destination}
               </p>
             </div>
