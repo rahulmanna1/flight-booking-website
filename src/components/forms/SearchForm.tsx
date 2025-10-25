@@ -408,13 +408,23 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       {/* Popular Destinations Section */}
       {showPopularDestinations && (
         <div className="border-t bg-gradient-to-br from-gray-50 to-blue-50/20 px-8 py-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Star className="w-5 h-5 text-yellow-500" />
-            <h3 className="text-lg font-semibold text-gray-900">Popular Destinations</h3>
-          </div>
           <PopularDestinations 
             onDestinationSelect={handlePopularDestinationSelect}
           />
+        </div>
+      )}
+      
+      {/* Show Popular Destinations Toggle (when hidden) */}
+      {!showPopularDestinations && (
+        <div className="border-t bg-gray-50 px-8 py-4">
+          <button
+            type="button"
+            onClick={() => setShowPopularDestinations(true)}
+            className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 hover:border-blue-300 transition-all duration-200 hover:shadow-md"
+          >
+            <Star className="w-4 h-4" />
+            <span>Show Popular Destinations</span>
+          </button>
         </div>
       )}
     </div>
