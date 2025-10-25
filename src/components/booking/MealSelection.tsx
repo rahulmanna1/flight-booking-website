@@ -114,7 +114,7 @@ export default function MealSelection({
                   >
                     {/* Selection Check */}
                     {isSelected && (
-                      <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1">
+                      <div className="absolute top-2 right-2 bg-blue-500 text-white rounded-full p-1">
                         <Check className="w-4 h-4" />
                       </div>
                     )}
@@ -194,7 +194,7 @@ export default function MealSelection({
         <Button
           type="button"
           onClick={handleSubmit}
-          className="bg-blue-600 hover:bg-blue-700 px-8"
+          className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 px-8"
         >
           Continue
         </Button>

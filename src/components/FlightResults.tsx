@@ -682,7 +682,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                 {/* Mobile Filter Toggle - Enhanced touch target */}
                 <button
                   onClick={() => setShowFilters(!showFilters)}
-                  className="md:hidden flex items-center space-x-2 bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 transition-all duration-200 transform active:scale-95 min-w-[48px] min-h-[48px] justify-center touch-manipulation"
+                  className="md:hidden flex items-center space-x-2 bg-blue-500 text-white px-4 py-3 rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-all duration-200 transform active:scale-95 min-w-[48px] min-h-[48px] justify-center touch-manipulation"
                 >
                   <Filter className="w-4 h-4" />
                   <span className="font-medium">Filters</span>
@@ -700,7 +700,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                 </h1>
                 <div className="text-sm text-gray-600 mt-2">
                   <AirportDisplay code={searchData.from} showFullName={true} className="block" />
-                  <div className="text-center text-gray-400 my-1">to</div>
+                  <div className="text-center text-gray-600 my-1">to</div>
                   <AirportDisplay code={searchData.to} showFullName={true} className="block" />
                 </div>
               </div>
@@ -813,7 +813,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                     className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium border-2 rounded-lg transition-all duration-200 transform min-w-[44px] min-h-[44px] justify-center ${
                       selectedFlightsForComparison.length >= 2 
                         ? 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:border-blue-400 hover:scale-105' 
-                        : 'border-gray-200 text-gray-400 cursor-not-allowed bg-gray-50'
+                        : 'border-gray-200 text-gray-500 cursor-not-allowed bg-gray-50'
                     }`}
                   >
                     <GitCompare className="w-4 h-4" />
@@ -853,7 +853,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                     </optgroup>
                     </select>
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
@@ -911,7 +911,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                       // Show only "Go Back" button for airport validation errors
                       <button
                         onClick={onBack}
-                        className="bg-blue-600 text-white px-8 py-3 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2 font-semibold"
+                        className="bg-blue-500 text-white px-8 py-3 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors flex items-center space-x-2 font-semibold"
                       >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Go Back to Search</span>
@@ -982,19 +982,19 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                     
                     {/* Comparison Checkbox - positioned at top-right corner */}
                     <div className="absolute top-4 right-4 z-10">
-                      <label className="flex items-center space-x-2 bg-white border-2 border-blue-600 text-blue-600 px-3 py-2 rounded-lg shadow-md hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
+                      <label className="flex items-center space-x-2 bg-white border-2 border-blue-500 text-blue-500 px-3 py-2 rounded-lg shadow-md hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
                         <input
                           type="checkbox"
                           checked={selectedFlightsForComparison.includes(flight.id)}
                           onChange={() => toggleFlightForComparison(flight.id)}
-                          className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0"
+                          className="rounded border-blue-300 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
                           disabled={!selectedFlightsForComparison.includes(flight.id) && selectedFlightsForComparison.length >= 4}
                         />
                         <span className="text-sm font-medium hidden sm:inline">
                           {selectedFlightsForComparison.includes(flight.id) ? 'Added' : 'Compare'}
                         </span>
                         {selectedFlightsForComparison.includes(flight.id) && (
-                          <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs font-bold">✓</span>
+                          <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold">✓</span>
                         )}
                       </label>
                     </div>
@@ -1017,7 +1017,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                       <button
                         onClick={() => setShowComparison(true)}
                         disabled={selectedFlightsForComparison.length < 2}
-                        className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 active:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Compare Now
                       </button>
@@ -1031,12 +1031,12 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
             {!loading && !error && flights.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 text-lg">No flights found for your search criteria.</p>
-                <p className="text-sm text-gray-400 mt-2">
+                <p className="text-sm text-gray-600 mt-2">
                   Try adjusting your search dates or destinations
                 </p>
                 <button
                   onClick={onBack}
-                  className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                  className="mt-4 bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors"
                 >
                   Modify Search
                 </button>

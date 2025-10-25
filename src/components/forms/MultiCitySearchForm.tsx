@@ -235,7 +235,7 @@ export default function MultiCitySearchForm({ onSearch }: MultiCitySearchFormPro
               Passengers
             </label>
             <div className="relative">
-              <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" />
               <select
                 {...register('passengers', { valueAsNumber: true })}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-gray-900 font-medium hover:border-gray-300 bg-white appearance-none"

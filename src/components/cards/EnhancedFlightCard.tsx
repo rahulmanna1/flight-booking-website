@@ -175,7 +175,7 @@ export default function EnhancedFlightCard({
             <h3 className="font-bold text-lg text-gray-900">{flight.airline}</h3>
             <p className="text-sm text-gray-500">{flight.flightNumber} • {flight.aircraft}</p>
             <div className="flex items-center space-x-2 mt-1">
-              <p className="text-xs text-gray-400">{aircraftInfo.category} Aircraft</p>
+              <p className="text-xs text-gray-600">{aircraftInfo.category} Aircraft</p>
               <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${travelClassInfo.color}`}>
                 {travelClassInfo.icon} {travelClassInfo.label}
               </span>
@@ -186,8 +186,8 @@ export default function EnhancedFlightCard({
           <p className="text-3xl font-bold text-blue-600">{formatPrice(flight.price)}</p>
           <p className="text-sm text-gray-500">per person</p>
           <div className="flex items-center justify-end mt-1">
-            <Users className="w-3 h-3 text-gray-400 mr-1" />
-            <span className="text-xs text-gray-400">Adult fare</span>
+            <Users className="w-3 h-3 text-gray-600 mr-1" />
+            <span className="text-xs text-gray-600">Adult fare</span>
           </div>
         </div>
       </div>

@@ -4,7 +4,21 @@ import { GLOBAL_AIRPORTS } from '../src/data/globalAirports';
 const prisma = new PrismaClient();
 
 // Convert global airports to Prisma format
-const convertToSeedFormat = (airport: any) => ({
+interface GlobalAirport {
+  iataCode: string;
+  icaoCode: string;
+  name: string;
+  city: string;
+  country: string;
+  countryCode: string;
+  timezone: string;
+  coordinates: { latitude: number; longitude: number };
+  region?: string;
+  subtype?: string;
+  type?: string;
+}
+
+const convertToSeedFormat = (airport: GlobalAirport) => ({
   iataCode: airport.iataCode,
   icaoCode: airport.icaoCode,
   name: airport.name,
@@ -24,7 +38,9 @@ const convertToSeedFormat = (airport: any) => ({
 
 const majorAirports = GLOBAL_AIRPORTS.map(convertToSeedFormat);
 
-// Legacy major airports for reference (keeping original format)
+// Note: Legacy airports data is preserved for reference but not used in seeding
+// If needed, uncomment the section below
+/*
 const legacyAirports = [
   // North America
   {
@@ -276,6 +292,7 @@ const legacyAirports = [
     elevation: 113,
   },
 ];
+*/
 
 async function main() {
   console.log('🌱 Starting database seed...');

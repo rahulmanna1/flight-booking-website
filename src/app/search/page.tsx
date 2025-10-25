@@ -23,10 +23,12 @@ interface SearchData {
 
 export default function SearchPage() {
   const [searchData, setSearchData] = useState<SearchData | null>(null);
-  const [showResults, setShowResults] = useState(false);
-  const { formatPrice } = useCurrency();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { formatPrice } = useCurrency();
+  
+  // Derive showResults from URL params - URL is source of truth
+  const showResults = searchParams?.get('results') === 'true' && searchData !== null;
   const { 
     recentSearches, 
     addRecentSearch, 
@@ -38,23 +40,27 @@ export default function SearchPage() {
     isLoading 
   } = useRecentSearches();
   
-  // Handle URL changes - reset state when navigating to /search without results param
+  // Reset search data when navigating away from results
   useEffect(() => {
-    const hasResultsParam = searchParams.get('results') === 'true';
+    const hasResultsParam = searchParams?.get('results') === 'true';
     
-    // If showing results but no results param in URL, user navigated back - reset state
-    if (showResults && !hasResultsParam) {
-      setShowResults(false);
+    // If URL doesn't have results param, clear search data
+    if (!hasResultsParam && searchData !== null) {
+      console.log('⚠️ SearchPage: URL changed - clearing search data');
       setSearchData(null);
     }
-  }, [searchParams, showResults]);
+  }, [searchParams, searchData]);
 
   const handleSearch = (data: SearchData) => {
-    setSearchData(data);
-    setShowResults(true);
+    console.log('🔍 SearchPage: handleSearch called with data:', data);
     
-    // Update URL to indicate results view
+    // Set search data first
+    setSearchData(data);
+    console.log('✅ SearchPage: searchData state updated');
+    
+    // Update URL - showResults will be derived from URL param
     router.push('/search?results=true', { scroll: false });
+    console.log('✅ SearchPage: Router pushed to /search?results=true');
     
     // Add to recent searches
     addRecentSearch({
@@ -69,7 +75,7 @@ export default function SearchPage() {
   };
 
   const handleBackToSearch = () => {
-    setShowResults(false);
+    // Clear search data and navigate back - showResults derived from URL
     setSearchData(null);
     router.push('/search', { scroll: true });
   };
@@ -173,9 +179,9 @@ export default function SearchPage() {
                     >
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 text-gray-900 font-medium">
-                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <MapPin className="w-4 h-4 text-gray-600" />
                           <span>{search.from}</span>
-                          <Plane className="w-4 h-4 text-gray-400 transform rotate-90" />
+                          <Plane className="w-4 h-4 text-gray-600 transform rotate-90" />
                           <span>{search.to}</span>
                         </div>
                         <span className="text-sm text-gray-500">

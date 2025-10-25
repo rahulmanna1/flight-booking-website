@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { Luggage, Plus, Minus, Info, AlertCircle, ShoppingBag, Weight, Package } from 'lucide-react';
 
 interface BaggageItem {
@@ -242,11 +241,8 @@ export default function BaggageCalculator({
                   (item.type === 'checked' && index < allowance.checked * passengerCount);
 
                 return (
-                  <motion.div
+                  <div
                     key={item.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
                     className={`flex items-center justify-between p-4 rounded-lg border-2 ${
                       isOverweight ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'
                     }`}
@@ -277,7 +273,7 @@ export default function BaggageCalculator({
                         )}
                         <div className="flex items-center gap-4 mt-2">
                           <div className="flex items-center gap-2">
-                            <Weight className="w-4 h-4 text-gray-400" />
+                            <Weight className="w-4 h-4 text-gray-600" />
                             <input
                               type="number"
                               value={item.weight}
@@ -303,7 +299,7 @@ export default function BaggageCalculator({
                     >
                       <Minus className="w-5 h-5" />
                     </button>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
@@ -315,7 +311,7 @@ export default function BaggageCalculator({
           {!showAddForm ? (
             <button
               onClick={() => setShowAddForm(true)}
-              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors font-medium"
             >
               <Plus className="w-5 h-5" />
               Add Baggage
@@ -407,7 +403,7 @@ export default function BaggageCalculator({
                 <button
                   onClick={addBaggage}
                   disabled={!customWeight || parseFloat(customWeight) <= 0}
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
+                  className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors font-medium"
                 >
                   Add Baggage
                 </button>

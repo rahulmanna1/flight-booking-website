@@ -95,7 +95,7 @@ export default function SearchDebug() {
       <div className="flex space-x-4 mb-6">
         <button
           onClick={runTests}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 active:bg-blue-700"
         >
           Run Tests
         </button>

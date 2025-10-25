@@ -39,6 +39,8 @@ const searchSchema = z.object({
   message: 'Return date must be after departure date',
   path: ['returnDate'],
 }).refine((data) => {
+  // Only validate if both fields are filled
+  if (!data.from || !data.to) return true;
   return data.from !== data.to;
 }, {
   message: 'Origin and destination airports must be different',
@@ -73,7 +75,8 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
   // Watch form values for real-time validation
   const watchedFrom = watch('from');
   const watchedTo = watch('to');
-  const hasSameAirportError = watchedFrom === watchedTo && watchedFrom !== '';
+  // Only show same airport error if both fields have values and they match
+  const hasSameAirportError = watchedFrom && watchedTo && watchedFrom === watchedTo && watchedFrom !== '' && watchedTo !== '';
 
   // Control visibility of suggestions based on form state
   useEffect(() => {
@@ -94,12 +97,19 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       return; // Prevent form submission
     }
     
+    // Additional validation: ensure both fields are filled
+    if (!data.from || !data.to) {
+      console.error('❌ SearchForm: Missing required fields', { from: data.from, to: data.to });
+      return; // Prevent form submission
+    }
+    
     console.log('✅ SearchForm: Submitting valid search data', {
       from: data.from,
       to: data.to,
       departDate: data.departDate,
       tripType: data.tripType,
-      passengers: data.passengers
+      passengers: data.passengers,
+      onSearchExists: !!onSearch
     });
     
     // Save to recent searches if we have full airport objects
@@ -116,7 +126,11 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
     }
     
     if (onSearch) {
+      console.log('🚀 SearchForm: Calling onSearch callback');
       onSearch(data);
+      console.log('✅ SearchForm: onSearch callback completed');
+    } else {
+      console.warn('⚠️ SearchForm: onSearch callback is not defined!');
     }
   };
 
@@ -208,6 +222,8 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               onClick={() => {
                 setTripType('roundtrip');
                 setValue('tripType', 'roundtrip');
+                // Clear return date error when switching to round trip
+                setValue('returnDate', watch('returnDate') || '', { shouldValidate: false });
               }}
               className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 tripType === 'roundtrip' 
@@ -222,6 +238,8 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               onClick={() => {
                 setTripType('oneway');
                 setValue('tripType', 'oneway');
+                // Clear return date when switching to one way
+                setValue('returnDate', '', { shouldValidate: false });
               }}
               className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
                 tripType === 'oneway' 
@@ -259,7 +277,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             <button
               type="button"
               onClick={handleSwapAirports}
-              className="bg-gray-100 hover:bg-blue-600 border-2 border-gray-200 hover:border-blue-600 text-gray-600 hover:text-white rounded-full p-3 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="bg-gray-100 hover:bg-blue-500 border-2 border-gray-200 hover:border-blue-500 text-gray-600 hover:text-white rounded-full p-3 transition-all duration-200 shadow-sm hover:shadow-md"
               title="Swap airports"
             >
               <ArrowUpDown className="w-5 h-5" />
@@ -328,7 +346,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                   </option>
                 ))}
               </select>
-              <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" />
             </div>
           </div>
           
@@ -345,7 +363,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
                 <option value="business">Business</option>
                 <option value="first">First Class</option>
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" />
             </div>
           </div>
         </div>
@@ -358,7 +376,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
             className={`w-full h-[56px] px-6 rounded-xl font-bold text-base transition-all duration-200 flex items-center justify-center gap-2 ${
               !watchedFrom || !watchedTo || watchedFrom === watchedTo
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-[1.01]'
+                : 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:scale-[1.01]'
             }`}
           >
             <Plane className="w-5 h-5" />

@@ -12,10 +12,10 @@ export default function Footer() {
               </div>
               <span className="text-xl font-bold">FlightBooker</span>
             </div>
-            <p className="text-gray-400 mb-4">
+            <p className="text-gray-600 mb-4">
               Your trusted partner for flight bookings worldwide.
             </p>
-            <div className="space-y-2 text-gray-400 text-sm">
+            <div className="space-y-2 text-gray-600 text-sm">
               <div className="flex items-center">
                 <Mail className="w-4 h-4 mr-2" />
                 <span>support@flightbooker.com</span>
@@ -33,7 +33,7 @@ export default function Footer() {
           
           <div>
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
-            <ul className="space-y-2 text-gray-400">
+            <ul className="space-y-2 text-gray-600">
               <li><a href="/" className="hover:text-white transition-colors duration-200">Home</a></li>
               <li><a href="/search" className="hover:text-white transition-colors duration-200">Search Flights</a></li>
               <li><a href="/bookings" className="hover:text-white transition-colors duration-200">My Bookings</a></li>
@@ -44,7 +44,7 @@ export default function Footer() {
           
           <div>
             <h4 className="text-lg font-semibold mb-4">Account</h4>
-            <ul className="space-y-2 text-gray-400">
+            <ul className="space-y-2 text-gray-600">
               <li><a href="/login" className="hover:text-white transition-colors duration-200">Login</a></li>
               <li><a href="/register" className="hover:text-white transition-colors duration-200">Register</a></li>
               <li><a href="/contact" className="hover:text-white transition-colors duration-200">Contact Us</a></li>
@@ -55,7 +55,7 @@ export default function Footer() {
           
           <div>
             <h4 className="text-lg font-semibold mb-4">Services</h4>
-            <ul className="space-y-2 text-gray-400">
+            <ul className="space-y-2 text-gray-600">
               <li><span className="hover:text-white transition-colors duration-200 cursor-pointer">Flight Booking</span></li>
               <li><span className="hover:text-white transition-colors duration-200 cursor-pointer">Hotel Reservations</span></li>
               <li><span className="hover:text-white transition-colors duration-200 cursor-pointer">Car Rentals</span></li>
@@ -65,7 +65,7 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+        <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-600">
           <p>&copy; 2024 FlightBooker. All rights reserved.</p>
         </div>
       </div>

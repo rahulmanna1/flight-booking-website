@@ -207,7 +207,7 @@ export default function RecentSearches({
                 </div>
                 
                 {/* Arrow */}
-                <div className="text-gray-400">
+                <div className="text-gray-600">
                   {search.tripType === 'roundtrip' ? '↔' : '→'}
                 </div>
                 

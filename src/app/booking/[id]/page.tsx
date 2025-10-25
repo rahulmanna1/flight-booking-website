@@ -60,7 +60,7 @@ export default function BookingPage() {
             <p className="text-gray-600 mb-8">The flight you're looking for doesn't exist.</p>
             <button
               onClick={() => router.push('/search')}
-              className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700"
+              className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 active:bg-blue-700"
             >
               Back to Search
             </button>
@@ -131,7 +131,7 @@ export default function BookingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => router.push('/bookings')}
-                className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700"
+                className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 active:bg-blue-700"
               >
                 View My Bookings
               </button>

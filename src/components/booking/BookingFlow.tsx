@@ -325,7 +325,7 @@ export default function BookingFlow({ flight, passengers, children, infants, onC
           <div className="flex items-center">
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${
               step.id === currentStep 
-                ? 'bg-blue-600 text-white' 
+                ? 'bg-blue-500 text-white'
                 : step.completed
                   ? 'bg-green-600 text-white'
                   : 'bg-gray-300 text-gray-600'

@@ -110,7 +110,7 @@ export default function HelpPage() {
           <div className="max-w-2xl mx-auto">
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
+                <Search className="h-5 w-5 text-gray-600" />
               </div>
               <input
                 type="text"
@@ -118,7 +118,7 @@ export default function HelpPage() {
                 className="block w-full pl-11 pr-4 py-4 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <button className="absolute inset-y-0 right-0 pr-4 flex items-center">
-                <span className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700">
+                <span className="bg-blue-500 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-600 active:bg-blue-700">
                   Search
                 </span>
               </button>
@@ -165,7 +165,7 @@ export default function HelpPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {popularArticles.map((article, index) => (
                 <div key={index} className="flex items-center p-3 hover:bg-gray-50 rounded-md cursor-pointer">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full mr-3"></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
                   <span className="text-gray-700 hover:text-blue-600">{article}</span>
                 </div>
               ))}
@@ -192,7 +192,7 @@ export default function HelpPage() {
                       </h3>
                     </div>
                     <div className="ml-4 flex-shrink-0">
-                      <div className="w-6 h-6 text-gray-400 group-open:rotate-180 transition-transform">
+                      <div className="w-6 h-6 text-gray-600 group-open:rotate-180 transition-transform">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>

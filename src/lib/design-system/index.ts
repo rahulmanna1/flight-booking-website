@@ -36,8 +36,5 @@ export {
   ds,
 } from './utils';
 
-// Re-export default utilities
-export { default as ds } from './utils';
-
 // Type exports for TypeScript
 export type { ClassValue } from 'clsx';

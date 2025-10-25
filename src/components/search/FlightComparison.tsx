@@ -404,7 +404,7 @@ export default function FlightComparison({
               {flight.baggage?.checked ? (
                 <Check className="w-3 h-3 text-green-500" />
               ) : (
-                <Minus className="w-3 h-3 text-gray-400" />
+                <Minus className="w-3 h-3 text-gray-600" />
               )}
               <span className="text-gray-800">Checked ({flight.baggage?.checked || 0})</span>
             </div>
@@ -481,7 +481,7 @@ export default function FlightComparison({
           </p>
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             Close
           </button>
@@ -585,7 +585,7 @@ export default function FlightComparison({
                       <button
                         ref={(el) => { selectButtonsRef.current[index] = el; }}
                         onClick={() => onSelectFlight(flight.id)}
-                        className="px-4 py-3 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform active:scale-95 min-w-[80px] min-h-[44px] flex items-center justify-center touch-manipulation"
+                        className="px-4 py-3 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 transform active:scale-95 min-w-[80px] min-h-[44px] flex items-center justify-center touch-manipulation"
                         aria-label={`Select ${flight.airline} flight ${flight.flightNumber}`}
                       >
                         Select
@@ -629,7 +629,7 @@ export default function FlightComparison({
                         <button
                           ref={(el) => { selectButtonsRef.current[index] = el; }}
                           onClick={() => onSelectFlight(flight.id)}
-                          className="w-full px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                          className="w-full px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                           aria-label={`Select ${flight.airline} flight ${flight.flightNumber}`}
                         >
                           Select Flight

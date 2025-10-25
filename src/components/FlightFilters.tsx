@@ -232,7 +232,7 @@ export default function FlightFilters({
     return (
       <button
         onClick={onToggleVisibility}
-        className="fixed top-4 left-4 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors md:hidden"
+        className="fixed top-4 left-4 z-50 bg-blue-500 text-white p-3 rounded-full shadow-lg hover:bg-blue-600 active:bg-blue-700 transition-colors md:hidden"
       >
         <Filter className="w-5 h-5" />
         {getActiveFiltersCount() > 0 && (

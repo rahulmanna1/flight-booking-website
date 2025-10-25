@@ -206,10 +206,10 @@ export const card = {
  * Pre-configured input styles
  */
 export const input = {
-  base: 'w-full rounded-md border border-gray-200 px-4 py-2.5 text-gray-900 placeholder:text-gray-400',
-  default: 'w-full rounded-md border-2 border-gray-200 px-4 h-11 text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 transition-colors',
-  error: 'w-full rounded-md border-2 border-red-500 px-4 h-11 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0',
-  success: 'w-full rounded-md border-2 border-green-500 px-4 h-11 text-gray-900 placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-offset-0',
+  base: 'w-full rounded-md border border-gray-200 px-4 py-2.5 text-gray-900 placeholder:text-gray-500',
+  default: 'w-full rounded-md border-2 border-gray-200 px-4 h-11 text-gray-900 placeholder:text-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 transition-colors',
+  error: 'w-full rounded-md border-2 border-red-500 px-4 h-11 text-gray-900 placeholder:text-gray-500 focus:border-red-500 focus:ring-2 focus:ring-red-500 focus:ring-offset-0',
+  success: 'w-full rounded-md border-2 border-green-500 px-4 h-11 text-gray-900 placeholder:text-gray-500 focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-offset-0',
 };
 
 /**

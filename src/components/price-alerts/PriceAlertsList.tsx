@@ -278,7 +278,7 @@ export default function PriceAlertsList() {
         <div className="divide-y divide-gray-200">
           {alerts.length === 0 ? (
             <div className="px-8 py-12 text-center">
-              <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Bell className="w-12 h-12 text-gray-600 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No price alerts yet</h3>
               <p className="text-gray-600">Create your first price alert to get notified when flight prices change.</p>
             </div>
@@ -344,7 +344,7 @@ export default function PriceAlertsList() {
                     <button
                       onClick={() => handleToggleAlert(alert.id)}
                       className={`p-2 rounded-full hover:bg-gray-100 transition-colors ${
-                        alert.isActive ? 'text-blue-600' : 'text-gray-400'
+                        alert.isActive ? 'text-blue-600' : 'text-gray-600'
                       }`}
                       title={alert.isActive ? 'Deactivate alert' : 'Activate alert'}
                     >
@@ -356,7 +356,7 @@ export default function PriceAlertsList() {
                         setSelectedAlert(alert);
                         setShowDeleteModal(true);
                       }}
-                      className="p-2 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors text-gray-400"
+                      className="p-2 rounded-full hover:bg-red-50 hover:text-red-600 transition-colors text-gray-600"
                       title="Delete alert"
                     >
                       <Trash2 className="w-4 h-4" />

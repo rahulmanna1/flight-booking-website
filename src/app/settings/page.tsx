@@ -111,7 +111,7 @@ export default function SettingsPage() {
             </p>
             <Link
               href="/login"
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
+              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors inline-block"
             >
               Sign In
             </Link>
@@ -297,7 +297,7 @@ export default function SettingsPage() {
                       <button
                         onClick={handleProfileSave}
                         disabled={saving}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                        className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
                       >
                         {saving ? (
                           <>
@@ -414,7 +414,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="pt-6 border-t border-gray-200">
-                      <button className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                      <button className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors flex items-center space-x-2">
                         <Save className="w-4 h-4" />
                         <span>Save Preferences</span>
                       </button>
@@ -474,7 +474,7 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="pt-6 border-t border-gray-200">
-                      <button className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                      <button className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors flex items-center space-x-2">
                         <Save className="w-4 h-4" />
                         <span>Save Settings</span>
                       </button>
@@ -500,7 +500,7 @@ export default function SettingsPage() {
                             <span className="font-medium text-gray-900">Password</span>
                             <p className="text-sm text-gray-600">Last changed 3 months ago</p>
                           </div>
-                          <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm">
+                          <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors text-sm">
                             Change Password
                           </button>
                         </div>

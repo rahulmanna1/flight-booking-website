@@ -290,7 +290,7 @@ export function BookingReceipt({
             
             <div className="flex items-center">
               <div className="w-16 h-px bg-gray-300"></div>
-              <Plane className="w-5 h-5 text-gray-400 mx-2" />
+              <Plane className="w-5 h-5 text-gray-600 mx-2" />
               <div className="w-16 h-px bg-gray-300"></div>
             </div>
             

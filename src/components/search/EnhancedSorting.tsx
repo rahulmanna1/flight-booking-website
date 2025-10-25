@@ -283,7 +283,7 @@ export default function EnhancedSorting({ onSortChange, initialSort, className }
         {canRemove && (
           <button
             onClick={() => removeCriteria(level as 'secondary' | 'tertiary')}
-            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+            className="p-1 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded"
           >
             <X className="w-4 h-4" />
           </button>

@@ -599,7 +599,7 @@ export default function AdvancedSearch({ isOpen, onClose, onApply, initialFilter
             </button>
             <button
               onClick={() => onApply(filters)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center space-x-2"
+              className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 active:bg-blue-700 flex items-center space-x-2"
             >
               <Filter className="w-4 h-4" />
               <span>Apply Filters ({getActiveFiltersCount()})</span>

@@ -711,33 +711,501 @@ export function EnhancedAuthProvider({ children }: { children: React.ReactNode }
     return true;
   }, [logout]);
 
+  // Refresh auth token
+  const refreshAuthToken = useCallback(async (): Promise<boolean> => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) return false;
+
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        localStorage.setItem('accessToken', data.accessToken);
+        dispatch({ type: 'SET_TOKENS', payload: { accessToken: data.accessToken, refreshToken } });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      return false;
+    }
+  }, []);
+
+  // Setup two-factor authentication
+  const setupTwoFactor = useCallback(async (method: '2fa-app' | 'sms' | 'email'): Promise<string> => {
+    try {
+      const response = await fetch('/api/auth/2fa/setup', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ method }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        return data.secret || data.qrCode || '';
+      }
+      return '';
+    } catch (error) {
+      console.error('2FA setup error:', error);
+      return '';
+    }
+  }, [state.accessToken]);
+
+  // Verify two-factor code
+  const verifyTwoFactor = useCallback(async (code: string): Promise<boolean> => {
+    try {
+      const tempAuthData = sessionStorage.getItem('tempAuthData');
+      if (!tempAuthData) return false;
+
+      const { email, sessionId } = JSON.parse(tempAuthData);
+
+      const response = await fetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, sessionId, code }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        await completeLogin(data);
+        sessionStorage.removeItem('tempAuthData');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('2FA verification error:', error);
+      return false;
+    }
+  }, []);
+
+  // Disable two-factor authentication
+  const disableTwoFactor = useCallback(async (password: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/2fa/disable', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            security: {
+              ...state.user.security,
+              twoFactorEnabled: false,
+            },
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('2FA disable error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.user]);
+
+  // Update profile
+  const updateProfile = useCallback(async (updates: Partial<UserProfile>): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        dispatch({ type: 'UPDATE_PROFILE', payload: updates });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Profile update error:', error);
+      return false;
+    }
+  }, [state.accessToken]);
+
+  // Change password
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            security: {
+              ...state.user.security,
+              lastPasswordChange: new Date().toISOString(),
+            },
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Password change error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.user]);
+
+  // Update preferences
+  const updatePreferences = useCallback(async (preferences: Partial<UserProfile['preferences']>): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/preferences', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(preferences),
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            preferences: { ...state.user.preferences, ...preferences },
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Preferences update error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.user]);
+
+  // Add address
+  const addAddress = useCallback(async (address: Omit<UserProfile['addresses'][0], 'id'>): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/addresses', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(address),
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            addresses: [...state.user.addresses, { ...address, id: data.addressId }],
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Add address error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.user]);
+
+  // Update address
+  const updateAddress = useCallback(async (addressId: string, updates: Partial<UserProfile['addresses'][0]>): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/auth/addresses/${addressId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            addresses: state.user.addresses.map(addr =>
+              addr.id === addressId ? { ...addr, ...updates } : addr
+            ),
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Update address error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.user]);
+
+  // Delete address
+  const deleteAddress = useCallback(async (addressId: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/auth/addresses/${addressId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            addresses: state.user.addresses.filter(addr => addr.id !== addressId),
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Delete address error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.user]);
+
+  // Get trusted devices
+  const getTrustedDevices = useCallback(async (): Promise<UserProfile['security']['trustedDevices']> => {
+    try {
+      const response = await fetch('/api/auth/trusted-devices', {
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+      return data.devices || [];
+    } catch (error) {
+      console.error('Get trusted devices error:', error);
+      return [];
+    }
+  }, [state.accessToken]);
+
+  // Revoke trusted device
+  const revokeTrustedDevice = useCallback(async (deviceId: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/auth/trusted-devices/${deviceId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+      return data.success || false;
+    } catch (error) {
+      console.error('Revoke device error:', error);
+      return false;
+    }
+  }, [state.accessToken]);
+
+  // Get login history
+  const getLoginHistory = useCallback(async (): Promise<UserProfile['security']['loginHistory']> => {
+    try {
+      const response = await fetch('/api/auth/login-history', {
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+      return data.history || [];
+    } catch (error) {
+      console.error('Get login history error:', error);
+      return [];
+    }
+  }, [state.accessToken]);
+
+  // Resend email verification
+  const resendEmailVerification = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/verify-email/resend', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+      return data.success || false;
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      return false;
+    }
+  }, [state.accessToken]);
+
+  // Verify email
+  const verifyEmail = useCallback(async (token: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            metadata: {
+              ...state.user.metadata,
+              emailVerified: true,
+            },
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Email verification error:', error);
+      return false;
+    }
+  }, [state.user]);
+
+  // Verify phone
+  const verifyPhone = useCallback(async (code: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/verify-phone', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json();
+      if (data.success && state.user) {
+        dispatch({
+          type: 'UPDATE_PROFILE',
+          payload: {
+            metadata: {
+              ...state.user.metadata,
+              phoneVerified: true,
+            },
+          },
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Phone verification error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.user]);
+
+  // Request password reset
+  const requestPasswordReset = useCallback(async (email: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/password-reset/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      return data.success || false;
+    } catch (error) {
+      console.error('Password reset request error:', error);
+      return false;
+    }
+  }, []);
+
+  // Reset password
+  const resetPassword = useCallback(async (token: string, newPassword: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/password-reset/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword }),
+      });
+
+      const data = await response.json();
+      return data.success || false;
+    } catch (error) {
+      console.error('Password reset error:', error);
+      return false;
+    }
+  }, []);
+
+  // Extend session
+  const extendSession = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/extend-session', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${state.accessToken}`,
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        localStorage.setItem('sessionExpiry', data.sessionExpiry);
+        dispatch({ type: 'SET_SESSION', payload: { sessionId: state.sessionId || '', expiry: data.sessionExpiry } });
+        dispatch({ type: 'SET_AUTO_LOGOUT_WARNING', payload: false });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Extend session error:', error);
+      return false;
+    }
+  }, [state.accessToken, state.sessionId]);
+
   // Context value
   const contextValue: EnhancedAuthContextValue = {
     state,
     login,
     register,
     logout,
-    refreshAuthToken: async () => false, // TODO: Implement
-    setupTwoFactor: async () => '', // TODO: Implement
-    verifyTwoFactor: async () => false, // TODO: Implement
-    disableTwoFactor: async () => false, // TODO: Implement
-    updateProfile: async () => false, // TODO: Implement
-    changePassword: async () => false, // TODO: Implement
-    updatePreferences: async () => false, // TODO: Implement
-    addAddress: async () => false, // TODO: Implement
-    updateAddress: async () => false, // TODO: Implement
-    deleteAddress: async () => false, // TODO: Implement
-    getTrustedDevices: async () => [], // TODO: Implement
-    revokeTrustedDevice: async () => false, // TODO: Implement
-    getLoginHistory: async () => [], // TODO: Implement
-    resendEmailVerification: async () => false, // TODO: Implement
-    verifyEmail: async () => false, // TODO: Implement
-    verifyPhone: async () => false, // TODO: Implement
-    requestPasswordReset: async () => false, // TODO: Implement
-    resetPassword: async () => false, // TODO: Implement
+    refreshAuthToken,
+    setupTwoFactor,
+    verifyTwoFactor,
+    disableTwoFactor,
+    updateProfile,
+    changePassword,
+    updatePreferences,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+    getTrustedDevices,
+    revokeTrustedDevice,
+    getLoginHistory,
+    resendEmailVerification,
+    verifyEmail,
+    verifyPhone,
+    requestPasswordReset,
+    resetPassword,
     showModal: (modal) => dispatch({ type: 'SHOW_MODAL', payload: modal }),
     clearErrors: () => dispatch({ type: 'CLEAR_ERRORS' }),
-    extendSession: async () => false, // TODO: Implement
+    extendSession,
     checkSessionStatus,
   };
 

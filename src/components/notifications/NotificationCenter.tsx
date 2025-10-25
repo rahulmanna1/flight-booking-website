@@ -199,7 +199,7 @@ export default function NotificationCenter({ className = '' }: NotificationCente
                 )}
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-600 hover:text-gray-800"
                 >
                   <X className="w-4 h-4" />
                 </button>

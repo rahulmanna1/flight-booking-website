@@ -175,7 +175,7 @@ export default function BookingsPage() {
             </p>
             <a
               href="/login"
-              className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
+              className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors inline-block"
             >
               Sign In
             </a>
@@ -237,7 +237,7 @@ export default function BookingsPage() {
                   onClick={() => setFilter(tab.key as typeof filter)}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                     filter === tab.key
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-blue-500 text-white'
                       : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
@@ -293,7 +293,7 @@ export default function BookingsPage() {
                           <div className="grid grid-cols-3 gap-4">
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-1 mb-1">
-                                <MapPin className="w-4 h-4 text-gray-400" />
+                                <MapPin className="w-4 h-4 text-gray-600" />
                                 <span className="font-semibold text-gray-900">{booking.flight.origin}</span>
                               </div>
                               <p className="text-lg font-bold text-gray-900">{booking.flight.departureTime}</p>
@@ -302,12 +302,12 @@ export default function BookingsPage() {
 
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-2 mb-1">
-                                <Clock className="w-4 h-4 text-gray-400" />
+                                <Clock className="w-4 h-4 text-gray-600" />
                                 <span className="text-sm text-gray-600">{booking.flight.duration}</span>
                               </div>
                               <div className="flex items-center justify-center">
                                 <div className="w-8 h-0.5 bg-gray-300"></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full mx-1"></div>
+                                <div className="w-2 h-2 bg-gray-600 rounded-full mx-1"></div>
                                 <div className="w-8 h-0.5 bg-gray-300"></div>
                               </div>
                               <p className="text-xs text-gray-500 mt-1">Direct</p>
@@ -315,7 +315,7 @@ export default function BookingsPage() {
 
                             <div className="text-center">
                               <div className="flex items-center justify-center space-x-1 mb-1">
-                                <MapPin className="w-4 h-4 text-gray-400" />
+                                <MapPin className="w-4 h-4 text-gray-600" />
                                 <span className="font-semibold text-gray-900">{booking.flight.destination}</span>
                               </div>
                               <p className="text-lg font-bold text-gray-900">{booking.flight.arrivalTime}</p>
@@ -327,7 +327,7 @@ export default function BookingsPage() {
                         <div>
                           <div className="mb-6">
                             <div className="flex items-center space-x-2 mb-2">
-                              <Calendar className="w-4 h-4 text-gray-400" />
+                              <Calendar className="w-4 h-4 text-gray-600" />
                               <span className="text-sm text-gray-600">Travel Date</span>
                             </div>
                             <p className="font-semibold text-gray-900">
@@ -350,7 +350,7 @@ export default function BookingsPage() {
                             <div className="space-y-2">
                               <button
                                 onClick={() => handleDownloadTicket(booking)}
-                                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm"
+                                className="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm"
                               >
                                 <Download className="w-4 h-4" />
                                 <span>Download E-Ticket</span>
@@ -388,7 +388,7 @@ export default function BookingsPage() {
               ) : (
                 <div className="text-center py-12">
                   <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plane className="w-12 h-12 text-gray-400" />
+                    <Plane className="w-12 h-12 text-gray-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">No bookings found</h3>
                   <p className="text-gray-600 mb-4">
@@ -398,7 +398,7 @@ export default function BookingsPage() {
                   </p>
                   <Link
                     href="/"
-                    className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors inline-block"
+                    className="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors inline-block"
                   >
                     Search Flights
                   </Link>

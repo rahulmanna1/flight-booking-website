@@ -104,7 +104,7 @@ export default function RecentSearches({
                     <span className="font-medium text-gray-900">
                       {search.from}
                     </span>
-                    <Plane className="w-4 h-4 text-gray-400 transform rotate-90" />
+                    <Plane className="w-4 h-4 text-gray-600 transform rotate-90" />
                     <span className="font-medium text-gray-900">
                       {search.to}
                     </span>

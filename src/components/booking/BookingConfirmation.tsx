@@ -218,7 +218,7 @@ export default function BookingConfirmation({
         <div className="flex flex-wrap justify-center gap-4">
           <button
             onClick={handleDownloadTicket}
-            className="flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center space-x-2 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 transition-colors"
           >
             <Download className="w-4 h-4" />
             <span>Download Ticket</span>
@@ -481,11 +481,11 @@ export default function BookingConfirmation({
             
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
-                <Mail className="w-4 h-4 text-gray-400" />
+                <Mail className="w-4 h-4 text-gray-600" />
                 <span className="text-sm text-gray-600">{booking.contactInfo?.email || booking.bookedBy?.email || 'N/A'}</span>
               </div>
               <div className="flex items-center space-x-3">
-                <Phone className="w-4 h-4 text-gray-400" />
+                <Phone className="w-4 h-4 text-gray-600" />
                 <span className="text-sm text-gray-600">{booking.contactInfo?.phone || booking.bookedBy?.phone || 'N/A'}</span>
               </div>
             </div>
@@ -497,21 +497,21 @@ export default function BookingConfirmation({
             
             <div className="space-y-3 text-sm">
               <div className="flex items-start space-x-2">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="font-medium">Check-in opens 24 hours before departure</p>
                   <p className="text-gray-600">You'll receive a reminder email</p>
                 </div>
               </div>
               <div className="flex items-start space-x-2">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="font-medium">Add to calendar</p>
                   <p className="text-gray-600">Set reminders for your flight</p>
                 </div>
               </div>
               <div className="flex items-start space-x-2">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="font-medium">Track your flight status</p>
                   <p className="text-gray-600">Get updates on delays and gate changes</p>

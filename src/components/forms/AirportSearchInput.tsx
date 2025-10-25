@@ -290,7 +290,7 @@ export default function AirportSearchInput({
         {/* Input Field */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+            <Search className="h-4 w-4 text-gray-600" />
           </div>
           
           <input
@@ -319,7 +319,7 @@ export default function AirportSearchInput({
               <button
                 type="button"
                 onClick={handleClearSelection}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors duration-200"
+                className="p-1 text-gray-500 hover:text-gray-700 rounded transition-colors duration-200"
                 title="Clear selection"
               >
                 <X className="w-4 h-4" />
@@ -443,11 +443,11 @@ export default function AirportSearchInput({
           {!loading && displayAirports.length === 0 && hasSearched && query.length >= 2 && (
             <div className="p-6 text-center text-gray-500">
               <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
-                <Plane className="w-8 h-8 text-gray-400" />
+                <Plane className="w-8 h-8 text-gray-600" />
               </div>
               <p className="font-medium mb-1">No airports found</p>
               <p className="text-sm">Try searching by city name, airport name, or IATA code</p>
-              <div className="mt-3 text-xs text-gray-400">
+              <div className="mt-3 text-xs text-gray-600">
                 Search examples: "London", "LHR", or "Heathrow"
               </div>
             </div>

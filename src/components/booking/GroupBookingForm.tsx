@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Plus, Minus, AlertCircle, Info, Check, UserPlus, Briefcase } from 'lucide-react';
 
 interface PassengerDetails {
@@ -212,9 +211,7 @@ export default function GroupBookingForm({
 
           {/* Next Discount Tier Info */}
           {nextDiscountTier && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+            <div
               className="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-3 flex items-center gap-2 text-sm"
             >
               <Info className="w-4 h-4 flex-shrink-0" />
@@ -223,7 +220,7 @@ export default function GroupBookingForm({
                 {nextDiscountTier.minPassengers - passengers.length !== 1 ? 's' : ''} to unlock{' '}
                 <span className="font-semibold">{nextDiscountTier.label}</span> discount!
               </span>
-            </motion.div>
+            </div>
           )}
         </div>
 
@@ -237,7 +234,7 @@ export default function GroupBookingForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Group Name <span className="text-gray-400">(Optional)</span>
+                Group Name <span className="text-gray-500">(Optional)</span>
               </label>
               <input
                 type="text"
@@ -297,30 +294,28 @@ export default function GroupBookingForm({
               type="button"
               onClick={addPassenger}
               disabled={passengers.length >= maxPassengers}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Passenger
             </button>
           </div>
 
-          <AnimatePresence mode="popLayout">
-            {passengers.map((passenger, index) => (
-              <PassengerCard
-                key={passenger.id}
-                passenger={passenger}
-                index={index}
-                isExpanded={expandedPassenger === passenger.id}
-                isLeadPassenger={leadPassengerId === passenger.id}
-                onToggle={() => setExpandedPassenger(expandedPassenger === passenger.id ? null : passenger.id)}
-                onUpdate={updatePassenger}
-                onRemove={() => removePassenger(passenger.id)}
-                onSetLead={() => setLeadPassengerId(passenger.id)}
-                canRemove={passengers.length > 1}
-                errors={errors}
-              />
-            ))}
-          </AnimatePresence>
+          {passengers.map((passenger, index) => (
+            <PassengerCard
+              key={passenger.id}
+              passenger={passenger}
+              index={index}
+              isExpanded={expandedPassenger === passenger.id}
+              isLeadPassenger={leadPassengerId === passenger.id}
+              onToggle={() => setExpandedPassenger(expandedPassenger === passenger.id ? null : passenger.id)}
+              onUpdate={updatePassenger}
+              onRemove={() => removePassenger(passenger.id)}
+              onSetLead={() => setLeadPassengerId(passenger.id)}
+              canRemove={passengers.length > 1}
+              errors={errors}
+            />
+          ))}
         </div>
 
         {/* Submit Button */}
@@ -361,11 +356,7 @@ function PassengerCard({
   errors,
 }: PassengerCardProps) {
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, x: -100 }}
+    <div
       className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden"
     >
       <div
@@ -406,26 +397,20 @@ function PassengerCard({
               <Minus className="w-4 h-4" />
             </button>
           )}
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+          <div
+            className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
           >
-            <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
-          </motion.div>
+          </div>
         </div>
       </div>
 
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="border-t border-gray-200"
-          >
+      {isExpanded && (
+        <div
+          className="border-t border-gray-200"
+        >
             <div className="p-4 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -549,9 +534,8 @@ function PassengerCard({
                 </button>
               )}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+        </div>
+      )}
+    </div>
   );
 }

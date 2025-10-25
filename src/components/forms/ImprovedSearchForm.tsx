@@ -93,7 +93,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden max-w-7xl mx-auto border border-gray-200">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-6">
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-700 px-6 py-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-2xl font-bold text-white mb-1">
@@ -165,7 +165,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
             <button
               type="button"
               onClick={handleSwapAirports}
-              className="bg-gray-100 hover:bg-blue-600 border-2 border-gray-200 hover:border-blue-600 text-gray-600 hover:text-white rounded-full p-3 transition-all duration-200 shadow-sm hover:shadow-md"
+              className="bg-gray-100 hover:bg-blue-500 border-2 border-gray-200 hover:border-blue-500 text-gray-600 hover:text-white rounded-full p-3 transition-all duration-200 shadow-sm hover:shadow-md"
               title="Swap airports"
             >
               <ArrowLeftRight className="w-5 h-5" />
@@ -238,7 +238,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                   </option>
                 ))}
               </select>
-              <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <Users className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" />
             </div>
           </div>
           
@@ -255,7 +255,7 @@ export default function ImprovedSearchForm({ onSearch }: ImprovedSearchFormProps
                 <option value="business">Business</option>
                 <option value="first">First Class</option>
               </select>
-              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>

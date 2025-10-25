@@ -101,7 +101,7 @@ export default function InsuranceSelection({
                     <div className="flex items-center gap-3 mb-2">
                       {/* Selection Radio */}
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                        isSelected ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                        isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
                       }`}>
                         {isSelected && <Check className="w-4 h-4 text-white" />}
                       </div>
@@ -276,7 +276,7 @@ export default function InsuranceSelection({
           type="button"
           onClick={handleSubmit}
           disabled={selectedInsurance !== null && !termsAccepted}
-          className="bg-blue-600 hover:bg-blue-700 px-8"
+          className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 px-8"
         >
           {selectedInsurance ? `Continue with Insurance ($${selectedInsurance.price})` : 'Continue without Insurance'}
         </Button>

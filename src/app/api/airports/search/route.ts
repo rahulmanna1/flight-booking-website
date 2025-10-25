@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Amadeus from 'amadeus';
 import { searchGlobalAirports, getGlobalAirportByCode, GlobalAirportData } from '@/data/globalAirports';
-import { prisma } from '@/lib/prisma';
 
 // Initialize Amadeus client
 const amadeus = new Amadeus({
