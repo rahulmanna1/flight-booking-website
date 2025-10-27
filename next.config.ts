@@ -58,6 +58,18 @@ const nextConfig: NextConfig = {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://js.stripe.com https://maps.googleapis.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: https: blob:",
+              "frame-src 'self' https://www.google.com https://js.stripe.com https://maps.googleapis.com",
+              "connect-src 'self' https://www.google.com https://api.stripe.com https://maps.googleapis.com",
+            ].join('; '),
+          },
         ],
       },
     ];
