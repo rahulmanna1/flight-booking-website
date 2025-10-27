@@ -5,16 +5,7 @@ import sgMail from '@sendgrid/mail';
 import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
 
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
-const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@flightbooker.com';
-const FROM_NAME = process.env.SENDGRID_FROM_NAME || 'FlightBooker';
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-
-if (SENDGRID_API_KEY) {
-  sgMail.setApiKey(SENDGRID_API_KEY);
-}
-
-const isEmailConfigured = !!SENDGRID_API_KEY;
+// Note: API key is set dynamically in each method to avoid caching issues
 
 interface VerificationEmailData {
   email: string;
@@ -31,7 +22,7 @@ interface EmailResult {
 class EmailVerificationService {
   
   static isConfigured(): boolean {
-    return isEmailConfigured;
+    return !!process.env.SENDGRID_API_KEY;
   }
 
   // Generate verification token
@@ -73,10 +64,18 @@ class EmailVerificationService {
 
   // Send verification email
   static async sendVerificationEmail(data: VerificationEmailData): Promise<EmailResult> {
-    if (!isEmailConfigured) {
+    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+    const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@flightbooker.com';
+    const FROM_NAME = process.env.SENDGRID_FROM_NAME || 'FlightBooker';
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+    if (!SENDGRID_API_KEY) {
       console.warn('⚠️ Email service not configured, skipping verification email');
       return { success: false, error: 'Email service not configured' };
     }
+
+    // Set API key dynamically to avoid caching issues
+    sgMail.setApiKey(SENDGRID_API_KEY);
 
     try {
       const verificationLink = `${BASE_URL}/verify-email?token=${data.verificationToken}`;
@@ -299,10 +298,18 @@ FlightBooker Team
 
   // Send password reset email
   static async sendPasswordResetEmail(email: string, firstName: string, resetToken: string): Promise<EmailResult> {
-    if (!isEmailConfigured) {
+    const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+    const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@flightbooker.com';
+    const FROM_NAME = process.env.SENDGRID_FROM_NAME || 'FlightBooker';
+    const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+
+    if (!SENDGRID_API_KEY) {
       console.warn('⚠️ Email service not configured, skipping password reset email');
       return { success: false, error: 'Email service not configured' };
     }
+
+    // Set API key dynamically to avoid caching issues
+    sgMail.setApiKey(SENDGRID_API_KEY);
 
     try {
       const resetLink = `${BASE_URL}/reset-password?token=${resetToken}`;
