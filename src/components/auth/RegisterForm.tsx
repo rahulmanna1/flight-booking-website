@@ -26,6 +26,7 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState<{ score: number; feedback: string[] }>({ score: 0, feedback: [] });
 
@@ -129,9 +130,19 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
       });
       
       if (result.success) {
-        if (onSuccess) {
-          onSuccess();
-        }
+        setSuccessMessage(result.message || 'Registration successful! Please check your email to verify your account.');
+        // Clear form
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          phone: '',
+          password: '',
+          confirmPassword: '',
+          dateOfBirth: '',
+          nationality: '',
+          termsAccepted: false
+        });
       } else {
         setError(result.error || 'Registration failed');
       }
@@ -170,6 +181,21 @@ export default function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFor
           <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
           <p className="text-gray-600 mt-2">Join FlightBooker and start exploring the world</p>
         </div>
+
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start space-x-3">
+            <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-green-800">
+              {successMessage}
+              <p className="mt-2">
+                <Link href="/login" className="text-green-700 hover:underline font-medium">
+                  Go to login →
+                </Link>
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Error Message */}
         {error && (

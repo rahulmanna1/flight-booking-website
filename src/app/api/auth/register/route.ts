@@ -82,10 +82,29 @@ export async function POST(request: NextRequest) {
       nationality: nationality?.trim()
     });
 
+    // Send verification email (don't block registration if it fails)
+    try {
+      const EmailVerificationService = (await import('@/lib/services/emailVerificationService')).default;
+      const verificationToken = await EmailVerificationService.createVerificationToken(user.id);
+      await EmailVerificationService.sendVerificationEmail({
+        email: user.email,
+        firstName: user.firstName,
+        verificationToken
+      });
+      console.log(`✅ Verification email sent to ${user.email}`);
+    } catch (emailError) {
+      console.error('⚠️ Failed to send verification email:', emailError);
+      // Don't fail registration if email sending fails
+    }
+
+    // Don't return token - require email verification first
     return NextResponse.json({
-      user,
-      token,
-      message: 'Registration successful'
+      message: 'Registration successful. Please check your email to verify your account.',
+      email: user.email,
+      emailVerification: {
+        sent: true,
+        required: true
+      }
     });
 
   } catch (error) {

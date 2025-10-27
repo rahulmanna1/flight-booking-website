@@ -24,6 +24,18 @@ export async function POST(request: NextRequest) {
     // Authenticate user
     const { user, token } = await AuthService.authenticateUser(email, password);
 
+    // Check if email is verified
+    const prefs = user.preferences;
+    if (prefs && !prefs.emailVerified) {
+      return NextResponse.json(
+        { 
+          error: 'Please verify your email address before logging in. Check your inbox for the verification link.',
+          requiresVerification: true
+        },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json({
       user,
       token,
