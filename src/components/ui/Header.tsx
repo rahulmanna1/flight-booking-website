@@ -200,6 +200,29 @@ export default function Header() {
         {isMenuOpen && (
           <div className="md:hidden border-t py-4">
             <nav className="flex flex-col space-y-4">
+              {/* Show user info if authenticated */}
+              {isAuthenticated && user && (
+                <div className="px-4 py-3 bg-gray-50 rounded-lg flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                    {user.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{user.firstName} {user.lastName}</p>
+                    <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                  </div>
+                </div>
+              )}
+
               <Link 
                 href="/search" 
                 className="text-gray-700 hover:text-blue-600 transition-colors"
@@ -207,20 +230,40 @@ export default function Header() {
               >
                 Search Flights
               </Link>
-              <Link 
-                href="/bookings" 
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                My Bookings
-              </Link>
-              <Link 
-                href="/price-alerts" 
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Price Alerts
-              </Link>
+              
+              {isAuthenticated ? (
+                <>
+                  <Link 
+                    href="/dashboard" 
+                    className="text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
+                  <Link 
+                    href="/bookings" 
+                    className="text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    My Bookings
+                  </Link>
+                  <Link 
+                    href="/price-alerts" 
+                    className="text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Price Alerts
+                  </Link>
+                  <Link 
+                    href="/settings" 
+                    className="text-gray-700 hover:text-blue-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Settings
+                  </Link>
+                </>
+              ) : null}
+              
               <Link 
                 href="/support" 
                 className="text-gray-700 hover:text-blue-600 transition-colors"
@@ -228,24 +271,41 @@ export default function Header() {
               >
                 Support
               </Link>
+              
               <hr className="border-gray-200" />
+              
               <div className="py-2">
                 <CurrencySelector />
               </div>
-              <Link 
-                href="/login" 
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-              <Link 
-                href="/register" 
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 text-center font-medium"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign Up
-              </Link>
+              
+              {isAuthenticated ? (
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsMenuOpen(false);
+                  }}
+                  className="text-left text-red-600 hover:text-red-700 font-medium transition-colors"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <>
+                  <Link 
+                    href="/login" 
+                    className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link 
+                    href="/register" 
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors duration-200 text-center font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </nav>
           </div>
         )}
