@@ -20,7 +20,7 @@ import {
 import Link from 'next/link';
 
 export default function SettingsPage() {
-  const { user, isAuthenticated, isLoading: authLoading, updateProfile } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, updateProfile, refreshToken } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -83,6 +83,8 @@ export default function SettingsPage() {
       const result = await updateProfile(profileData);
       if (result.success) {
         setSaveMessage('Profile updated successfully!');
+        // Force page reload to refresh user data from server
+        window.location.reload();
       } else {
         setSaveMessage('Failed to update profile: ' + result.error);
       }

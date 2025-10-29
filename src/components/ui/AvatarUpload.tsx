@@ -44,7 +44,7 @@ export default function AvatarUpload({ currentAvatar, onUploadSuccess, onRemove 
     // Upload to server
     setUploading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('auth_token');
       if (!token) {
         throw new Error('Not authenticated');
       }
