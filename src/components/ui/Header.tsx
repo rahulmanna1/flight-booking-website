@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Plane, Menu, X, User, LogOut, Settings, BookOpen, Bell } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -74,19 +75,44 @@ export default function Header() {
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors"
                 >
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden ring-2 ring-white">
+                    {user.avatar ? (
+                      <Image
+                        src={user.avatar}
+                        alt={`${user.firstName} ${user.lastName}`}
+                        width={32}
+                        height={32}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <User className="w-4 h-4 text-white" />
+                    )}
                   </div>
                   <span className="font-medium">{user.firstName}</span>
                 </button>
                 
                 {/* User Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-50">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50">
                     <div className="py-2">
-                      <div className="px-4 py-2 border-b border-gray-200">
-                        <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
-                        <p className="text-sm text-gray-500">{user.email}</p>
+                      <div className="px-4 py-3 border-b border-gray-200 flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                          {user.avatar ? (
+                            <Image
+                              src={user.avatar}
+                              alt={`${user.firstName} ${user.lastName}`}
+                              width={40}
+                              height={40}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <User className="w-5 h-5 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-gray-900 truncate">{user.firstName} {user.lastName}</p>
+                          <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                        </div>
                       </div>
                       
                       <Link
