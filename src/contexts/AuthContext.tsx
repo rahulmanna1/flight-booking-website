@@ -185,7 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateProfile = async (userData: Partial<User>) => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('/api/auth/profile', {
+      const response = await fetch('/api/auth/me', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const data = await response.json();
 
       if (response.ok) {
-        setUser(data.user);
+        setUser(data);
         return { success: true };
       } else {
         return { success: false, error: data.error || 'Profile update failed' };
