@@ -31,6 +31,10 @@ model User {
   // Frequent flyer numbers stored as JSON array
   frequentFlyerNumbers  String?  @default("[]")
   
+  // Password reset
+  resetToken            String?
+  resetTokenExpiry      DateTime?
+  
   // Timestamps
   createdAt             DateTime @default(now())
   lastLogin             DateTime?

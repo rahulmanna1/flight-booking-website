@@ -128,7 +128,7 @@ export default function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormPr
           {/* Forgot Password Link */}
           <div className="text-right">
             <Link 
-              href="/auth/forgot-password"
+              href="/forgot-password"
               className="text-sm text-blue-500 hover:text-blue-600 hover:underline transition-colors duration-200 font-medium"
             >
               Forgot your password?
