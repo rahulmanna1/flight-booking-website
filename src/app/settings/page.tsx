@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/ui/Header';
+import AvatarUpload from '@/components/ui/AvatarUpload';
 import { 
   User, 
   Lock, 
@@ -31,8 +32,24 @@ export default function SettingsPage() {
     email: user?.email || '',
     phone: user?.phone || '',
     dateOfBirth: user?.dateOfBirth || '',
-    nationality: user?.nationality || ''
+    nationality: user?.nationality || '',
+    avatar: user?.avatar || ''
   });
+
+  // Update profile data when user changes
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        dateOfBirth: user.dateOfBirth || '',
+        nationality: user.nationality || '',
+        avatar: user.avatar || ''
+      });
+    }
+  }, [user]);
 
   // Notification preferences
   const [notifications, setNotifications] = useState<{
@@ -206,6 +223,25 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-6">
+                    {/* Avatar Upload */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-4">
+                        Profile Picture
+                      </label>
+                      <AvatarUpload
+                        currentAvatar={profileData.avatar}
+                        onUploadSuccess={(url) => {
+                          setProfileData({...profileData, avatar: url});
+                          setSaveMessage('Avatar uploaded! Remember to save changes.');
+                          setTimeout(() => setSaveMessage(''), 3000);
+                        }}
+                        onRemove={() => setProfileData({...profileData, avatar: ''})}
+                      />
+                    </div>
+
+                    <div className="border-t border-gray-200 pt-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">

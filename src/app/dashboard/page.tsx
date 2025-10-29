@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import Header from '@/components/ui/Header';
+import ProfileCompletionBadge from '@/components/ui/ProfileCompletionBadge';
 import { 
   User, 
   Plane, 
@@ -181,8 +182,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Profile Completion & Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Profile Completion */}
+          <div>
+            <ProfileCompletionBadge user={user} showDetails={true} />
+          </div>
+
           {/* Search Flights */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow-md p-6 text-white">
             <div className="flex items-center justify-between mb-4">
