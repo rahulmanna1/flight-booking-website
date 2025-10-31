@@ -28,6 +28,7 @@ const searchSchema = z.object({
   passengers: z.number().min(1, 'At least 1 passenger required'),
   tripType: z.enum(['roundtrip', 'oneway']),
   travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']),
+  directFlightsOnly: z.boolean().optional(),
 }).refine((data) => {
   if (data.tripType === 'roundtrip' && data.returnDate) {
     const depDate = new Date(data.departDate);
@@ -69,6 +70,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       tripType: 'roundtrip',
       passengers: 1,
       travelClass: 'economy',
+      directFlightsOnly: false,
     }
   });
 
@@ -302,6 +304,21 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
         
         {/* Row 2: Travel Details */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* DIRECT FLIGHTS TOGGLE */}
+          <div className="col-span-2 md:col-span-4">
+            <label className="flex items-center gap-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 transition-colors cursor-pointer">
+              <input
+                {...register('directFlightsOnly')}
+                type="checkbox"
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              />
+              <div>
+                <span className="text-sm font-semibold text-gray-900">Direct flights only</span>
+                <p className="text-xs text-gray-600">Show flights without layovers</p>
+              </div>
+            </label>
+          </div>
+          
           {/* DEPARTURE DATE */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -24,6 +24,7 @@ const multiCitySchema = z.object({
   })).min(2, 'At least 2 flight segments required').max(6, 'Maximum 6 segments allowed'),
   passengers: z.number().min(1, 'At least 1 passenger required').max(9, 'Maximum 9 passengers allowed'),
   travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']),
+  directFlightsOnly: z.boolean().optional(),
 }).refine((data) => {
   // Validate that each segment's dates are in order
   for (let i = 1; i < data.segments.length; i++) {
@@ -68,6 +69,7 @@ export default function MultiCitySearchForm({ onSearch }: MultiCitySearchFormPro
       ],
       passengers: 1,
       travelClass: 'economy',
+      directFlightsOnly: false,
     }
   });
 
@@ -229,6 +231,21 @@ export default function MultiCitySearchForm({ onSearch }: MultiCitySearchFormPro
 
         {/* Passengers and Class */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
+          {/* Direct Flights Toggle */}
+          <div className="md:col-span-2">
+            <label className="flex items-center gap-3 p-3 bg-indigo-50 border-2 border-indigo-200 rounded-xl hover:bg-indigo-100 transition-colors cursor-pointer">
+              <input
+                {...register('directFlightsOnly')}
+                type="checkbox"
+                className="w-5 h-5 text-indigo-600 rounded focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+              />
+              <div>
+                <span className="text-sm font-semibold text-gray-900">Direct flights only</span>
+                <p className="text-xs text-gray-600">Show flights without layovers for each segment</p>
+              </div>
+            </label>
+          </div>
+          
           {/* Passengers */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

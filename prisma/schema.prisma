@@ -59,6 +59,11 @@ model Booking {
   userId                String
   user                  User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  // Promo code relationship
+  promoCodeId           String?
+  promoCode             PromoCode?  @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
+  discountAmount        Float?      @default(0)
+  
   // Flight information stored as JSON for flexibility
   flightData            String
   
@@ -94,6 +99,9 @@ model Booking {
   // Payment information stored as JSON (sensitive data should be encrypted)
   paymentInfo           String
   
+  // Total amount
+  totalAmount           Float?
+  
   // Timestamps
   bookingDate           DateTime    @default(now())
   createdAt             DateTime    @default(now())
@@ -109,6 +117,56 @@ enum BookingStatus {
   CANCELLED
   COMPLETED
   REFUNDED
+}
+
+// Promo Code model for discount management
+model PromoCode {
+  id                    String      @id @default(cuid())
+  code                  String      @unique
+  description           String
+  
+  // Discount configuration
+  discountType          DiscountType
+  discountValue         Float
+  minPurchaseAmount     Float?
+  maxDiscountAmount     Float?
+  
+  // Usage limits
+  usageLimit            Int?
+  usageCount            Int         @default(0)
+  perUserLimit          Int?
+  
+  // Validity period
+  validFrom             DateTime
+  validUntil            DateTime
+  
+  // Restrictions stored as JSON arrays
+  applicableRoutes      String?     @default("[]")
+  applicableAirlines    String?     @default("[]")
+  
+  // User restrictions
+  firstTimeOnly         Boolean     @default(false)
+  
+  // Status
+  isActive              Boolean     @default(true)
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  // Relations
+  bookings              Booking[]
+  
+  @@index([code])
+  @@index([validFrom, validUntil])
+  @@index([isActive])
+  @@map("promo_codes")
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  BUY_ONE_GET_ONE
 }
 
 // Price Alert model for flight price monitoring

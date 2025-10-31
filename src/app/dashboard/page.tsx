@@ -5,6 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import Header from '@/components/ui/Header';
 import ProfileCompletionBadge from '@/components/ui/ProfileCompletionBadge';
+import TravelStatsWidgets from '@/components/dashboard/TravelStatsWidgets';
+import SpendingChart from '@/components/dashboard/SpendingChart';
+import BookingTimeline from '@/components/dashboard/BookingTimeline';
+import QuickActions from '@/components/dashboard/QuickActions';
+import { TravelStats } from '@/lib/services/travelStatsService';
 import { 
   User, 
   Plane, 
@@ -27,34 +32,79 @@ interface UserStats {
   notifications: number;
 }
 
+interface Booking {
+  id: string;
+  bookingReference: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+  flightData: {
+    departure: string;
+    arrival: string;
+    departureTime: string;
+    arrivalTime: string;
+    airline?: string;
+    flightNumber?: string;
+  };
+}
+
 export default function DashboardPage() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, token } = useAuth();
   const { formatPrice } = useCurrency();
   const [stats, setStats] = useState<UserStats>({ bookings: 0, priceAlerts: 0, notifications: 0 });
+  const [travelStats, setTravelStats] = useState<TravelStats | null>(null);
+  const [monthlySpending, setMonthlySpending] = useState<Array<{ month: string; amount: number; bookings: number }>>([]);
+  const [growth, setGrowth] = useState<{ bookingGrowth: number; spendingGrowth: number } | undefined>(undefined);
+  const [recentBookings, setRecentBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserStats = async () => {
-      if (!isAuthenticated || !user) return;
+    const fetchDashboardData = async () => {
+      if (!isAuthenticated || !user || !token) return;
       
       try {
-        // Mock stats for now - in real app, fetch from API
-        setStats({
-          bookings: 5,
-          priceAlerts: 3,
-          notifications: 8
+        // Fetch travel statistics
+        const statsResponse = await fetch('/api/stats/travel', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         });
+
+        if (statsResponse.ok) {
+          const data = await statsResponse.json();
+          // API returns shape: { stats, monthlySpending, topDestinations, growth }
+          setTravelStats(data.stats);
+          setMonthlySpending(data.monthlySpending || []);
+          setGrowth(data.growth);
+          setStats({
+            bookings: data.stats?.totalBookings || 0,
+            priceAlerts: 3, // TODO: fetch from price alerts API
+            notifications: 8, // TODO: fetch from notifications API
+          });
+        }
+
+        // Fetch recent bookings
+        const bookingsResponse = await fetch('/api/bookings?limit=5', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (bookingsResponse.ok) {
+          const bookingsData = await bookingsResponse.json();
+          setRecentBookings(bookingsData.bookings || []);
+        }
       } catch (error) {
-        console.error('Error fetching user stats:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
 
     if (!authLoading) {
-      fetchUserStats();
+      fetchDashboardData();
     }
-  }, [isAuthenticated, user, authLoading]);
+  }, [isAuthenticated, user, authLoading, token]);
 
   // Show loading while checking authentication
   if (authLoading) {
@@ -127,83 +177,37 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">Total Bookings</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.bookings}</p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Plane className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <Link
-                href="/bookings"
-                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-              >
-                View all bookings →
-              </Link>
-            </div>
+        {/* Travel Stats Widgets */}
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
           </div>
-
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">Price Alerts</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.priceAlerts}</p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <Bell className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <Link
-                href="/price-alerts"
-                className="text-green-600 hover:text-green-700 text-sm font-medium"
-              >
-                Manage alerts →
-              </Link>
-            </div>
+        ) : travelStats ? (
+          <div className="mb-8">
+            <TravelStatsWidgets stats={travelStats} growth={growth} />
           </div>
+        ) : null}
 
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-500 text-sm font-medium">Notifications</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.notifications}</p>
-              </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <Bell className="w-6 h-6 text-purple-600" />
-              </div>
+        {/* Spending Chart & Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Spending Chart */}
+          {monthlySpending.length > 0 && (
+            <div className="lg:col-span-2">
+              <SpendingChart monthlySpending={monthlySpending} />
             </div>
+          )}
+
+          {/* Quick Actions */}
+          <div>
+            <QuickActions />
           </div>
         </div>
 
-        {/* Profile Completion & Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        {/* Profile Completion & Profile Info */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Profile Completion */}
           <div>
             <ProfileCompletionBadge user={user} showDetails={true} />
-          </div>
-
-          {/* Search Flights */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow-md p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-semibold">Search New Flights</h3>
-              <Plane className="w-8 h-8 opacity-80" />
-            </div>
-            <p className="text-blue-100 mb-4">
-              Find the best deals for your next trip. Compare prices from hundreds of airlines.
-            </p>
-            <Link
-              href="/"
-              className="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors inline-block font-medium"
-            >
-              Search Flights
-            </Link>
           </div>
 
           {/* Profile Management */}
@@ -244,28 +248,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-md">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-          </div>
-          <div className="p-6">
-            <div className="text-center py-8">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="w-8 h-8 text-gray-600" />
-              </div>
-              <h4 className="text-lg font-medium text-gray-900 mb-2">No Recent Activity</h4>
-              <p className="text-gray-600 mb-4">
-                Your recent bookings and alerts will appear here.
-              </p>
-              <Link
-                href="/"
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 active:bg-blue-700 transition-colors inline-block"
-              >
-                Start Exploring
-              </Link>
-            </div>
-          </div>
+        {/* Recent Bookings */}
+        <div className="mb-8">
+          <BookingTimeline 
+            bookings={recentBookings} 
+            title="Recent Bookings"
+            emptyMessage="No bookings yet. Start exploring flights!"
+          />
         </div>
       </div>
     </div>
