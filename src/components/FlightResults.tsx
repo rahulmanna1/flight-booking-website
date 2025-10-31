@@ -696,7 +696,17 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   
   // Comparison modal handlers
   const handleOpenComparison = () => {
-    setShowComparisonModal(true);
+    try {
+      const flightsToCompare = getFlightsForComparison();
+      if (flightsToCompare.length < 2) {
+        alert('Please select at least 2 flights to compare');
+        return;
+      }
+      setShowComparisonModal(true);
+    } catch (error) {
+      console.error('Error opening comparison modal:', error);
+      alert('Unable to open comparison. Please try again.');
+    }
   };
   
   const handleCloseComparison = () => {
@@ -722,6 +732,17 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         const flight = flights.find(f => f.id === id);
         if (!flight) return null;
         
+        // Safe amenities checking
+        const getAmenityValue = (amenityType: string): boolean => {
+          try {
+            if (!flight.aircraft && !flight.airline) return false;
+            return hasAmenity(flight.aircraft || '', flight.airline, amenityType);
+          } catch (error) {
+            console.warn(`Error checking amenity ${amenityType}:`, error);
+            return false;
+          }
+        };
+        
         return {
           id: flight.id,
           airline: flight.airline,
@@ -740,10 +761,10 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
             checked: '1 bag (23kg)',
           },
           amenities: {
-            wifi: hasAmenity(flight.aircraft || '', flight.airline, 'wifi'),
-            meals: hasAmenity(flight.aircraft || '', flight.airline, 'meals'),
-            entertainment: hasAmenity(flight.aircraft || '', flight.airline, 'entertainment'),
-            powerOutlets: hasAmenity(flight.aircraft || '', flight.airline, 'power'),
+            wifi: getAmenityValue('wifi'),
+            meals: getAmenityValue('meals'),
+            entertainment: getAmenityValue('entertainment'),
+            powerOutlets: getAmenityValue('power'),
           },
           cancellationPolicy: 'Refundable within 24 hours',
           layoverDuration: flight.layovers?.[0]?.duration,
@@ -823,14 +844,36 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
       )}
       
       {/* New Flight Comparison Modal */}
-      {showComparisonModal && (
-        <FlightComparisonModal
-          flights={getFlightsForComparison()}
-          onClose={handleCloseComparison}
-          onRemoveFlight={handleRemoveFromComparison}
-          onSelectFlight={handleSelectFlightFromComparison}
-        />
-      )}
+      {showComparisonModal && (() => {
+        try {
+          const comparisonFlights = getFlightsForComparison();
+          return (
+            <FlightComparisonModal
+              flights={comparisonFlights}
+              onClose={handleCloseComparison}
+              onRemoveFlight={handleRemoveFromComparison}
+              onSelectFlight={handleSelectFlightFromComparison}
+            />
+          );
+        } catch (error) {
+          console.error('Error rendering comparison modal:', error);
+          setShowComparisonModal(false);
+          return (
+            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg p-6 max-w-md">
+                <h3 className="text-lg font-bold text-red-600 mb-2">Comparison Error</h3>
+                <p className="text-gray-700 mb-4">Unable to load flight comparison. Please try selecting flights again.</p>
+                <button
+                  onClick={handleCloseComparison}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          );
+        }
+      })()}
       
       {/* Compare Floating Bar */}
       <CompareFloatingBar
