@@ -13,6 +13,12 @@ import FlexibleDateSearch from './search/FlexibleDateSearch';
 import EnhancedSorting, { EnhancedSortOptions } from './search/EnhancedSorting';
 import FlightComparison from './search/FlightComparison';
 import KeyboardNavigationHelp from './accessibility/KeyboardNavigationHelp';
+import AdvancedFiltersPanel, { FlightFilters as AdvancedFilterType } from './filters/AdvancedFiltersPanel';
+import FlightFilterChips from './filters/FlightFilterChips';
+import FilterSortBar, { SortOption, ViewMode } from './filters/FilterSortBar';
+import CompareFlightButton from './comparison/CompareFlightButton';
+import CompareFloatingBar from './comparison/CompareFloatingBar';
+import FlightComparisonModal, { FlightForComparison } from './comparison/FlightComparisonModal';
 
 // Airport display component
 interface AirportDisplayProps {
@@ -191,6 +197,25 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   const [showComparison, setShowComparison] = useState(false);
   const [selectedFlightsForComparison, setSelectedFlightsForComparison] = useState<string[]>([]);
   const { formatPrice, convertPrice } = useCurrency();
+  
+  // New advanced filters state
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilterType>({
+    priceRange: [0, 5000],
+    maxStops: null,
+    airlines: [],
+    departureTimeRange: [0, 24],
+    arrivalTimeRange: [0, 24],
+    maxDuration: null,
+    minLayoverDuration: null,
+    maxLayoverDuration: null,
+    baggageIncluded: null,
+    refundable: null,
+    directFlightsOnly: false,
+  });
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [newSortBy, setNewSortBy] = useState<SortOption>('best');
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [availableAirlines, setAvailableAirlines] = useState<string[]>([]);
 
   // Fetch flights and airport details from APIs
   const fetchFlights = useCallback(async (isRetry = false) => {
@@ -272,6 +297,10 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         setDataSource(data.source);
         setRetryCount(0); // Reset retry count on success
         console.log(`Loaded ${data.flights.length} flights from ${data.source}`);
+        
+        // Extract available airlines
+        const airlines = Array.from(new Set(data.flights.map((f: Flight) => f.airline)));
+        setAvailableAirlines(airlines);
         
         // Batch load airport names for all unique airports in the results
         const uniqueAirportCodes = new Set<string>();
@@ -581,6 +610,147 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
       return prev;
     });
   };
+  
+  // New handlers for advanced filters
+  const handleAdvancedFiltersChange = (filters: AdvancedFilterType) => {
+    setAdvancedFilters(filters);
+  };
+  
+  const handleRemoveFilter = (filterKey: keyof AdvancedFilterType, value?: any) => {
+    const newFilters = { ...advancedFilters };
+    
+    switch (filterKey) {
+      case 'airlines':
+        if (value) {
+          newFilters.airlines = newFilters.airlines.filter(a => a !== value);
+        }
+        break;
+      case 'priceRange':
+        newFilters.priceRange = [0, 5000];
+        break;
+      case 'maxStops':
+        newFilters.maxStops = null;
+        break;
+      case 'directFlightsOnly':
+        newFilters.directFlightsOnly = false;
+        break;
+      case 'departureTimeRange':
+        newFilters.departureTimeRange = [0, 24];
+        break;
+      case 'arrivalTimeRange':
+        newFilters.arrivalTimeRange = [0, 24];
+        break;
+      case 'maxDuration':
+        newFilters.maxDuration = null;
+        break;
+      case 'minLayoverDuration':
+        newFilters.minLayoverDuration = null;
+        break;
+      case 'maxLayoverDuration':
+        newFilters.maxLayoverDuration = null;
+        break;
+      case 'baggageIncluded':
+        newFilters.baggageIncluded = null;
+        break;
+      case 'refundable':
+        newFilters.refundable = null;
+        break;
+    }
+    
+    setAdvancedFilters(newFilters);
+  };
+  
+  const handleClearAllFilters = () => {
+    setAdvancedFilters({
+      priceRange: [0, 5000],
+      maxStops: null,
+      airlines: [],
+      departureTimeRange: [0, 24],
+      arrivalTimeRange: [0, 24],
+      maxDuration: null,
+      minLayoverDuration: null,
+      maxLayoverDuration: null,
+      baggageIncluded: null,
+      refundable: null,
+      directFlightsOnly: false,
+    });
+  };
+  
+  const handleResetFilters = () => {
+    handleClearAllFilters();
+  };
+  
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (advancedFilters.maxStops !== null) count++;
+    if (advancedFilters.airlines.length > 0) count++;
+    if (advancedFilters.departureTimeRange[0] !== 0 || advancedFilters.departureTimeRange[1] !== 24) count++;
+    if (advancedFilters.arrivalTimeRange[0] !== 0 || advancedFilters.arrivalTimeRange[1] !== 24) count++;
+    if (advancedFilters.maxDuration !== null) count++;
+    if (advancedFilters.minLayoverDuration !== null || advancedFilters.maxLayoverDuration !== null) count++;
+    if (advancedFilters.baggageIncluded !== null) count++;
+    if (advancedFilters.refundable !== null) count++;
+    if (advancedFilters.directFlightsOnly) count++;
+    return count;
+  };
+  
+  // Comparison modal handlers
+  const handleOpenComparison = () => {
+    setShowComparisonModal(true);
+  };
+  
+  const handleCloseComparison = () => {
+    setShowComparisonModal(false);
+  };
+  
+  const handleRemoveFromComparison = (flightId: string) => {
+    setSelectedFlightsForComparison(prev => prev.filter(id => id !== flightId));
+  };
+  
+  const handleClearComparison = () => {
+    setSelectedFlightsForComparison([]);
+  };
+  
+  const handleSelectFlightFromComparison = (flight: FlightForComparison) => {
+    handleFlightSelect(flight.id);
+  };
+  
+  // Get flights for comparison modal
+  const getFlightsForComparison = (): FlightForComparison[] => {
+    return selectedFlightsForComparison
+      .map(id => {
+        const flight = flights.find(f => f.id === id);
+        if (!flight) return null;
+        
+        return {
+          id: flight.id,
+          airline: flight.airline,
+          flightNumber: flight.flightNumber,
+          price: flight.price,
+          currency: 'USD',
+          origin: flight.origin,
+          destination: flight.destination,
+          departureTime: flight.departTime,
+          arrivalTime: flight.arriveTime,
+          duration: flight.duration,
+          stops: flight.stops || 0,
+          cabinClass: flight.travelClass || 'Economy',
+          baggage: {
+            carryOn: '1 personal item',
+            checked: '1 bag (23kg)',
+          },
+          amenities: {
+            wifi: hasAmenity(flight.aircraft || '', flight.airline, 'wifi'),
+            meals: hasAmenity(flight.aircraft || '', flight.airline, 'meals'),
+            entertainment: hasAmenity(flight.aircraft || '', flight.airline, 'entertainment'),
+            powerOutlets: hasAmenity(flight.aircraft || '', flight.airline, 'power'),
+          },
+          cancellationPolicy: 'Refundable within 24 hours',
+          layoverDuration: flight.layovers?.[0]?.duration,
+        } as FlightForComparison;
+      })
+      .filter((f): f is FlightForComparison => f !== null);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -643,7 +813,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
       {showComparison && (
         <FlightComparison
           flights={flights}
-          selectedFlightIds={selectedFlightsForComparison}
+          selectedFlightsForComparison={selectedFlightsForComparison}
           onClose={() => setShowComparison(false)}
           onSelectFlight={(flightId) => {
             handleFlightSelect(flightId);
@@ -651,18 +821,38 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
           }}
         />
       )}
+      
+      {/* New Flight Comparison Modal */}
+      {showComparisonModal && (
+        <FlightComparisonModal
+          flights={getFlightsForComparison()}
+          onClose={handleCloseComparison}
+          onRemoveFlight={handleRemoveFromComparison}
+          onSelectFlight={handleSelectFlightFromComparison}
+        />
+      )}
+      
+      {/* Compare Floating Bar */}
+      <CompareFloatingBar
+        selectedCount={selectedFlightsForComparison.length}
+        maxCount={4}
+        onCompare={handleOpenComparison}
+        onClear={handleClearComparison}
+      />
 
       {/* Main Layout with Sidebar */}
       <div className="flex">
         {/* Filter Sidebar */}
-        <div className={`${showFilters ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden md:block ${showFilters ? '' : 'hidden'} sticky top-0 h-screen overflow-y-auto`}>
-          <FlightFilters
-            flights={flights}
-            onFiltersChange={handleFiltersChange}
-            isVisible={showFilters}
-            onToggleVisibility={() => setShowFilters(!showFilters)}
-            userTravelClass={searchData.travelClass}
-          />
+        <div className={`${showFilters ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden md:block ${showFilters ? '' : 'hidden'} sticky top-0 h-screen overflow-y-auto bg-white border-r border-gray-200`}>
+          <div className="p-4">
+            <AdvancedFiltersPanel
+              filters={advancedFilters}
+              onChange={handleAdvancedFiltersChange}
+              availableAirlines={availableAirlines}
+              priceRange={[0, Math.max(...flights.map(f => f.price), 5000)]}
+              onReset={handleResetFilters}
+            />
+          </div>
         </div>
         
         {/* Main Content */}
@@ -766,6 +956,33 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                     </p>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Filter Sort Bar */}
+            {!loading && !error && flights.length > 0 && (
+              <div className="mb-6">
+                <FilterSortBar
+                  resultCount={filteredFlights.length}
+                  activeFilterCount={getActiveFilterCount()}
+                  sortBy={newSortBy}
+                  viewMode={viewMode}
+                  onSortChange={setNewSortBy}
+                  onViewModeChange={setViewMode}
+                  onToggleFilters={() => setShowFilters(!showFilters)}
+                  filtersVisible={showFilters}
+                />
+              </div>
+            )}
+            
+            {/* Flight Filter Chips */}
+            {!loading && !error && getActiveFilterCount() > 0 && (
+              <div className="mb-6">
+                <FlightFilterChips
+                  filters={advancedFilters}
+                  onRemoveFilter={handleRemoveFilter}
+                  onClearAll={handleClearAllFilters}
+                />
               </div>
             )}
 
@@ -980,23 +1197,14 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                       searchData={searchData}
                     />
                     
-                    {/* Comparison Checkbox - positioned at top-right corner */}
+                    {/* Compare Button - positioned at top-right corner */}
                     <div className="absolute top-4 right-4 z-10">
-                      <label className="flex items-center space-x-2 bg-white border-2 border-blue-500 text-blue-500 px-3 py-2 rounded-lg shadow-md hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={selectedFlightsForComparison.includes(flight.id)}
-                          onChange={() => toggleFlightForComparison(flight.id)}
-                          className="rounded border-blue-300 text-blue-500 focus:ring-blue-500 focus:ring-offset-0"
-                          disabled={!selectedFlightsForComparison.includes(flight.id) && selectedFlightsForComparison.length >= 4}
-                        />
-                        <span className="text-sm font-medium hidden sm:inline">
-                          {selectedFlightsForComparison.includes(flight.id) ? 'Added' : 'Compare'}
-                        </span>
-                        {selectedFlightsForComparison.includes(flight.id) && (
-                          <span className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-bold">✓</span>
-                        )}
-                      </label>
+                      <CompareFlightButton
+                        flightId={flight.id}
+                        isSelected={selectedFlightsForComparison.includes(flight.id)}
+                        onToggle={toggleFlightForComparison}
+                        maxReached={selectedFlightsForComparison.length >= 4}
+                      />
                     </div>
                   </div>
                 ))}
