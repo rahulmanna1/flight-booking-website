@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import Header from '@/components/ui/Header';
-import EnhancedSearchForm from '@/components/forms/EnhancedSearchForm';
+import SearchForm from '@/components/forms/SearchForm';
 import FlightResults from '@/components/FlightResults';
 import RecentSearches from '@/components/RecentSearches';
 import { useRecentSearches } from '@/hooks/useRecentSearches';
@@ -74,18 +74,6 @@ export default function SearchPage() {
     });
   };
 
-  const handleMultiCitySearch = async (data: any) => {
-    console.log('🔍 Multi-city search:', data);
-    // TODO: Implement multi-city search results
-    // For now, just log the data
-    alert('Multi-city search coming soon! Your search: ' + JSON.stringify(data, null, 2));
-  };
-
-  const handleFlexibleSearch = async (data: any) => {
-    console.log('🔍 Flexible date search:', data);
-    // TODO: Implement flexible date search results
-    alert('Flexible date search coming soon! Your search: ' + JSON.stringify(data, null, 2));
-  };
 
   const handleBackToSearch = () => {
     // Clear search data and navigate back - showResults derived from URL
@@ -161,11 +149,7 @@ export default function SearchPage() {
         
         {/* Search Form Card - Elevated & Prominent */}
         <div className="relative z-10 mb-8">
-          <EnhancedSearchForm 
-            onSearch={handleSearch}
-            onMultiCitySearch={handleMultiCitySearch}
-            onFlexibleSearch={handleFlexibleSearch}
-          />
+          <SearchForm onSearch={handleSearch} />
         </div>
 
         {/* Recent Searches - Directly Below Search Form */}
