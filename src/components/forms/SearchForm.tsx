@@ -92,7 +92,13 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
     setShowPopularDestinations(!hasDestination);
   }, [watchedFrom, watchedTo]);
 
-  const onSubmit = (data: SearchFormData) => {
+  const onSubmit = (data: SearchFormData, e?: React.BaseSyntheticEvent) => {
+    // Prevent default form behavior
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     // Additional validation: ensure origin and destination are different
     if (data.from === data.to) {
       console.error('❌ SearchForm: Same airport validation failed', { from: data.from, to: data.to });
@@ -116,21 +122,29 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
     
     // Save to recent searches if we have full airport objects
     if (selectedFromAirport && selectedToAirport) {
-      addSearchToHistory(
-        selectedFromAirport,
-        selectedToAirport,
-        data.departDate,
-        data.returnDate,
-        data.tripType,
-        data.travelClass,
-        data.passengers
-      );
+      try {
+        addSearchToHistory(
+          selectedFromAirport,
+          selectedToAirport,
+          data.departDate,
+          data.returnDate,
+          data.tripType,
+          data.travelClass,
+          data.passengers
+        );
+      } catch (error) {
+        console.warn('Failed to save to search history:', error);
+      }
     }
     
     if (onSearch) {
       console.log('🚀 SearchForm: Calling onSearch callback');
-      onSearch(data);
-      console.log('✅ SearchForm: onSearch callback completed');
+      try {
+        onSearch(data);
+        console.log('✅ SearchForm: onSearch callback completed');
+      } catch (error) {
+        console.error('❌ Error in onSearch callback:', error);
+      }
     } else {
       console.warn('⚠️ SearchForm: onSearch callback is not defined!');
     }
@@ -256,7 +270,13 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       </div>
       
       {/* Form Section - Three Row Layout */}
-      <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit(onSubmit)(e);
+        }} 
+        className="p-6 space-y-4"
+      >
         {/* Row 1: Route - From and To */}
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-end">
           {/* FROM */}
