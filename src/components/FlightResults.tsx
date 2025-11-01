@@ -834,7 +834,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
       {showComparison && (
         <FlightComparison
           flights={flights}
-          selectedFlightsForComparison={selectedFlightsForComparison}
+          selectedFlightIds={selectedFlightsForComparison}
           onClose={() => setShowComparison(false)}
           onSelectFlight={(flightId) => {
             handleFlightSelect(flightId);

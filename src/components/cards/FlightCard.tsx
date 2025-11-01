@@ -338,7 +338,7 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
             <button
               ref={viewDetailsButtonRef}
               onClick={() => setIsModalOpen(true)}
-              className="w-full bg-white text-blue-600 py-2.5 px-6 rounded-lg hover:bg-blue-50 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 border border-blue-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="w-full bg-blue-500 text-white py-2.5 px-6 rounded-lg hover:bg-blue-600 transition-colors duration-200 font-medium flex items-center justify-center space-x-2 border-2 border-blue-600 hover:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               aria-label={`View detailed information for ${flight.airline} flight ${flight.flightNumber} from ${flight.origin} to ${flight.destination}`}
               aria-describedby={`flight-details-${flight.id}`}
             >
@@ -353,10 +353,10 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
           ref={selectFlightButtonRef}
           onClick={handleFlightSelect}
           disabled={isSelectingFlight}
-          className={`w-full py-3 px-6 rounded-lg font-semibold flex items-center justify-center space-x-2 shadow-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+          className={`w-full py-3 px-6 rounded-lg font-semibold flex items-center justify-center space-x-2 shadow-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 ${
             isSelectingFlight
-              ? 'bg-blue-400 cursor-not-allowed'
-              : 'bg-blue-500 text-white hover:bg-blue-600 active:bg-blue-700'
+              ? 'bg-green-400 cursor-not-allowed'
+              : 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800'
           }`}
           aria-label={`Select ${flight.airline} flight ${flight.flightNumber} departing ${flight.departTime} for ${formatPrice(flight.price)} per person. This will proceed to booking details.`}
           aria-describedby={`flight-details-${flight.id}`}
