@@ -15,7 +15,7 @@ const flexibleSearchSchema = z.object({
   passengers: z.number().min(1, 'At least 1 passenger required'),
   tripType: z.enum(['roundtrip', 'oneway']),
   travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']),
-  flexibleDays: z.number().min(1).max(7).default(3),
+  flexibleDays: z.number().min(1).max(7).optional(),
 });
 
 type FlexibleSearchData = z.infer<typeof flexibleSearchSchema>;

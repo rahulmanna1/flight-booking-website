@@ -1,55 +1,71 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Header from '@/components/ui/Header';
 import BookingForm from '@/components/forms/BookingForm';
 import FlightCard from '@/components/cards/FlightCard';
-import { ArrowLeft, Check } from 'lucide-react';
-
-// Mock flight data (in real app, this would come from an API)
-const getFlightById = (id: string) => {
-  const flights = {
-    '1': {
-      id: '1',
-      airline: 'American Airlines',
-      flightNumber: 'AA 123',
-      origin: 'NYC',
-      destination: 'LAX',
-      departTime: '08:30',
-      arriveTime: '11:45',
-      duration: '6h 15m',
-      price: 299,
-      stops: 0,
-      aircraft: 'Boeing 737-800'
-    },
-    '2': {
-      id: '2',
-      airline: 'Delta Airlines',
-      flightNumber: 'DL 456',
-      origin: 'NYC',
-      destination: 'LAX',
-      departTime: '14:20',
-      arriveTime: '17:55',
-      duration: '6h 35m',
-      price: 349,
-      stops: 0,
-      aircraft: 'Airbus A320'
-    },
-    // Add other flights as needed
-  };
-  return flights[id as keyof typeof flights];
-};
+import { ArrowLeft, Check, Loader2 } from 'lucide-react';
 
 export default function BookingPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: Booking Form, 2: Confirmation
+  const [flight, setFlight] = useState<any>(null);
+  const [searchData, setSearchData] = useState<any>(null);
+  const [isLoadingData, setIsLoadingData] = useState(true);
   
   const flightId = params?.id as string;
-  const flight = getFlightById(flightId);
+  
+  // Load flight data from localStorage on mount
+  useEffect(() => {
+    console.log('📖 Loading booking data from localStorage...');
+    
+    try {
+      const pendingBookingStr = localStorage.getItem('pendingBooking');
+      
+      if (pendingBookingStr) {
+        const bookingData = JSON.parse(pendingBookingStr);
+        console.log('✅ Found booking data:', bookingData);
+        
+        // Check if the flight ID matches or if it's 'new'
+        const urlFlightId = searchParams.get('flight');
+        
+        if (flightId === 'new' || bookingData.flight.id === urlFlightId || bookingData.flight.id === flightId) {
+          setFlight(bookingData.flight);
+          setSearchData(bookingData.searchData);
+          console.log('✅ Loaded flight:', bookingData.flight.flightNumber);
+        } else {
+          console.warn('⚠️ Flight ID mismatch:', { urlId: urlFlightId, storedId: bookingData.flight.id });
+        }
+      } else {
+        console.warn('⚠️ No pending booking data found in localStorage');
+      }
+    } catch (error) {
+      console.error('❌ Error loading booking data:', error);
+    } finally {
+      setIsLoadingData(false);
+    }
+  }, [flightId, searchParams]);
 
+  // Show loading state while fetching data
+  if (isLoadingData) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-blue-600" />
+            <p className="text-gray-600">Loading booking details...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show error if no flight data found
   if (!flight) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -57,7 +73,8 @@ export default function BookingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Flight Not Found</h1>
-            <p className="text-gray-600 mb-8">The flight you're looking for doesn't exist.</p>
+            <p className="text-gray-600 mb-4">The flight you're looking for doesn't exist or the booking data has expired.</p>
+            <p className="text-sm text-gray-500 mb-8">Please search for flights again and select a flight to book.</p>
             <button
               onClick={() => router.push('/search')}
               className="bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 active:bg-blue-700"
@@ -180,18 +197,18 @@ export default function BookingPage() {
               {/* Price Breakdown */}
               <div className="mt-6 space-y-3">
                 <h3 className="font-semibold text-gray-900">Price Breakdown</h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-sm text-gray-700">
                   <div className="flex justify-between">
-                    <span>Base Fare:</span>
-                    <span>${flight.price}</span>
+                    <span className="text-gray-600">Base Fare:</span>
+                    <span className="font-medium text-gray-900">${flight.price}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Taxes & Fees:</span>
-                    <span>$0</span>
+                    <span className="text-gray-600">Taxes & Fees:</span>
+                    <span className="font-medium text-gray-900">$0</span>
                   </div>
-                  <div className="border-t pt-2 font-semibold flex justify-between">
-                    <span>Total:</span>
-                    <span>${totalPrice}</span>
+                  <div className="border-t border-gray-300 pt-2 mt-2 font-semibold flex justify-between">
+                    <span className="text-gray-900">Total:</span>
+                    <span className="text-gray-900 text-lg">${totalPrice}</span>
                   </div>
                 </div>
               </div>

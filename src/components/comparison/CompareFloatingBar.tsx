@@ -21,8 +21,8 @@ export default function CompareFloatingBar({
   }
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-slide-up">
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full shadow-2xl border-2 border-white">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 animate-slide-up" style={{ bottom: '1.5rem' }}>
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full shadow-2xl border-2 border-white max-w-2xl">
         <div className="flex items-center gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
             <GitCompare className="w-5 h-5" />

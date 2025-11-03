@@ -15,7 +15,7 @@ export default function ProfileCompletionBadge({ user, showDetails = false }: Pr
   const color = getProfileCompletenessColor(completion.percentage);
   const label = getProfileCompletenessLabel(completion.percentage);
 
-  const colorClasses = {
+  const colorClasses: Record<string, {bg: string; border: string; text: string; icon: string; progress: string}> = {
     green: {
       bg: 'bg-green-50',
       border: 'border-green-200',

@@ -44,6 +44,7 @@ export class PrismaAuthService {
       email: prismaUser.email,
       firstName: prismaUser.firstName,
       lastName: prismaUser.lastName,
+      role: prismaUser.role as 'USER' | 'ADMIN' | 'SUPER_ADMIN',
       avatar: prismaUser.avatar || undefined,
       phone: prismaUser.phone || undefined,
       dateOfBirth: prismaUser.dateOfBirth || undefined,

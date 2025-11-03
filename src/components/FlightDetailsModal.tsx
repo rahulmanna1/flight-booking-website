@@ -85,33 +85,33 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
           </div>
 
           {/* Flight Route */}
-          <div className="mt-6 bg-white bg-opacity-10 rounded-xl p-6">
+          <div className="mt-6 bg-white rounded-xl p-6 shadow-lg">
             <div className="flex items-center justify-between mb-4">
               <div className="text-center">
-                <div className="text-3xl font-bold text-white">{flight.origin}</div>
-                <div className="text-sm text-white font-medium mt-1 bg-white bg-opacity-20 rounded px-2 py-1 inline-block">{flight.departTime}</div>
+                <div className="text-3xl font-bold text-gray-900">{flight.origin}</div>
+                <div className="text-sm text-blue-600 font-bold mt-1 bg-blue-50 rounded px-3 py-1 inline-block">{flight.departTime}</div>
               </div>
               
               <div className="flex-1 mx-6 relative flex flex-col items-center">
                 <div className="w-full relative mb-2">
-                  <div className="h-1 bg-white bg-opacity-40 rounded-full"></div>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-3 shadow-lg">
-                    <Plane className="w-5 h-5 text-blue-600 transform rotate-90" />
+                  <div className="h-1 bg-blue-200 rounded-full"></div>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 rounded-full p-3 shadow-lg">
+                    <Plane className="w-5 h-5 text-white transform rotate-90" />
                   </div>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2">
+                <div className="bg-blue-500 rounded-lg px-4 py-2">
                   <div className="text-sm text-white font-bold">{flight.duration}</div>
                 </div>
                 {flight.stops !== undefined && (
-                  <div className="mt-2 bg-blue-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  <div className="mt-2 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                     {flight.stops === 0 ? 'Non-stop' : `${flight.stops} stop${flight.stops > 1 ? 's' : ''}`}
                   </div>
                 )}
               </div>
               
               <div className="text-center">
-                <div className="text-3xl font-bold text-white">{flight.destination}</div>
-                <div className="text-sm text-white font-medium mt-1 bg-white bg-opacity-20 rounded px-2 py-1 inline-block">{flight.arriveTime}</div>
+                <div className="text-3xl font-bold text-gray-900">{flight.destination}</div>
+                <div className="text-sm text-blue-600 font-bold mt-1 bg-blue-50 rounded px-3 py-1 inline-block">{flight.arriveTime}</div>
               </div>
             </div>
           </div>
@@ -123,88 +123,88 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Aircraft Information */}
-            <div className="bg-gray-50 rounded-xl p-6">
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Plane className="w-5 h-5 mr-2 text-blue-500" />
                 Aircraft Details
               </h3>
-              <div className="space-y-3">
+            <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Aircraft:</span>
-                  <span className="font-semibold text-gray-900">{aircraftInfo.name}</span>
+                  <span className="text-gray-900 font-semibold">Aircraft:</span>
+                  <span className="font-bold text-gray-900">{aircraftInfo.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Typical Seats:</span>
-                  <span className="font-semibold text-gray-900">{aircraftInfo.seats}</span>
+                  <span className="text-gray-900 font-semibold">Typical Seats:</span>
+                  <span className="font-bold text-gray-900">{aircraftInfo.seats}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Travel Class:</span>
-                  <span className="font-semibold text-gray-900 capitalize">{flight.travelClass || 'Economy'}</span>
+                  <span className="text-gray-900 font-semibold">Travel Class:</span>
+                  <span className="font-bold text-gray-900 capitalize">{flight.travelClass || 'Economy'}</span>
                 </div>
               </div>
             </div>
 
             {/* Flight Times */}
-            <div className="bg-gray-50 rounded-xl p-6">
+            <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Clock className="w-5 h-5 mr-2 text-green-600" />
                 Schedule
               </h3>
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Departure:</span>
-                  <span className="font-semibold text-gray-900">{flight.departTime}</span>
+                  <span className="text-gray-900 font-semibold">Departure:</span>
+                  <span className="font-bold text-gray-900">{flight.departTime}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Arrival:</span>
-                  <span className="font-semibold text-gray-900">{flight.arriveTime}</span>
+                  <span className="text-gray-900 font-semibold">Arrival:</span>
+                  <span className="font-bold text-gray-900">{flight.arriveTime}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Duration:</span>
-                  <span className="font-semibold text-gray-900">{flight.duration}</span>
+                  <span className="text-gray-900 font-semibold">Duration:</span>
+                  <span className="font-bold text-gray-900">{flight.duration}</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Amenities */}
-          <div className="bg-blue-50 rounded-xl p-6">
+          <div className="bg-white border-2 border-gray-200 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Wifi className="w-5 h-5 mr-2 text-blue-500" />
               In-Flight Amenities
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {aircraftInfo.features.map((feature, index) => (
-                <div key={index} className="flex items-center space-x-2 text-gray-700">
+                <div key={index} className="flex items-center space-x-2">
                   {feature === 'Wi-Fi' && <Wifi className="w-4 h-4 text-blue-500" />}
                   {feature.includes('Meal') && <Coffee className="w-4 h-4 text-orange-600" />}
                   {feature === 'Entertainment' && <Tv className="w-4 h-4 text-purple-600" />}
                   {!['Wi-Fi', 'Entertainment'].includes(feature) && !feature.includes('Meal') && 
                    <Shield className="w-4 h-4 text-green-600" />}
-                  <span className="text-sm">{feature}</span>
+                  <span className="text-sm font-medium text-gray-900">{feature}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Baggage Policy */}
-          <div className="border border-gray-200 rounded-xl p-6">
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <Luggage className="w-5 h-5 mr-2 text-purple-600" />
               Baggage Policy
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Carry-on Baggage</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-bold text-gray-900 mb-2">Carry-on Baggage</h4>
+                <ul className="text-sm font-medium text-gray-900 space-y-1">
                   <li>• 1 personal item (free)</li>
                   <li>• 1 carry-on bag: 22" x 14" x 9"</li>
                   <li>• Maximum weight: 15 lbs (7 kg)</li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">Checked Baggage</h4>
-                <ul className="text-sm text-gray-600 space-y-1">
+                <h4 className="font-bold text-gray-900 mb-2">Checked Baggage</h4>
+                <ul className="text-sm font-medium text-gray-900 space-y-1">
                   <li>• 1st bag: $30 (up to 50 lbs)</li>
                   <li>• 2nd bag: $40 (up to 50 lbs)</li>
                   <li>• Overweight: $100-200</li>
@@ -214,19 +214,19 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
           </div>
 
           {/* Fare Details */}
-          <div className="border border-gray-200 rounded-xl p-6">
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <CreditCard className="w-5 h-5 mr-2 text-green-600" />
               Fare Breakdown
             </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Base Fare (×{passengers})</span>
-                <span className="font-semibold text-gray-900">{formatPrice(flight.price * passengers)}</span>
+                <span className="text-gray-900 font-semibold">Base Fare (×{passengers})</span>
+                <span className="font-bold text-gray-900">{formatPrice(flight.price * passengers)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Taxes & Fees</span>
-                <span className="font-semibold text-gray-900">{formatPrice(Math.round(flight.price * 0.15) * passengers)}</span>
+                <span className="text-gray-900 font-semibold">Taxes & Fees</span>
+                <span className="font-bold text-gray-900">{formatPrice(Math.round(flight.price * 0.15) * passengers)}</span>
               </div>
               <div className="border-t pt-3 flex justify-between text-lg font-bold">
                 <span className="text-gray-900">Total</span>
@@ -241,7 +241,7 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
               <Info className="w-5 h-5 mr-2 text-yellow-600" />
               Important Information
             </h3>
-            <ul className="text-sm text-gray-700 space-y-2">
+            <ul className="text-sm font-medium text-gray-900 space-y-2">
               <li className="flex items-start space-x-2">
                 <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
                 <span>Check-in opens 24 hours before departure</span>
@@ -280,9 +280,12 @@ export default function FlightDetailsModal({ flight, isOpen, onClose, onBookNow,
               <div className="text-right">
                 <div className="text-2xl font-bold text-blue-500">{formatPrice(totalPrice)}</div>
                 <div className="text-sm text-gray-500">Total for {passengers} passenger{passengers > 1 ? 's' : ''}</div>
-              </div>
-              <button
-                onClick={() => onBookNow(flight)}
+            </div>
+            <button
+                onClick={() => {
+                  onBookNow(flight);
+                  onClose();
+                }}
                 className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition-colors duration-200 shadow-lg"
               >
                 Book Now

@@ -380,7 +380,10 @@ export default function FlightCard({ flight, onSelect, searchData }: FlightCardP
         flight={flight}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onBookNow={handleFlightSelect}
+        onBookNow={(flight) => {
+          setIsModalOpen(false);
+          handleFlightSelect();
+        }}
         passengers={searchData?.passengers || 1}
       />
     </div>

@@ -25,6 +25,9 @@ model User {
   dateOfBirth           String?
   nationality           String?
   
+  // Role and permissions
+  role                  UserRole @default(USER)
+  
   // User preferences stored as JSON
   preferences           String   @default("{\"currency\":\"USD\",\"language\":\"en\",\"notifications\":{\"email\":true,\"sms\":false,\"push\":true}}")
   
@@ -45,7 +48,14 @@ model User {
   priceAlerts           PriceAlert[]
   notifications         Notification[]
   
+  @@index([role])
   @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
 }
 
 // Booking model for flight reservations
@@ -373,4 +383,130 @@ model Airport {
   @@index([city, country])
   @@index([name])
   @@map("airports")
+}
+
+// API Provider Configuration for dynamic flight API switching
+model ApiProvider {
+  id                    String      @id @default(cuid())
+  
+  // Provider information
+  name                  String      @unique
+  displayName           String
+  provider              ProviderType
+  
+  // API Credentials (encrypted)
+  credentials           String
+  
+  // Configuration
+  environment           String      @default("test")
+  isActive              Boolean     @default(false)
+  isPrimary             Boolean     @default(false)
+  
+  // Rate limiting
+  requestsPerMinute     Int         @default(100)
+  requestsPerDay        Int         @default(10000)
+  
+  // Usage tracking
+  totalRequests         Int         @default(0)
+  successfulRequests    Int         @default(0)
+  failedRequests        Int         @default(0)
+  lastUsedAt            DateTime?
+  
+  // Health monitoring
+  isHealthy             Boolean     @default(true)
+  lastHealthCheck       DateTime?
+  healthCheckDetails    String?     @default("{}")
+  
+  // Features supported by this provider
+  supportedFeatures     String      @default("[]")
+  
+  // Priority for fallback (lower = higher priority)
+  priority              Int         @default(100)
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([isPrimary, isActive])
+  @@index([provider])
+  @@map("api_providers")
+}
+
+enum ProviderType {
+  AMADEUS
+  SKYSCANNER
+  KIWI
+  SABRE
+  TRAVELPORT
+  CUSTOM
+}
+
+// System Configuration for global settings
+model SystemConfig {
+  id                    String      @id @default(cuid())
+  key                   String      @unique
+  value                 String
+  description           String?
+  category              String      @default("general")
+  isEncrypted           Boolean     @default(false)
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([category])
+  @@map("system_config")
+}
+
+// Audit Log for tracking admin actions and system events
+model AuditLog {
+  id                    String      @id @default(cuid())
+  
+  // Action details
+  action                String
+  category              AuditCategory
+  severity              AuditSeverity @default(INFO)
+  
+  // User information
+  userId                String?
+  userEmail             String?
+  userRole              String?
+  
+  // Request details
+  ipAddress             String?
+  userAgent             String?
+  endpoint              String?
+  method                String?
+  
+  // Action details stored as JSON
+  details               String      @default("{}")
+  metadata              String?     @default("{}")
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  
+  @@index([userId])
+  @@index([category, severity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum AuditCategory {
+  USER_AUTH
+  USER_MANAGEMENT
+  BOOKING_CREATE
+  BOOKING_UPDATE
+  BOOKING_CANCEL
+  PAYMENT
+  API_PROVIDER_CHANGE
+  SYSTEM_CONFIG
+  SECURITY
+  PROMO_CODE
+}
+
+enum AuditSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
 }

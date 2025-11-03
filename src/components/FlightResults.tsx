@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import FlightCard from './cards/FlightCard';
 import BookingForm from './forms/BookingForm';
 import FlightFilters, { FlightFilters as FilterType } from './FlightFilters';
@@ -17,7 +18,6 @@ import AdvancedFiltersPanel, { FlightFilters as AdvancedFilterType } from './fil
 import FlightFilterChips from './filters/FlightFilterChips';
 import FilterSortBar, { SortOption, ViewMode } from './filters/FilterSortBar';
 import CompareFlightButton from './comparison/CompareFlightButton';
-import CompareFloatingBar from './comparison/CompareFloatingBar';
 import FlightComparisonModal, { FlightForComparison } from './comparison/FlightComparisonModal';
 
 // Airport display component
@@ -177,6 +177,7 @@ interface FlightResultsProps {
 }
 
 export default function FlightResults({ searchData, onBack }: FlightResultsProps) {
+  const router = useRouter();
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [sortBy, setSortBy] = useState<string>('price-asc');
@@ -216,6 +217,19 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   const [newSortBy, setNewSortBy] = useState<SortOption>('best');
   const [showComparisonModal, setShowComparisonModal] = useState(false);
   const [availableAirlines, setAvailableAirlines] = useState<string[]>([]);
+  
+  // Sync newSortBy with sortBy when FilterSortBar changes
+  useEffect(() => {
+    if (newSortBy !== 'best') {
+      setSortBy(newSortBy);
+    }
+  }, [newSortBy]);
+  
+  // Sync sortBy with newSortBy when old dropdown changes
+  const handleOldSortChange = (value: string) => {
+    setSortBy(value);
+    setNewSortBy(value as SortOption);
+  };
 
   // Fetch flights and airport details from APIs
   const fetchFlights = useCallback(async (isRetry = false) => {
@@ -299,7 +313,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         console.log(`Loaded ${data.flights.length} flights from ${data.source}`);
         
         // Extract available airlines
-        const airlines = Array.from(new Set(data.flights.map((f: Flight) => f.airline)));
+        const airlines = Array.from(new Set(data.flights.map((f: Flight) => f.airline))) as string[];
         setAvailableAirlines(airlines);
         
         // Batch load airport names for all unique airports in the results
@@ -427,18 +441,143 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
     setFilteredFlights(filtered);
   }, [flights]);
   
-  // Update filtered flights when flights change - let filter sidebar handle all filtering
+  // Apply advanced filters to flights
   useEffect(() => {
-    // Don't apply initial filtering here - let the filter sidebar handle it
-    // This prevents conflicts between initial filtering and sidebar filtering
-    setFilteredFlights(flights);
-  }, [flights]);
+    let filtered = [...flights];
+    
+    // Price range filter
+    filtered = filtered.filter(flight => 
+      flight.price >= advancedFilters.priceRange[0] && 
+      flight.price <= advancedFilters.priceRange[1]
+    );
+    
+    // Max stops filter
+    if (advancedFilters.maxStops !== null) {
+      filtered = filtered.filter(flight => 
+        (flight.stops ?? 0) <= advancedFilters.maxStops!
+      );
+    }
+    
+    // Direct flights only filter
+    if (advancedFilters.directFlightsOnly) {
+      filtered = filtered.filter(flight => (flight.stops ?? 0) === 0);
+    }
+    
+    // Airlines filter
+    if (advancedFilters.airlines.length > 0) {
+      filtered = filtered.filter(flight => 
+        advancedFilters.airlines.includes(flight.airline)
+      );
+    }
+    
+    // Departure time range filter
+    if (advancedFilters.departureTimeRange[0] !== 0 || advancedFilters.departureTimeRange[1] !== 24) {
+      filtered = filtered.filter(flight => {
+        const departHour = parseInt(flight.departTime.split(':')[0]);
+        return departHour >= advancedFilters.departureTimeRange[0] && 
+               departHour <= advancedFilters.departureTimeRange[1];
+      });
+    }
+    
+    // Arrival time range filter
+    if (advancedFilters.arrivalTimeRange[0] !== 0 || advancedFilters.arrivalTimeRange[1] !== 24) {
+      filtered = filtered.filter(flight => {
+        const arriveHour = parseInt(flight.arriveTime.split(':')[0]);
+        return arriveHour >= advancedFilters.arrivalTimeRange[0] && 
+               arriveHour <= advancedFilters.arrivalTimeRange[1];
+      });
+    }
+    
+    // Max duration filter
+    if (advancedFilters.maxDuration !== null) {
+      filtered = filtered.filter(flight => {
+        const match = flight.duration.match(/(\d+)h\s*(\d+)m/);
+        if (match) {
+          const durationMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+          return durationMinutes <= advancedFilters.maxDuration!;
+        }
+        return true;
+      });
+    }
+    
+    // Layover duration filters (if flight has layovers)
+    if (advancedFilters.minLayoverDuration !== null || advancedFilters.maxLayoverDuration !== null) {
+      filtered = filtered.filter(flight => {
+        if (!flight.layovers || flight.layovers.length === 0) return true;
+        
+        // Check layover durations
+        return flight.layovers.every(layover => {
+          const match = layover.duration.match(/(\d+)h\s*(\d+)m/);
+          if (match) {
+            const layoverMinutes = parseInt(match[1]) * 60 + parseInt(match[2]);
+            if (advancedFilters.minLayoverDuration !== null && layoverMinutes < advancedFilters.minLayoverDuration) return false;
+            if (advancedFilters.maxLayoverDuration !== null && layoverMinutes > advancedFilters.maxLayoverDuration) return false;
+          }
+          return true;
+        });
+      });
+    }
+    
+    // Note: Baggage included and refundable filters would need backend data
+    // For now, we'll skip these as they're not in the current flight data structure
+    
+    setFilteredFlights(filtered);
+  }, [flights, advancedFilters]);
 
   const handleFlightSelect = (flightId: string) => {
     const flight = filteredFlights.find(f => f.id === flightId);
     if (flight) {
-      setSelectedFlight(flight);
-      setShowBookingModal(true);
+      console.log('✈️ Flight selected, navigating to booking page:', {
+        flightId: flight.id,
+        flightNumber: flight.flightNumber,
+        airline: flight.airline,
+        price: flight.price
+      });
+      
+      // Prepare booking data with all necessary information
+      const bookingData = {
+        flight: {
+          id: flight.id,
+          airline: flight.airline,
+          flightNumber: flight.flightNumber,
+          origin: flight.origin,
+          destination: flight.destination,
+          departTime: flight.departTime,
+          arriveTime: flight.arriveTime,
+          duration: flight.duration,
+          price: flight.price,
+          stops: flight.stops || 0,
+          aircraft: flight.aircraft,
+          travelClass: flight.travelClass || searchData.travelClass || 'economy',
+          amenities: flight.amenities,
+          layovers: flight.layovers
+        },
+        searchData: {
+          from: searchData.from,
+          to: searchData.to,
+          departDate: searchData.departDate,
+          returnDate: searchData.returnDate,
+          passengers: searchData.passengers,
+          tripType: searchData.tripType,
+          travelClass: searchData.travelClass || 'economy'
+        },
+        timestamp: new Date().toISOString()
+      };
+      
+      // Store in localStorage so booking page can access it
+      try {
+        localStorage.setItem('pendingBooking', JSON.stringify(bookingData));
+        console.log('✅ Booking data stored in localStorage');
+        
+        // Navigate to booking page with flight ID in URL
+        router.push(`/booking/new?flight=${flight.id}`);
+      } catch (error) {
+        console.error('❌ Error storing booking data:', error);
+        // Fallback: still navigate but data might not be available
+        router.push(`/booking/new?flight=${flight.id}`);
+      }
+    } else {
+      console.error('❌ Flight not found:', flightId);
     }
   };
 
@@ -518,7 +657,9 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   };
 
   const sortedFlights = [...filteredFlights].sort((a, b) => {
-    const [sortField, sortOrder] = sortBy.split('-');
+    // Use newSortBy (from FilterSortBar) if set, otherwise fallback to old sortBy
+    const activeSortOption = newSortBy !== 'best' ? newSortBy : sortBy;
+    const [sortField, sortOrder] = activeSortOption.split('-');
     const isAsc = sortOrder === 'asc';
     
     // Helper function to parse duration
@@ -531,6 +672,21 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
     };
     
     let compareResult = 0;
+    
+    // Handle 'best' sort option (combination of price and duration)
+    if (activeSortOption === 'best') {
+      // Best = lowest price + shortest duration combination
+      // Weighted: 60% price, 40% duration
+      const aPriceScore = a.price / Math.max(...filteredFlights.map(f => f.price));
+      const bPriceScore = b.price / Math.max(...filteredFlights.map(f => f.price));
+      const aDurationScore = parseDuration(a.duration) / Math.max(...filteredFlights.map(f => parseDuration(f.duration)));
+      const bDurationScore = parseDuration(b.duration) / Math.max(...filteredFlights.map(f => parseDuration(f.duration)));
+      
+      const aScore = (aPriceScore * 0.6) + (aDurationScore * 0.4);
+      const bScore = (bPriceScore * 0.6) + (bDurationScore * 0.4);
+      
+      return aScore - bScore;
+    }
     
     switch (sortField) {
       case 'price':
@@ -586,13 +742,56 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   };
   
   const handleFlexibleDateSelect = (departDate: string, returnDate?: string) => {
+    console.log('🗓️ Flexible dates selected:', { departDate, returnDate });
+    
+    // Update search data with new dates
     const newSearchData = {
       ...searchData,
       departDate,
       returnDate: returnDate || searchData.returnDate
     };
-    console.log('New dates selected:', { departDate, returnDate });
+    
+    // Close the modal
     setShowFlexibleDates(false);
+    
+    // Trigger new flight search with updated dates
+    // This will cause the parent component to re-search or we can trigger fetch here
+    console.log('🔄 Triggering new search with dates:', newSearchData);
+    
+    // Reset and fetch new flights with updated dates
+    setLoading(true);
+    setError(null);
+    
+    // Call fetchFlights with the updated search data
+    // Since we can't modify searchData directly (it's a prop), we need to fetch with new params
+    fetch('/api/flights/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newSearchData),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          setFlights(data.flights);
+          setDataSource(data.source);
+          console.log(`✅ Loaded ${data.flights.length} flights with new dates`);
+          
+          // Update available airlines
+          const airlines = Array.from(new Set(data.flights.map((f: Flight) => f.airline))) as string[];
+          setAvailableAirlines(airlines);
+        } else {
+          throw new Error(data.error || 'Failed to load flights');
+        }
+      })
+      .catch(err => {
+        console.error('❌ Error fetching flights with new dates:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load flights with new dates');
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
   
   const handleEnhancedSortChange = (sortOptions: EnhancedSortOptions) => {
@@ -682,15 +881,23 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
   
   const getActiveFilterCount = () => {
     let count = 0;
+    // Price range filter (check if different from default [0, 5000])
+    if (advancedFilters.priceRange[0] !== 0 || advancedFilters.priceRange[1] !== 5000) count++;
+    // Stops filters
     if (advancedFilters.maxStops !== null) count++;
+    if (advancedFilters.directFlightsOnly) count++;
+    // Airlines filter
     if (advancedFilters.airlines.length > 0) count++;
+    // Time range filters
     if (advancedFilters.departureTimeRange[0] !== 0 || advancedFilters.departureTimeRange[1] !== 24) count++;
     if (advancedFilters.arrivalTimeRange[0] !== 0 || advancedFilters.arrivalTimeRange[1] !== 24) count++;
+    // Duration filter
     if (advancedFilters.maxDuration !== null) count++;
+    // Layover filters
     if (advancedFilters.minLayoverDuration !== null || advancedFilters.maxLayoverDuration !== null) count++;
+    // Other filters
     if (advancedFilters.baggageIncluded !== null) count++;
     if (advancedFilters.refundable !== null) count++;
-    if (advancedFilters.directFlightsOnly) count++;
     return count;
   };
   
@@ -875,13 +1082,6 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
         }
       })()}
       
-      {/* Compare Floating Bar */}
-      <CompareFloatingBar
-        selectedCount={selectedFlightsForComparison.length}
-        maxCount={4}
-        onCompare={handleOpenComparison}
-        onClear={handleClearComparison}
-      />
 
       {/* Main Layout with Sidebar */}
       <div className="flex">
@@ -1090,7 +1290,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
                   <div className="relative">
                     <select
                       value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
+                      onChange={(e) => handleOldSortChange(e.target.value)}
                       className="appearance-none bg-white border-2 border-gray-200 rounded-lg px-4 py-2 pr-8 text-sm font-medium text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-300 transition-colors cursor-pointer min-w-[180px]"
                     >
                     <optgroup label="Price">

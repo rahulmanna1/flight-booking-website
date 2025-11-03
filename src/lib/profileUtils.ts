@@ -24,8 +24,7 @@ export function calculateProfileCompletion(user: User | null): ProfileCompletion
     { name: 'Email', value: user.email, label: 'Email' },
     { name: 'Phone', value: user.phone, label: 'Phone Number' },
     { name: 'Date of Birth', value: user.dateOfBirth, label: 'Date of Birth' },
-    { name: 'Nationality', value: user.nationality, label: 'Nationality' },
-    { name: 'Email Verified', value: user.preferences?.emailVerified, label: 'Email Verification' }
+    { name: 'Nationality', value: user.nationality, label: 'Nationality' }
   ];
 
   const completedFields = fields.filter(field => field.value).length;

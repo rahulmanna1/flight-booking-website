@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Amadeus, { Flight } from 'amadeus';
+import Amadeus from 'amadeus';
 
 // Initialize Amadeus client
 const amadeus = new Amadeus({
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     try {
       // Call Amadeus Flight Offers Search API
-      const response = await amadeus.shopping.flightOffersSearch.post(
+      const response = await (amadeus as any).shopping.flightOffersSearch.post(
         JSON.stringify(searchParams)
       );
 
@@ -237,11 +237,6 @@ function generateMockMultiCityFlights(
           ],
         };
       }),
-      price: {
-        currency: 'USD',
-        total: totalPrice.toFixed(2),
-        base: (totalPrice * 0.85).toFixed(2),
-      },
       pricingOptions: {
         fareType: ['PUBLISHED'],
         includedCheckedBagsOnly: true,

@@ -7,6 +7,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  role: 'USER' | 'ADMIN' | 'SUPER_ADMIN';
   avatar?: string;
   phone?: string;
   dateOfBirth?: string;
@@ -41,6 +42,8 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (userData: RegisterData) => Promise<{ success: boolean; error?: string; message?: string }>;
   logout: () => Promise<void>;
@@ -76,6 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
 
   const isAuthenticated = !!user && !!token;
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 
   // Check for existing session on mount
   useEffect(() => {
@@ -281,6 +286,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     token,
     isLoading,
     isAuthenticated,
+    isAdmin,
+    isSuperAdmin,
     login,
     register,
     logout,

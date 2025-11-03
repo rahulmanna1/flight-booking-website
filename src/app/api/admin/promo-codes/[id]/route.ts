@@ -4,11 +4,11 @@ import PromoCodeService from '@/lib/services/promoCodeService';
 // GET promo code statistics
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // TODO: Add authentication middleware to verify admin role
-    const { id } = params;
+    const { id } = await context.params;
 
     const stats = await PromoCodeService.getPromoCodeStats(id);
 
@@ -35,11 +35,11 @@ export async function GET(
 // PATCH update promo code
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // TODO: Add authentication middleware to verify admin role
-    const { id } = params;
+    const { id } = await context.params;
     const body = await request.json();
 
     const result = await PromoCodeService.updatePromoCode(id, body);
@@ -67,11 +67,11 @@ export async function PATCH(
 // DELETE promo code
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // TODO: Add authentication middleware to verify admin role
-    const { id } = params;
+    const { id } = await context.params;
 
     const result = await PromoCodeService.deletePromoCode(id);
 

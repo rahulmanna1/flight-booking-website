@@ -77,15 +77,23 @@ export default function AdvancedFiltersPanel({
 
   const activeFilterCount = () => {
     let count = 0;
+    // Price range filter (check if different from default)
+    if (filters.priceRange[0] !== priceRange[0] || filters.priceRange[1] !== priceRange[1]) count++;
+    // Stops filters
     if (filters.maxStops !== null) count++;
+    if (filters.directFlightsOnly) count++;
+    // Airlines filter
     if (filters.airlines.length > 0) count++;
+    // Time range filters
     if (filters.departureTimeRange[0] !== 0 || filters.departureTimeRange[1] !== 24) count++;
     if (filters.arrivalTimeRange[0] !== 0 || filters.arrivalTimeRange[1] !== 24) count++;
+    // Duration filter
     if (filters.maxDuration !== null) count++;
+    // Layover filters
     if (filters.minLayoverDuration !== null || filters.maxLayoverDuration !== null) count++;
+    // Other filters
     if (filters.baggageIncluded !== null) count++;
     if (filters.refundable !== null) count++;
-    if (filters.directFlightsOnly) count++;
     return count;
   };
 

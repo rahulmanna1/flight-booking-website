@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Convert global airports to Prisma format
 interface GlobalAirport {
   iataCode: string;
-  icaoCode: string;
+  icaoCode?: string;
   name: string;
   city: string;
   country: string;
@@ -20,7 +20,7 @@ interface GlobalAirport {
 
 const convertToSeedFormat = (airport: GlobalAirport) => ({
   iataCode: airport.iataCode,
-  icaoCode: airport.icaoCode,
+  icaoCode: airport.icaoCode || null,
   name: airport.name,
   city: airport.city,
   country: airport.country,
