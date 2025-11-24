@@ -15,5 +15,5 @@
     "app/api/cron/**": {
       "maxDuration": 60
     }
-  },
+  }
 }
