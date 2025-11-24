@@ -6,33 +6,19 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyAdminAuth } from '@/lib/auth/adminAuth';
 import { providerFactory } from '@/lib/providers/ProviderFactory';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    // Check admin authentication
+    const auth = await verifyAdminAuth(request);
     
-    if (!session?.user) {
+    if (!auth.authenticated) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-      select: { role: true },
-    });
-
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
+        { error: auth.error },
+        { status: auth.statusCode || 401 }
       );
     }
 

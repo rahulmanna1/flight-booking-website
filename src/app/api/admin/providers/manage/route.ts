@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyAdminAuth } from '@/lib/auth/adminAuth';
 import { providerFactory } from '@/lib/providers/ProviderFactory';
 import { prisma } from '@/lib/prisma';
 
@@ -19,26 +18,13 @@ interface ManageProviderRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check authentication
-    const session = await getServerSession(authOptions);
+    // Check admin authentication
+    const auth = await verifyAdminAuth(request);
     
-    if (!session?.user) {
+    if (!auth.authenticated) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Check if user is admin
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email! },
-      select: { role: true, id: true },
-    });
-
-    if (user?.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
-        { status: 403 }
+        { error: auth.error },
+        { status: auth.statusCode || 401 }
       );
     }
 
@@ -81,7 +67,7 @@ export async function POST(request: NextRequest) {
         // Log the action
         await prisma.auditLog.create({
           data: {
-            userId: user.id,
+            userId: auth.userId!,
             action: newActiveStatus ? 'PROVIDER_ENABLED' : 'PROVIDER_DISABLED',
             entityType: 'API_PROVIDER',
             entityId: providerId,
@@ -126,7 +112,7 @@ export async function POST(request: NextRequest) {
         // Log the action
         await prisma.auditLog.create({
           data: {
-            userId: user.id,
+            userId: auth.userId!,
             action: 'PROVIDER_SET_PRIMARY',
             entityType: 'API_PROVIDER',
             entityId: providerId,
@@ -158,7 +144,7 @@ export async function POST(request: NextRequest) {
         // Log the action
         await prisma.auditLog.create({
           data: {
-            userId: user.id,
+            userId: auth.userId!,
             action: 'PROVIDER_PRIORITY_UPDATED',
             entityType: 'API_PROVIDER',
             entityId: providerId,

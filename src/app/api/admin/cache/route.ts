@@ -4,8 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { verifyAdminAuth } from '@/lib/auth/adminAuth';
 import Cache from '@/lib/cache/redis';
 import {
   FlightCache,
@@ -23,12 +22,12 @@ import {
 export async function GET(request: NextRequest) {
   try {
     // Check admin authentication
-    const session = await getServerSession(authOptions);
+    const auth = await verifyAdminAuth(request);
     
-    if (!session || session.user.role !== 'admin') {
+    if (!auth.authenticated) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized - Admin access required' },
-        { status: 403 }
+        { success: false, error: auth.error },
+        { status: auth.statusCode || 401 }
       );
     }
 
@@ -121,12 +120,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Check admin authentication
-    const session = await getServerSession(authOptions);
+    const auth = await verifyAdminAuth(request);
     
-    if (!session || session.user.role !== 'admin') {
+    if (!auth.authenticated) {
       return NextResponse.json(
-        { success: false, error: 'Unauthorized - Admin access required' },
-        { status: 403 }
+        { success: false, error: auth.error },
+        { status: auth.statusCode || 401 }
       );
     }
 
