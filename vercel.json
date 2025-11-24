@@ -16,10 +16,4 @@
       "maxDuration": 60
     }
   },
-  "crons": [
-    {
-      "path": "/api/cron/cancel-expired-payments",
-      "schedule": "0 * * * *"
-    }
-  ]
 }
