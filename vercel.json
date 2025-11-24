@@ -11,6 +11,15 @@
   "functions": {
     "app/api/**": {
       "maxDuration": 30
+    },
+    "app/api/cron/**": {
+      "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/cancel-expired-payments",
+      "schedule": "0 * * * *"
+    }
+  ]
 }

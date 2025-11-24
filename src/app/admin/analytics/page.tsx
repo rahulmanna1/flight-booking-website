@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/ui/Header';
+import AdminLayout from '@/components/admin/AdminLayout';
 import { 
   DollarSign,
   TrendingUp,
@@ -94,20 +94,15 @@ export default function AdminAnalyticsPage() {
 
   if (authLoading || !isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex items-center justify-center min-h-96">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -314,7 +309,7 @@ export default function AdminAnalyticsPage() {
           </>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 }
 

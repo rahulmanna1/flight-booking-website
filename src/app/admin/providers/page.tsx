@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/ui/Header';
+import AdminLayout from '@/components/admin/AdminLayout';
 import { 
   Server, 
   Plus, 
@@ -67,19 +67,42 @@ export default function ProvidersPage() {
   useEffect(() => {
     if (isAdmin && token) {
       fetchProviders();
-      fetchHealth();
     }
+  }, [isAdmin, token]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isAdmin && token) {
+        fetchProviders();
+      }
+    }, 30000);
+    return () => clearInterval(interval);
   }, [isAdmin, token]);
 
   const fetchProviders = async () => {
     try {
-      const response = await fetch('/api/admin/providers', {
+      // Use new unified metrics API
+      const response = await fetch('/api/admin/providers/metrics', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       
       if (response.ok) {
-        const data = await response.json();
-        setProviders(data.providers);
+        const result = await response.json();
+        setProviders(result.data.providers);
+        
+        // Extract health status
+        const healthMap: Record<string, ProviderHealth> = {};
+        result.data.providers.forEach((p: any) => {
+          healthMap[p.name] = {
+            name: p.name,
+            health: p.health,
+          };
+        });
+        setHealthStatus(healthMap);
+      } else if (response.status === 403) {
+        alert('Access denied - Admin privileges required');
+        router.push('/dashboard');
       }
     } catch (error) {
       console.error('Error fetching providers:', error);
@@ -88,37 +111,21 @@ export default function ProvidersPage() {
     }
   };
 
-  const fetchHealth = async () => {
-    try {
-      const response = await fetch('/api/admin/providers/health', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        const healthMap: Record<string, ProviderHealth> = {};
-        data.providers.forEach((p: any) => {
-          healthMap[p.name] = p;
-        });
-        setHealthStatus(healthMap);
-      }
-    } catch (error) {
-      console.error('Error fetching health:', error);
-    }
-  };
-
-  const handleSwitchPrimary = async (providerName: string) => {
+  const handleSwitchPrimary = async (providerId: string, providerName: string) => {
     if (!confirm(`Switch primary provider to ${providerName}?`)) return;
     
     setSwitching(providerName);
     try {
-      const response = await fetch('/api/admin/providers/switch', {
+      const response = await fetch('/api/admin/providers/manage', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ providerName }),
+        body: JSON.stringify({ 
+          action: 'setPrimary',
+          providerId,
+        }),
       });
 
       if (response.ok) {
@@ -132,6 +139,61 @@ export default function ProvidersPage() {
       alert('Failed to switch provider');
     } finally {
       setSwitching(null);
+    }
+  };
+
+  const handleToggleProvider = async (providerId: string, currentStatus: boolean) => {
+    try {
+      const response = await fetch('/api/admin/providers/manage', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'toggle',
+          providerId,
+          value: !currentStatus,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(result.message);
+        await fetchProviders();
+      } else {
+        const data = await response.json();
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      alert('Failed to toggle provider');
+    }
+  };
+
+  const handleTestHealth = async (providerId: string, providerName: string) => {
+    try {
+      const response = await fetch('/api/admin/providers/manage', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'testHealth',
+          providerId,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert(`${providerName} health check: ${result.data.health.message}`);
+        await fetchProviders();
+      } else {
+        const data = await response.json();
+        alert(`Error: ${data.error}`);
+      }
+    } catch (error) {
+      alert('Failed to test health');
     }
   };
 
@@ -163,20 +225,15 @@ export default function ProvidersPage() {
 
   if (authLoading || !isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex items-center justify-center min-h-96">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -190,7 +247,7 @@ export default function ProvidersPage() {
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={fetchHealth}
+                onClick={fetchProviders}
                 className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 flex items-center space-x-2"
               >
                 <RefreshCw className="w-4 h-4" />
@@ -312,9 +369,23 @@ export default function ProvidersPage() {
 
                     {/* Actions */}
                     <div className="flex flex-col space-y-2 ml-4">
+                      <button
+                        onClick={() => handleToggleProvider(provider.id, provider.isActive)}
+                        className={`px-4 py-2 text-sm rounded-md flex items-center justify-center space-x-2 ${provider.isActive ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                      >
+                        <Activity className="w-4 h-4" />
+                        <span>{provider.isActive ? 'Disable' : 'Enable'}</span>
+                      </button>
+                      <button
+                        onClick={() => handleTestHealth(provider.id, provider.displayName)}
+                        className="px-4 py-2 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 flex items-center space-x-2"
+                      >
+                        <Activity className="w-4 h-4" />
+                        <span>Test Health</span>
+                      </button>
                       {!provider.isPrimary && provider.isActive && (
                         <button
-                          onClick={() => handleSwitchPrimary(provider.name)}
+                          onClick={() => handleSwitchPrimary(provider.id, provider.name)}
                           disabled={switching === provider.name}
                           className="px-4 py-2 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 flex items-center space-x-2"
                         >
@@ -367,7 +438,7 @@ export default function ProvidersPage() {
           />
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 }
 

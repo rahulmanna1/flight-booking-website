@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import PromoCodeService, { DiscountType } from '@/lib/services/promoCodeService';
+import { verifyAdminAuth } from '@/lib/middleware/adminAuth';
 
 // GET all promo codes (admin only)
 export async function GET(request: NextRequest) {
   try {
-    // TODO: Add authentication middleware to verify admin role
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.valid) {
+      return NextResponse.json({ error: authResult.error }, { status: 403 });
+    }
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive') === 'true';
 
@@ -27,7 +31,10 @@ export async function GET(request: NextRequest) {
 // POST create new promo code (admin only)
 export async function POST(request: NextRequest) {
   try {
-    // TODO: Add authentication middleware to verify admin role
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.valid) {
+      return NextResponse.json({ error: authResult.error }, { status: 403 });
+    }
     const body = await request.json();
 
     // Validate required fields

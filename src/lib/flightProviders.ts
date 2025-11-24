@@ -4,6 +4,7 @@
 import { AmadeusSearchParams, searchFlights as amadeusSearch, convertAmadeusFlightToOurFormat, AIRLINE_NAMES, checkAmadeusHealth } from './amadeus';
 import { generateMockFlights } from './mockFlights';
 import SimpleCache, { flightSearchCache } from './cache';
+import { FlightCache } from './cache/flightCache';
 
 // Flight interface standardized across all providers
 export interface FlightOffer {
@@ -271,16 +272,17 @@ export const searchFlightsMultiProvider = async (params: AmadeusSearchParams): P
   const searchStartTime = Date.now();
   console.log('🔍 Starting multi-provider flight search...', params);
 
-  // Check cache first
-  const cacheKey = SimpleCache.generateKey('multi-provider-flight-search', params);
-  const cachedResult = flightSearchCache.get<any>(cacheKey);
+  // Check Redis cache first
+  const cachedResult = await FlightCache.getFlightSearch(params);
   
   if (cachedResult) {
-    console.log('📋 Returning cached multi-provider results');
+    console.log('📋 Returning Redis cached multi-provider results');
     return {
-      ...cachedResult,
+      flights: cachedResult.results,
+      sources: [cachedResult.provider],
       cached: true,
-      searchTime: Date.now() - searchStartTime
+      searchTime: Date.now() - searchStartTime,
+      errors: []
     };
   }
 
@@ -374,8 +376,16 @@ export const searchFlightsMultiProvider = async (params: AmadeusSearchParams): P
       errors
     };
 
-    // Cache results for 5 minutes
+    // Cache results in Redis for 5 minutes
     if (aggregatedFlights.length > 0) {
+      await FlightCache.setFlightSearch(
+        params,
+        aggregatedFlights,
+        sources.join(', ')
+      );
+      
+      // Also keep in-memory cache as backup
+      const cacheKey = SimpleCache.generateKey('multi-provider-flight-search', params);
       flightSearchCache.set(cacheKey, finalResult, 5 * 60 * 1000);
     }
 

@@ -6,14 +6,15 @@
 import { prisma } from '@/lib/prisma';
 import { IFlightProvider, ProviderConfig, FlightSearchParams, FlightOffer, ProviderResult } from './types';
 import { AmadeusProvider } from './AmadeusProvider';
+import { SkyscannerProvider } from './SkyscannerProvider';
+import { KiwiProvider } from './KiwiProvider';
 import crypto from 'crypto';
 
 // Provider registry
 const PROVIDER_CLASSES: Record<string, new () => IFlightProvider> = {
   AMADEUS: AmadeusProvider,
-  // Add more providers as they're implemented
-  // SKYSCANNER: SkyscannerProvider,
-  // KIWI: KiwiProvider,
+  SKYSCANNER: SkyscannerProvider,
+  KIWI: KiwiProvider,
 };
 
 /**
@@ -27,6 +28,12 @@ class ProviderFactory {
   private configCache: Map<string, ProviderConfig> = new Map();
   private cacheTTL = 5 * 60 * 1000; // 5 minutes
   private lastCacheUpdate = 0;
+  
+  // Circuit breaker state
+  private circuitBreakers: Map<string, CircuitBreakerState> = new Map();
+  private readonly CIRCUIT_BREAKER_THRESHOLD = 5; // failures before opening
+  private readonly CIRCUIT_BREAKER_TIMEOUT = 60000; // 1 minute
+  private readonly CIRCUIT_BREAKER_RESET_TIMEOUT = 300000; // 5 minutes
 
   private constructor() {}
 
@@ -145,12 +152,140 @@ class ProviderFactory {
   }
 
   /**
-   * Search flights with automatic fallback
+   * Search flights with multi-provider parallel search and aggregation
    */
   async searchFlights(params: FlightSearchParams): Promise<ProviderResult<FlightOffer[]>> {
     const startTime = Date.now();
-    const providers = await this.getOrderedProviders();
+    const enableMultiProvider = process.env.ENABLE_MULTI_PROVIDER === 'true';
+    const maxParallelProviders = parseInt(process.env.MAX_PARALLEL_PROVIDERS || '3', 10);
+    const providerTimeout = parseInt(process.env.PROVIDER_TIMEOUT_MS || '5000', 10);
 
+    // Get healthy providers
+    const providers = await this.getHealthyProviders();
+    
+    if (providers.length === 0) {
+      return {
+        success: false,
+        error: 'No healthy providers available',
+        provider: 'none',
+        timestamp: new Date(),
+        metrics: {
+          duration: Date.now() - startTime,
+          cached: false,
+        },
+      };
+    }
+
+    // Multi-provider mode: parallel search
+    if (enableMultiProvider && providers.length > 1) {
+      return this.searchMultiProvider(params, providers.slice(0, maxParallelProviders), providerTimeout, startTime);
+    }
+
+    // Single provider mode: fallback chain
+    return this.searchWithFallback(params, providers, startTime);
+  }
+
+  /**
+   * Multi-provider parallel search with aggregation
+   */
+  private async searchMultiProvider(
+    params: FlightSearchParams,
+    providers: IFlightProvider[],
+    timeout: number,
+    startTime: number
+  ): Promise<ProviderResult<FlightOffer[]>> {
+    console.log(`🚀 Multi-provider search with ${providers.length} providers...`);
+
+    // Create search promises with timeout
+    const searchPromises = providers.map(async (provider) => {
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Provider timeout')), timeout)
+        );
+
+        const searchPromise = provider.searchFlights(params);
+        const offers = await Promise.race([searchPromise, timeoutPromise]);
+
+        await this.updateProviderStats(provider.name, true);
+        this.recordCircuitBreakerSuccess(provider.name);
+
+        return {
+          provider: provider.name,
+          offers,
+          success: true,
+        };
+      } catch (error) {
+        console.error(`❌ ${provider.name} search failed:`, error);
+        await this.updateProviderStats(provider.name, false);
+        this.recordCircuitBreakerFailure(provider.name);
+
+        return {
+          provider: provider.name,
+          offers: [] as FlightOffer[],
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    });
+
+    // Wait for all providers to complete or fail
+    const results = await Promise.allSettled(searchPromises);
+
+    // Aggregate successful results
+    const allOffers: FlightOffer[] = [];
+    const successfulProviders: string[] = [];
+
+    for (const result of results) {
+      if (result.status === 'fulfilled' && result.value.success) {
+        allOffers.push(...result.value.offers);
+        successfulProviders.push(result.value.provider);
+      }
+    }
+
+    if (allOffers.length === 0) {
+      return {
+        success: false,
+        error: 'All providers returned no results',
+        provider: providers.map(p => p.name).join(', '),
+        timestamp: new Date(),
+        metrics: {
+          duration: Date.now() - startTime,
+          cached: false,
+        },
+      };
+    }
+
+    // Deduplicate and sort results
+    const deduplicatedOffers = this.deduplicateOffers(allOffers);
+    const sortedOffers = this.sortOffersByQuality(deduplicatedOffers);
+
+    // Limit results
+    const limitedOffers = sortedOffers.slice(0, params.maxResults || 50);
+
+    console.log(`✅ Multi-provider search completed: ${limitedOffers.length} unique offers from ${successfulProviders.length} providers`);
+
+    return {
+      success: true,
+      data: limitedOffers,
+      provider: successfulProviders.join(', '),
+      timestamp: new Date(),
+      metrics: {
+        duration: Date.now() - startTime,
+        cached: false,
+        providersUsed: successfulProviders.length,
+        totalOffersBeforeDedup: allOffers.length,
+      },
+    };
+  }
+
+  /**
+   * Single provider search with automatic fallback
+   */
+  private async searchWithFallback(
+    params: FlightSearchParams,
+    providers: IFlightProvider[],
+    startTime: number
+  ): Promise<ProviderResult<FlightOffer[]>> {
     let lastError: Error | null = null;
 
     for (const provider of providers) {
@@ -161,6 +296,7 @@ class ProviderFactory {
         
         // Update usage statistics
         await this.updateProviderStats(provider.name, true);
+        this.recordCircuitBreakerSuccess(provider.name);
 
         return {
           success: true,
@@ -178,6 +314,7 @@ class ProviderFactory {
         
         // Update failure statistics
         await this.updateProviderStats(provider.name, false);
+        this.recordCircuitBreakerFailure(provider.name);
         
         // Continue to next provider
         continue;
@@ -214,6 +351,18 @@ class ProviderFactory {
     return activeConfigs
       .map(config => this.providers.get(config.name))
       .filter((p): p is IFlightProvider => p !== undefined);
+  }
+
+  /**
+   * Get healthy providers (excluding circuit breaker opened providers)
+   */
+  private async getHealthyProviders(): Promise<IFlightProvider[]> {
+    const allProviders = await this.getOrderedProviders();
+    
+    return allProviders.filter(provider => {
+      const state = this.getCircuitBreakerState(provider.name);
+      return state.status !== 'OPEN';
+    });
   }
 
   /**
@@ -314,6 +463,163 @@ class ProviderFactory {
     // Simple encryption (use proper encryption in production)
     return JSON.stringify(credentials);
   }
+
+  // ===== Circuit Breaker Pattern =====
+
+  /**
+   * Get circuit breaker state for a provider
+   */
+  private getCircuitBreakerState(providerName: string): CircuitBreakerState {
+    const existing = this.circuitBreakers.get(providerName);
+    if (!existing) {
+      const newState: CircuitBreakerState = {
+        status: 'CLOSED',
+        failureCount: 0,
+        lastFailure: null,
+        nextRetry: null,
+      };
+      this.circuitBreakers.set(providerName, newState);
+      return newState;
+    }
+
+    // Check if we should attempt to close an open circuit
+    if (existing.status === 'OPEN' && existing.nextRetry && Date.now() > existing.nextRetry.getTime()) {
+      existing.status = 'HALF_OPEN';
+      console.log(`🔄 Circuit breaker for ${providerName} moved to HALF_OPEN`);
+    }
+
+    return existing;
+  }
+
+  /**
+   * Record a circuit breaker failure
+   */
+  private recordCircuitBreakerFailure(providerName: string): void {
+    const state = this.getCircuitBreakerState(providerName);
+    state.failureCount++;
+    state.lastFailure = new Date();
+
+    if (state.failureCount >= this.CIRCUIT_BREAKER_THRESHOLD) {
+      state.status = 'OPEN';
+      state.nextRetry = new Date(Date.now() + this.CIRCUIT_BREAKER_TIMEOUT);
+      console.warn(`⚠️  Circuit breaker OPENED for ${providerName} (${state.failureCount} failures)`);
+    }
+  }
+
+  /**
+   * Record a circuit breaker success
+   */
+  private recordCircuitBreakerSuccess(providerName: string): void {
+    const state = this.getCircuitBreakerState(providerName);
+    
+    if (state.status === 'HALF_OPEN') {
+      // Success in half-open state: close the circuit
+      state.status = 'CLOSED';
+      state.failureCount = 0;
+      state.lastFailure = null;
+      state.nextRetry = null;
+      console.log(`✅ Circuit breaker CLOSED for ${providerName}`);
+    } else if (state.status === 'CLOSED') {
+      // Gradually reduce failure count on success
+      state.failureCount = Math.max(0, state.failureCount - 1);
+    }
+  }
+
+  // ===== Deduplication & Sorting =====
+
+  /**
+   * Deduplicate flight offers from multiple providers
+   */
+  private deduplicateOffers(offers: FlightOffer[]): FlightOffer[] {
+    const seen = new Set<string>();
+    const unique: FlightOffer[] = [];
+
+    for (const offer of offers) {
+      // Generate unique key based on flight details
+      const key = this.generateOfferKey(offer);
+      
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push(offer);
+      }
+    }
+
+    return unique;
+  }
+
+  /**
+   * Generate unique key for flight offer
+   */
+  private generateOfferKey(offer: FlightOffer): string {
+    // Key based on: carrier, flight number, departure time, origin, destination
+    const segments = offer.itineraries.flatMap(it => it.segments);
+    const firstSegment = segments[0];
+    const lastSegment = segments[segments.length - 1];
+
+    if (!firstSegment || !lastSegment) {
+      return offer.id; // Fallback to ID if no segments
+    }
+
+    return [
+      firstSegment.carrierCode,
+      firstSegment.flightNumber,
+      firstSegment.departure.iataCode,
+      lastSegment.arrival.iataCode,
+      firstSegment.departure.at,
+    ].join('|');
+  }
+
+  /**
+   * Sort offers by quality (price and other factors)
+   */
+  private sortOffersByQuality(offers: FlightOffer[]): FlightOffer[] {
+    return offers.sort((a, b) => {
+      // Primary: Price (lower is better)
+      const priceDiff = a.price.total - b.price.total;
+      if (Math.abs(priceDiff) > 10) return priceDiff;
+
+      // Secondary: Duration (shorter is better)
+      const aDuration = this.getTotalDuration(a);
+      const bDuration = this.getTotalDuration(b);
+      const durationDiff = aDuration - bDuration;
+      if (Math.abs(durationDiff) > 60) return durationDiff;
+
+      // Tertiary: Number of stops (fewer is better)
+      const aStops = this.getTotalStops(a);
+      const bStops = this.getTotalStops(b);
+      return aStops - bStops;
+    });
+  }
+
+  /**
+   * Get total duration in minutes from offer
+   */
+  private getTotalDuration(offer: FlightOffer): number {
+    return offer.itineraries.reduce((total, itinerary) => {
+      const match = itinerary.duration.match(/PT(\d+)H(\d+)M/);
+      if (match) {
+        return total + parseInt(match[1]) * 60 + parseInt(match[2]);
+      }
+      return total;
+    }, 0);
+  }
+
+  /**
+   * Get total number of stops from offer
+   */
+  private getTotalStops(offer: FlightOffer): number {
+    return offer.itineraries.reduce((total, itinerary) => {
+      return total + itinerary.segments.reduce((sum, seg) => sum + seg.numberOfStops, 0);
+    }, 0);
+  }
+}
+
+// Circuit breaker state interface
+interface CircuitBreakerState {
+  status: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  failureCount: number;
+  lastFailure: Date | null;
+  nextRetry: Date | null;
 }
 
 // Export singleton instance

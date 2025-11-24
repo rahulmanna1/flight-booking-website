@@ -66,7 +66,7 @@ export class PromoCodeService {
       const promo = promoCode[0];
 
       // Check if active
-      if (!promo.is_active) {
+      if (!promo.isActive) {
         return {
           valid: false,
           message: 'This promo code is no longer active',
@@ -75,8 +75,8 @@ export class PromoCodeService {
 
       // Check date validity
       const now = new Date();
-      const validFrom = new Date(promo.valid_from);
-      const validUntil = new Date(promo.valid_until);
+      const validFrom = new Date(promo.validFrom);
+      const validUntil = new Date(promo.validUntil);
 
       if (now < validFrom) {
         return {
@@ -93,7 +93,7 @@ export class PromoCodeService {
       }
 
       // Check usage limit
-      if (promo.usage_limit && promo.usage_count >= promo.usage_limit) {
+      if (promo.usageLimit && promo.usageCount >= promo.usageLimit) {
         return {
           valid: false,
           message: 'This promo code has reached its usage limit',
@@ -101,14 +101,14 @@ export class PromoCodeService {
       }
 
       // Check per-user limit
-      if (promo.per_user_limit) {
+      if (promo.perUserLimit) {
         const userUsageCount = await prisma.$queryRaw<any[]>`
           SELECT COUNT(*) as count FROM bookings 
-          WHERE user_id = ${userId} 
-          AND promo_code_id = ${promo.id}
+          WHERE "userId" = ${userId} 
+          AND "promoCodeId" = ${promo.id}
         `;
 
-        if (userUsageCount[0].count >= promo.per_user_limit) {
+        if (userUsageCount[0].count >= promo.perUserLimit) {
           return {
             valid: false,
             message: 'You have already used this promo code the maximum number of times',
@@ -117,10 +117,10 @@ export class PromoCodeService {
       }
 
       // Check first-time user only
-      if (promo.first_time_only) {
+      if (promo.firstTimeOnly) {
         const previousBookings = await prisma.$queryRaw<any[]>`
           SELECT COUNT(*) as count FROM bookings 
-          WHERE user_id = ${userId}
+          WHERE "userId" = ${userId}
         `;
 
         if (previousBookings[0].count > 0) {
@@ -132,16 +132,16 @@ export class PromoCodeService {
       }
 
       // Check minimum purchase amount
-      if (promo.min_purchase_amount && bookingAmount < promo.min_purchase_amount) {
+      if (promo.minPurchaseAmount && bookingAmount < promo.minPurchaseAmount) {
         return {
           valid: false,
-          message: `Minimum purchase amount of $${promo.min_purchase_amount} required`,
+          message: `Minimum purchase amount of $${promo.minPurchaseAmount} required`,
         };
       }
 
       // Check route restrictions
-      if (promo.applicable_routes && route) {
-        const routes = JSON.parse(promo.applicable_routes);
+      if (promo.applicableRoutes && route) {
+        const routes = JSON.parse(promo.applicableRoutes);
         const routeKey = `${route.origin}-${route.destination}`;
         const reverseRouteKey = `${route.destination}-${route.origin}`;
 
@@ -154,8 +154,8 @@ export class PromoCodeService {
       }
 
       // Check airline restrictions
-      if (promo.applicable_airlines && airline) {
-        const airlines = JSON.parse(promo.applicable_airlines);
+      if (promo.applicableAirlines && airline) {
+        const airlines = JSON.parse(promo.applicableAirlines);
         if (!airlines.includes(airline)) {
           return {
             valid: false,
@@ -167,15 +167,15 @@ export class PromoCodeService {
       // Calculate discount
       let discountAmount = 0;
 
-      if (promo.discount_type === 'PERCENTAGE') {
-        discountAmount = (bookingAmount * promo.discount_value) / 100;
-      } else if (promo.discount_type === 'FIXED_AMOUNT') {
-        discountAmount = promo.discount_value;
+      if (promo.discountType === 'PERCENTAGE') {
+        discountAmount = (bookingAmount * promo.discountValue) / 100;
+      } else if (promo.discountType === 'FIXED_AMOUNT') {
+        discountAmount = promo.discountValue;
       }
 
       // Apply max discount limit
-      if (promo.max_discount_amount && discountAmount > promo.max_discount_amount) {
-        discountAmount = promo.max_discount_amount;
+      if (promo.maxDiscountAmount && discountAmount > promo.maxDiscountAmount) {
+        discountAmount = promo.maxDiscountAmount;
       }
 
       // Ensure discount doesn't exceed booking amount
@@ -194,21 +194,21 @@ export class PromoCodeService {
           id: promo.id,
           code: promo.code,
           description: promo.description,
-          discountType: promo.discount_type,
-          discountValue: promo.discount_value,
-          minPurchaseAmount: promo.min_purchase_amount,
-          maxDiscountAmount: promo.max_discount_amount,
-          usageLimit: promo.usage_limit,
-          usageCount: promo.usage_count,
-          perUserLimit: promo.per_user_limit,
+          discountType: promo.discountType,
+          discountValue: promo.discountValue,
+          minPurchaseAmount: promo.minPurchaseAmount,
+          maxDiscountAmount: promo.maxDiscountAmount,
+          usageLimit: promo.usageLimit,
+          usageCount: promo.usageCount,
+          perUserLimit: promo.perUserLimit,
           validFrom: validFrom,
           validUntil: validUntil,
-          isActive: promo.is_active,
-          applicableRoutes: promo.applicable_routes ? JSON.parse(promo.applicable_routes) : undefined,
-          applicableAirlines: promo.applicable_airlines ? JSON.parse(promo.applicable_airlines) : undefined,
-          firstTimeOnly: promo.first_time_only,
-          createdAt: promo.created_at,
-          updatedAt: promo.updated_at,
+          isActive: promo.isActive,
+          applicableRoutes: promo.applicableRoutes ? JSON.parse(promo.applicableRoutes) : undefined,
+          applicableAirlines: promo.applicableAirlines ? JSON.parse(promo.applicableAirlines) : undefined,
+          firstTimeOnly: promo.firstTimeOnly,
+          createdAt: promo.createdAt,
+          updatedAt: promo.updatedAt,
         },
       };
     } catch (error) {
@@ -227,7 +227,7 @@ export class PromoCodeService {
     try {
       await prisma.$executeRaw`
         UPDATE promo_codes 
-        SET usage_count = usage_count + 1 
+        SET "usageCount" = "usageCount" + 1 
         WHERE id = ${promoCodeId}
       `;
       return true;
@@ -243,8 +243,8 @@ export class PromoCodeService {
   static async getAllPromoCodes(includeInactive = false) {
     try {
       const query = includeInactive
-        ? `SELECT * FROM promo_codes ORDER BY created_at DESC`
-        : `SELECT * FROM promo_codes WHERE is_active = true ORDER BY created_at DESC`;
+        ? `SELECT * FROM promo_codes ORDER BY "createdAt" DESC`
+        : `SELECT * FROM promo_codes WHERE "isActive" = true ORDER BY "createdAt" DESC`;
 
       const promoCodes = await prisma.$queryRawUnsafe<any[]>(query);
       return promoCodes;
@@ -275,11 +275,11 @@ export class PromoCodeService {
     try {
       const result = await prisma.$executeRaw`
         INSERT INTO promo_codes (
-          code, description, discount_type, discount_value,
-          min_purchase_amount, max_discount_amount,
-          usage_limit, per_user_limit, valid_from, valid_until,
-          applicable_routes, applicable_airlines, first_time_only,
-          is_active, usage_count, created_at, updated_at
+          code, description, "discountType", "discountValue",
+          "minPurchaseAmount", "maxDiscountAmount",
+          "usageLimit", "perUserLimit", "validFrom", "validUntil",
+          "applicableRoutes", "applicableAirlines", "firstTimeOnly",
+          "isActive", "usageCount", "createdAt", "updatedAt"
         ) VALUES (
           ${data.code.toUpperCase()},
           ${data.description},
@@ -324,7 +324,7 @@ export class PromoCodeService {
       }
 
       if (updates.isActive !== undefined) {
-        updateFields.push(`is_active = $${values.length + 1}`);
+        updateFields.push(`"isActive" = $${values.length + 1}`);
         values.push(updates.isActive);
       }
 
@@ -332,7 +332,7 @@ export class PromoCodeService {
         return { success: false, error: 'No updates provided' };
       }
 
-      updateFields.push(`updated_at = NOW()`);
+      updateFields.push(`"updatedAt" = NOW()`);
 
       await prisma.$executeRawUnsafe(
         `UPDATE promo_codes SET ${updateFields.join(', ')} WHERE id = $${values.length + 1}`,
@@ -373,15 +373,15 @@ export class PromoCodeService {
       const stats = await prisma.$queryRaw<any[]>`
         SELECT 
           pc.code,
-          pc.usage_count,
-          pc.usage_limit,
-          COUNT(DISTINCT b.user_id) as unique_users,
-          COALESCE(SUM(b.total_amount), 0) as total_revenue,
-          COALESCE(SUM(b.discount_amount), 0) as total_discounts
+          pc."usageCount",
+          pc."usageLimit",
+          COUNT(DISTINCT b."userId") as unique_users,
+          COALESCE(SUM(b."totalAmount"), 0) as total_revenue,
+          COALESCE(SUM(b."discountAmount"), 0) as total_discounts
         FROM promo_codes pc
-        LEFT JOIN bookings b ON b.promo_code_id = pc.id
+        LEFT JOIN bookings b ON b."promoCodeId" = pc.id
         WHERE pc.id = ${promoCodeId}
-        GROUP BY pc.id, pc.code, pc.usage_count, pc.usage_limit
+        GROUP BY pc.id, pc.code, pc."usageCount", pc."usageLimit"
       `;
 
       return stats[0] || null;

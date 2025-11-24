@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import PromoCodeService from '@/lib/services/promoCodeService';
+import { verifyAdminAuth } from '@/lib/middleware/adminAuth';
 
 // GET promo code statistics
 export async function GET(
@@ -7,7 +8,11 @@ export async function GET(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // TODO: Add authentication middleware to verify admin role
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.valid) {
+      return NextResponse.json({ error: authResult.error }, { status: 403 });
+    }
+
     const { id } = await context.params;
 
     const stats = await PromoCodeService.getPromoCodeStats(id);
@@ -32,13 +37,17 @@ export async function GET(
   }
 }
 
-// PATCH update promo code
-export async function PATCH(
+// PUT update promo code
+export async function PUT(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // TODO: Add authentication middleware to verify admin role
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.valid) {
+      return NextResponse.json({ error: authResult.error }, { status: 403 });
+    }
+
     const { id } = await context.params;
     const body = await request.json();
 
@@ -70,7 +79,11 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    // TODO: Add authentication middleware to verify admin role
+    const authResult = await verifyAdminAuth(request);
+    if (!authResult.valid) {
+      return NextResponse.json({ error: authResult.error }, { status: 403 });
+    }
+
     const { id } = await context.params;
 
     const result = await PromoCodeService.deletePromoCode(id);

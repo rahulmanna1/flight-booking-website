@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Plane, Menu, X, User, LogOut, Settings, BookOpen, Bell } from 'lucide-react';
+import { Plane, Menu, X, User, LogOut, Settings, BookOpen, Bell, Shield } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import CurrencySelector from './CurrencySelector';
@@ -11,7 +11,7 @@ import NotificationCenter from '../notifications/NotificationCenter';
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isAdmin } = useAuth();
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Close user menu when clicking outside
@@ -123,6 +123,17 @@ export default function Header() {
                         <User className="w-4 h-4 mr-2" />
                         Profile
                       </Link>
+                      
+                      {isAdmin && (
+                        <Link
+                          href="/admin"
+                          className="flex items-center px-4 py-2 text-sm text-blue-700 hover:bg-blue-50 font-medium"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          <Shield className="w-4 h-4 mr-2" />
+                          Admin Panel
+                        </Link>
+                      )}
                       
                       <Link
                         href="/bookings"

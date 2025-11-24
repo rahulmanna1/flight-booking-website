@@ -319,37 +319,52 @@ export class PrismaAuthService {
 
   // Initialize demo users for development
   static async initializeDemoUsers(): Promise<void> {
-    try {
-      const userCount = await prisma.user.count();
-      if (userCount > 0) return; // Already initialized
+    // Retry logic for database cold starts (e.g., Neon free tier)
+    const maxRetries = 3;
+    const retryDelay = 2000; // 2 seconds
 
-      const demoUsers = [
-        {
-          email: 'john.doe@example.com',
-          password: 'Password123!',
-          firstName: 'John',
-          lastName: 'Doe',
-          phone: '+1-555-0123'
-        },
-        {
-          email: 'jane.smith@example.com',
-          password: 'Password123!',
-          firstName: 'Jane',
-          lastName: 'Smith',
-          phone: '+1-555-0456'
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const userCount = await prisma.user.count();
+        if (userCount > 0) return; // Already initialized
+
+        const demoUsers = [
+          {
+            email: 'john.doe@example.com',
+            password: 'Password123!',
+            firstName: 'John',
+            lastName: 'Doe',
+            phone: '+1-555-0123'
+          },
+          {
+            email: 'jane.smith@example.com',
+            password: 'Password123!',
+            firstName: 'Jane',
+            lastName: 'Smith',
+            phone: '+1-555-0456'
+          }
+        ];
+
+        for (const userData of demoUsers) {
+          try {
+            await this.createUser(userData);
+            console.log(`Demo user created: ${userData.email}`);
+          } catch (error) {
+            // User might already exist, which is fine
+            if (error instanceof Error && error.message.includes('already exists')) {
+              console.log(`ℹ️ Demo user already exists: ${userData.email}`);
+            }
+          }
         }
-      ];
-
-      for (const userData of demoUsers) {
-        try {
-          await this.createUser(userData);
-          console.log(`✅ Demo user created: ${userData.email}`);
-        } catch (error) {
-          console.log(`ℹ️ Demo user already exists: ${userData.email}`);
+        return; // Success, exit
+      } catch (error) {
+        if (attempt < maxRetries) {
+          console.log(`⏳ Database not ready (attempt ${attempt}/${maxRetries}), retrying in ${retryDelay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+        } else {
+          console.error('Error initializing demo users:', error);
         }
       }
-    } catch (error) {
-      console.error('Error initializing demo users:', error);
     }
   }
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/ui/Header';
+import AdminLayout from '@/components/admin/AdminLayout';
 import { 
   Settings, 
   Users, 
@@ -15,6 +15,8 @@ import {
   CheckCircle,
   Loader2,
   BarChart3,
+  Tag,
+  Receipt,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -88,39 +90,24 @@ export default function AdminDashboard() {
 
   if (authLoading || !isAdmin) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex items-center justify-center min-h-96">
-          <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Admin Dashboard 🔐
-              </h1>
-              <p className="text-gray-600">
-                Welcome back, {user?.firstName}! {isSuperAdmin && <span className="text-purple-600 font-semibold">(Super Admin)</span>}
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/dashboard"
-                className="text-gray-600 hover:text-gray-900 flex items-center space-x-2"
-              >
-                <span>User Dashboard</span>
-              </Link>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Admin Dashboard 🔐
+            </h1>
+            <p className="text-gray-600">
+              Welcome back, {user?.firstName}! {isSuperAdmin && <span className="text-purple-600 font-semibold">(Super Admin)</span>}
+            </p>
           </div>
         </div>
 
@@ -163,13 +150,13 @@ export default function AdminDashboard() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               <QuickActionCard
-                href="/admin/providers"
-                icon={<Server className="w-8 h-8" />}
-                title="API Providers"
-                description="Manage flight API providers and switch primary"
-                color="blue"
+                href="/admin/users"
+                icon={<Users className="w-8 h-8" />}
+                title="User Management"
+                description="Manage user accounts, roles, and permissions"
+                color="purple"
               />
               <QuickActionCard
                 href="/admin/bookings"
@@ -179,11 +166,32 @@ export default function AdminDashboard() {
                 color="green"
               />
               <QuickActionCard
+                href="/admin/refunds"
+                icon={<Receipt className="w-8 h-8" />}
+                title="Refunds"
+                description="Process customer refund requests and track status"
+                color="red"
+              />
+              <QuickActionCard
+                href="/admin/promo-codes"
+                icon={<Tag className="w-8 h-8" />}
+                title="Promo Codes"
+                description="Create and manage promotional discount codes"
+                color="orange"
+              />
+              <QuickActionCard
+                href="/admin/providers"
+                icon={<Server className="w-8 h-8" />}
+                title="API Providers"
+                description="Manage flight API providers and switch primary"
+                color="blue"
+              />
+              <QuickActionCard
                 href="/admin/analytics"
                 icon={<BarChart3 className="w-8 h-8" />}
                 title="Analytics"
                 description="Revenue metrics and popular routes"
-                color="purple"
+                color="indigo"
               />
             </div>
 
@@ -251,7 +259,7 @@ export default function AdminDashboard() {
           </>
         )}
       </div>
-    </div>
+    </AdminLayout>
   );
 }
 
@@ -290,6 +298,9 @@ function QuickActionCard({ href, icon, title, description, color }: {
     blue: 'text-blue-600 bg-blue-100 hover:bg-blue-200',
     green: 'text-green-600 bg-green-100 hover:bg-green-200',
     purple: 'text-purple-600 bg-purple-100 hover:bg-purple-200',
+    orange: 'text-orange-600 bg-orange-100 hover:bg-orange-200',
+    red: 'text-red-600 bg-red-100 hover:bg-red-200',
+    indigo: 'text-indigo-600 bg-indigo-100 hover:bg-indigo-200',
   };
 
   return (

@@ -117,6 +117,10 @@ model Booking {
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
   
+  // Relations
+  refunds               Refund[]
+  modifications         BookingModification[]
+  
   @@map("bookings")
 }
 
@@ -498,6 +502,7 @@ enum AuditCategory {
   BOOKING_UPDATE
   BOOKING_CANCEL
   PAYMENT
+  REFUND
   API_PROVIDER_CHANGE
   SYSTEM_CONFIG
   SECURITY
@@ -509,4 +514,138 @@ enum AuditSeverity {
   WARNING
   ERROR
   CRITICAL
+}
+
+// Refund model for managing booking refunds
+model Refund {
+  id                    String      @id @default(cuid())
+  refundReference       String      @unique
+  
+  // Booking relationship
+  bookingId             String
+  booking               Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  // User relationship
+  userId                String
+  
+  // Refund details
+  status                RefundStatus @default(PENDING)
+  reason                String
+  refundType            RefundType   @default(FULL)
+  
+  // Financial details
+  requestedAmount       Float
+  approvedAmount        Float?
+  processingFee         Float?      @default(0)
+  netRefundAmount       Float?
+  
+  // Payment information
+  originalPaymentMethod String?
+  refundMethod          String?     @default("ORIGINAL_METHOD")
+  transactionId         String?
+  
+  // Dates
+  requestedAt           DateTime    @default(now())
+  processedAt           DateTime?
+  completedAt           DateTime?
+  
+  // Admin handling
+  processedBy           String?
+  adminNotes            String?
+  
+  // Supporting documents stored as JSON array
+  attachments           String?     @default("[]")
+  
+  // Additional metadata
+  metadata              String?     @default("{}")
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([bookingId])
+  @@index([userId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("refunds")
+}
+
+enum RefundStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  PROCESSING
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum RefundType {
+  FULL
+  PARTIAL
+  CANCELLATION_FEE
+}
+
+// Booking Modification model for tracking changes to bookings
+model BookingModification {
+  id                    String      @id @default(cuid())
+  modificationReference String      @unique
+  
+  // Booking relationship
+  bookingId             String
+  booking               Booking     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  
+  // Modification details
+  modificationType      ModificationType
+  status                ModificationStatus @default(PENDING)
+  
+  // Original vs Modified data stored as JSON
+  originalData          String
+  modifiedData          String
+  
+  // Financial impact
+  changeFee             Float?      @default(0)
+  priceDifference       Float?      @default(0)
+  totalCharge           Float?      @default(0)
+  
+  // Processing
+  requestedBy           String      // User ID
+  processedBy           String?     // Admin ID
+  reason                String?
+  adminNotes            String?
+  
+  // Dates
+  requestedAt           DateTime    @default(now())
+  processedAt           DateTime?
+  completedAt           DateTime?
+  
+  // Additional metadata
+  metadata              String?     @default("{}")
+  
+  // Timestamps
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  
+  @@index([bookingId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("booking_modifications")
+}
+
+enum ModificationType {
+  FLIGHT_CHANGE
+  PASSENGER_UPDATE
+  SEAT_CHANGE
+  MEAL_CHANGE
+  BAGGAGE_CHANGE
+  CONTACT_UPDATE
+  CANCELLATION
+}
+
+enum ModificationStatus {
+  PENDING
+  APPROVED
+  COMPLETED
+  REJECTED
+  CANCELLED
 }

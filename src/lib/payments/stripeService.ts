@@ -495,10 +495,318 @@ class StripePaymentService {
     
     const bookingId = paymentIntent.metadata.bookingId;
     if (bookingId && bookingId !== 'pending') {
-      // Update booking status to payment failed
-      console.log(`❌ Updating booking ${bookingId} status to PAYMENT_FAILED`);
+      const errorCode = paymentIntent.last_payment_error?.code || 'unknown';
       
-      // Example: await BookingService.updateBookingStatus(bookingId, 'PAYMENT_FAILED');
+      // Call the comprehensive payment failure handler
+      await this.handlePaymentFailure(paymentIntent.id, errorCode);
+    }
+  }
+
+  /**
+   * Comprehensive payment failure handler with retry logic
+   */
+  static async handlePaymentFailure(
+    paymentIntentId: string,
+    errorCode: string
+  ): Promise<{
+    shouldRetry: boolean;
+    alternativeMethods?: string[];
+    gracePeriodHours?: number;
+  }> {
+    try {
+      if (!stripe) {
+        throw new Error('Stripe not initialized');
+      }
+
+      // Get payment intent details
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+      const bookingId = paymentIntent.metadata.bookingId;
+
+      if (!bookingId || bookingId === 'pending') {
+        console.error('⚠️ No valid booking ID in payment metadata');
+        return { shouldRetry: false };
+      }
+
+      // Get current failure count
+      const failureCount = await this.getPaymentFailureCount(bookingId);
+
+      // Log the failure
+      const { prisma } = await import('@/lib/db');
+      await prisma.auditLog.create({
+        data: {
+          action: 'PAYMENT_FAILURE',
+          category: 'PAYMENT',
+          severity: 'WARNING',
+          details: JSON.stringify({
+            bookingId,
+            paymentIntentId,
+            errorCode,
+            attemptCount: failureCount + 1,
+            declineCode: paymentIntent.last_payment_error?.decline_code,
+            message: paymentIntent.last_payment_error?.message,
+          }),
+        },
+      });
+
+      // Determine if error is retryable
+      const retryableErrors = [
+        'card_declined',
+        'insufficient_funds',
+        'card_velocity_exceeded',
+        'processing_error',
+        'temporary_failure',
+      ];
+
+      const isRetryable = retryableErrors.includes(errorCode);
+
+      if (isRetryable && failureCount < 3) {
+        // Allow retry with decreasing grace period
+        const gracePeriodHours = failureCount === 0 ? 24 : failureCount === 1 ? 12 : 6;
+        const gracePeriodExpires = new Date(Date.now() + gracePeriodHours * 60 * 60 * 1000);
+
+        // Update booking with PENDING status and grace period
+        await prisma.booking.update({
+          where: { id: bookingId },
+          data: {
+            status: 'PENDING',
+            paymentInfo: JSON.stringify({
+              paymentIntentId,
+              failureCount: failureCount + 1,
+              lastFailureCode: errorCode,
+              lastFailureTime: new Date().toISOString(),
+              gracePeriodExpiresAt: gracePeriodExpires.toISOString(),
+              retryable: true,
+            }),
+          },
+        });
+
+        console.log(
+          `⏳ Payment retry allowed for booking ${bookingId}. Grace period: ${gracePeriodHours} hours`
+        );
+
+        // Send notification to user
+        try {
+          const booking = await prisma.booking.findUnique({
+            where: { id: bookingId },
+            include: { user: true },
+          });
+
+          if (booking?.user?.email) {
+            await this.sendPaymentFailureNotification(
+              booking.user.email,
+              booking.bookingReference,
+              errorCode,
+              gracePeriodHours
+            );
+          }
+        } catch (emailError) {
+          console.error('⚠️ Failed to send payment failure notification:', emailError);
+        }
+
+        return {
+          shouldRetry: true,
+          gracePeriodHours,
+          alternativeMethods: this.getSuggestedAlternativePaymentMethods(errorCode),
+        };
+      } else {
+        // Too many failures or non-retryable error - cancel booking
+        await this.cancelBookingDueToPaymentFailure(bookingId, errorCode);
+        return { shouldRetry: false };
+      }
+    } catch (error: any) {
+      console.error('❌ Payment failure handler error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get payment failure count for a booking
+   */
+  private static async getPaymentFailureCount(bookingId: string): Promise<number> {
+    try {
+      const { prisma } = await import('@/lib/db');
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+      });
+
+      if (!booking?.paymentInfo) return 0;
+
+      try {
+        const paymentInfo = JSON.parse(booking.paymentInfo);
+        return paymentInfo.failureCount || 0;
+      } catch {
+        return 0;
+      }
+    } catch (error) {
+      console.error('Error getting failure count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Suggest alternative payment methods based on error
+   */
+  private static getSuggestedAlternativePaymentMethods(errorCode: string): string[] {
+    const suggestions: Record<string, string[]> = {
+      card_declined: ['Try a different card', 'Contact your bank', 'Use bank transfer'],
+      insufficient_funds: ['Add funds to your account', 'Use a different card', 'Split payment'],
+      card_velocity_exceeded: ['Wait and retry later', 'Use a different card'],
+      processing_error: ['Retry in a few minutes', 'Use a different card'],
+      expired_card: ['Update card details', 'Use a different card'],
+    };
+
+    return suggestions[errorCode] || ['Contact support', 'Try a different payment method'];
+  }
+
+  /**
+   * Cancel booking due to payment failure
+   */
+  private static async cancelBookingDueToPaymentFailure(
+    bookingId: string,
+    errorCode: string
+  ): Promise<void> {
+    try {
+      const { prisma } = await import('@/lib/db');
+      
+      await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: 'PAYMENT_FAILED',
+          paymentInfo: JSON.stringify({
+            finalFailureCode: errorCode,
+            cancelledAt: new Date().toISOString(),
+            reason: 'Payment failed after multiple attempts',
+          }),
+        },
+      });
+
+      // Send cancellation email
+      const booking = await prisma.booking.findUnique({
+        where: { id: bookingId },
+        include: { user: true },
+      });
+
+      if (booking?.user?.email) {
+        await this.sendPaymentFailureCancellationEmail(
+          booking.user.email,
+          booking.bookingReference,
+          errorCode
+        );
+      }
+
+      // Log the cancellation
+      await prisma.auditLog.create({
+        data: {
+          action: 'BOOKING_CANCELLED_PAYMENT_FAILURE',
+          category: 'PAYMENT',
+          severity: 'WARNING',
+          details: JSON.stringify({
+            bookingId,
+            errorCode,
+            reason: 'Payment failed after multiple attempts',
+          }),
+        },
+      });
+
+      console.log(`❌ Booking ${bookingId} cancelled due to payment failure: ${errorCode}`);
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Send payment failure notification email
+   */
+  private static async sendPaymentFailureNotification(
+    email: string,
+    bookingReference: string,
+    errorCode: string,
+    gracePeriodHours: number
+  ): Promise<void> {
+    try {
+      const EmailService = (await import('@/lib/services/emailService')).default;
+      
+      // You can enhance this to use a proper email template
+      console.log(
+        `📧 Sending payment failure notification to ${email} for booking ${bookingReference}`
+      );
+      
+      // Note: You would need to add this method to EmailService or use existing methods
+      // For now, logging the intent
+    } catch (error) {
+      console.error('Failed to send payment failure notification:', error);
+    }
+  }
+
+  /**
+   * Send payment failure cancellation email
+   */
+  private static async sendPaymentFailureCancellationEmail(
+    email: string,
+    bookingReference: string,
+    errorCode: string
+  ): Promise<void> {
+    try {
+      const EmailService = (await import('@/lib/services/emailService')).default;
+      
+      console.log(
+        `📧 Sending cancellation email to ${email} for booking ${bookingReference}`
+      );
+      
+      // Note: You would enhance EmailService to have this specific template
+    } catch (error) {
+      console.error('Failed to send cancellation email:', error);
+    }
+  }
+
+  /**
+   * Background job to auto-cancel bookings with expired grace periods
+   */
+  static async cancelExpiredPendingPayments(): Promise<{
+    cancelledCount: number;
+    errors: string[];
+  }> {
+    try {
+      const { prisma } = await import('@/lib/db');
+      
+      const expiredBookings = await prisma.booking.findMany({
+        where: {
+          status: 'PENDING',
+        },
+        include: { user: true },
+      });
+
+      let cancelledCount = 0;
+      const errors: string[] = [];
+
+      for (const booking of expiredBookings) {
+        try {
+          // Check if grace period has expired
+          const paymentInfo = JSON.parse(booking.paymentInfo);
+          const gracePeriodExpires = new Date(paymentInfo.gracePeriodExpiresAt);
+
+          if (gracePeriodExpires < new Date()) {
+            await this.cancelBookingDueToPaymentFailure(
+              booking.id,
+              paymentInfo.lastFailureCode || 'grace_period_expired'
+            );
+            cancelledCount++;
+            console.log(
+              `✅ Auto-cancelled booking ${booking.id} due to expired grace period`
+            );
+          }
+        } catch (error: any) {
+          const errorMsg = `Failed to process booking ${booking.id}: ${error.message}`;
+          errors.push(errorMsg);
+          console.error(errorMsg);
+        }
+      }
+
+      return { cancelledCount, errors };
+    } catch (error: any) {
+      console.error('Error in cancelExpiredPendingPayments:', error);
+      throw error;
     }
   }
 

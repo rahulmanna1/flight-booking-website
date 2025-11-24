@@ -14,22 +14,28 @@ export interface AdminAuthResult {
   isSuperAdmin: boolean;
 }
 
+export interface AdminAuthResponse {
+  valid: boolean;
+  user?: AdminAuthResult;
+  error?: string;
+}
+
 /**
  * Verify admin authentication and return user info
  */
-export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthResult | null> {
+export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthResponse> {
   try {
     const authHeader = request.headers.get('authorization');
     
     if (!authHeader?.startsWith('Bearer ')) {
-      return null;
+      return { valid: false, error: 'No authorization token provided' };
     }
     
     const token = authHeader.substring(7);
     const auth = verifyAuth(token);
     
     if (!auth) {
-      return null;
+      return { valid: false, error: 'Invalid or expired token' };
     }
     
     // Get user with role
@@ -42,19 +48,26 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AdminAuthRe
       },
     });
     
-    if (!user || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
-      return null;
+    if (!user) {
+      return { valid: false, error: 'User not found' };
+    }
+    
+    if (!['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+      return { valid: false, error: 'Admin access required' };
     }
     
     return {
-      userId: user.id,
-      email: user.email,
-      role: user.role as 'ADMIN' | 'SUPER_ADMIN',
-      isSuperAdmin: user.role === 'SUPER_ADMIN',
+      valid: true,
+      user: {
+        userId: user.id,
+        email: user.email,
+        role: user.role as 'ADMIN' | 'SUPER_ADMIN',
+        isSuperAdmin: user.role === 'SUPER_ADMIN',
+      }
     };
   } catch (error) {
     console.error('Admin auth verification error:', error);
-    return null;
+    return { valid: false, error: 'Authentication failed' };
   }
 }
 
@@ -65,19 +78,19 @@ export async function requireAdmin(
   request: NextRequest,
   handler: (request: NextRequest, admin: AdminAuthResult) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  const admin = await verifyAdminAuth(request);
+  const authResult = await verifyAdminAuth(request);
   
-  if (!admin) {
+  if (!authResult.valid || !authResult.user) {
     return NextResponse.json(
       { 
         success: false,
-        error: 'Unauthorized. Admin access required.' 
+        error: authResult.error || 'Unauthorized. Admin access required.' 
       },
       { status: 403 }
     );
   }
   
-  return handler(request, admin);
+  return handler(request, authResult.user);
 }
 
 /**
@@ -87,48 +100,48 @@ export async function requireSuperAdmin(
   request: NextRequest,
   handler: (request: NextRequest, admin: AdminAuthResult) => Promise<NextResponse>
 ): Promise<NextResponse> {
-  const admin = await verifyAdminAuth(request);
+  const authResult = await verifyAdminAuth(request);
   
-  if (!admin || !admin.isSuperAdmin) {
+  if (!authResult.valid || !authResult.user || !authResult.user.isSuperAdmin) {
     return NextResponse.json(
       { 
         success: false,
-        error: 'Unauthorized. Super admin access required.' 
+        error: authResult.error || 'Unauthorized. Super admin access required.' 
       },
       { status: 403 }
     );
   }
   
-  return handler(request, admin);
+  return handler(request, authResult.user);
 }
 
 /**
  * Log admin action to audit log
  */
-export async function logAdminAction(
-  admin: AdminAuthResult,
-  action: string,
-  category: string,
-  details: any,
-  request?: NextRequest
-) {
+export async function logAdminAction(data: {
+  userId: string;
+  action: string;
+  category: string;
+  details: any;
+  ipAddress?: string;
+  userAgent?: string;
+}) {
   try {
     await prisma.auditLog.create({
       data: {
-        action,
-        category: category as any,
+        action: data.action,
+        category: data.category as any,
         severity: 'INFO',
-        userId: admin.userId,
-        userEmail: admin.email,
-        userRole: admin.role,
-        ipAddress: request?.headers.get('x-forwarded-for') || request?.headers.get('x-real-ip') || undefined,
-        userAgent: request?.headers.get('user-agent') || undefined,
-        endpoint: request?.nextUrl.pathname,
-        method: request?.method,
-        details: JSON.stringify(details),
+        userId: data.userId,
+        userEmail: undefined,
+        userRole: undefined,
+        ipAddress: data.ipAddress,
+        userAgent: data.userAgent,
+        endpoint: undefined,
+        method: undefined,
+        details: JSON.stringify(data.details),
         metadata: JSON.stringify({
           timestamp: new Date().toISOString(),
-          isSuperAdmin: admin.isSuperAdmin,
         }),
       },
     });

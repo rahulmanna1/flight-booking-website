@@ -370,6 +370,169 @@ Thank you for using FlightBooker.
 Need help? Contact us at support@flightbooker.com
     `.trim();
   }
+
+  // Send refund confirmation email
+  static async sendRefundConfirmationEmail(
+    email: string,
+    bookingReference: string,
+    refundAmount: number,
+    currency: string,
+    refundType: 'FULL' | 'PARTIAL'
+  ): Promise<EmailResult> {
+    if (!isEmailConfigured) {
+      console.warn('⚠️ Email service not configured, skipping refund confirmation email');
+      return { success: false, error: 'Email service not configured' };
+    }
+
+    try {
+      const htmlContent = this.generateRefundConfirmationHTML(
+        bookingReference,
+        refundAmount,
+        currency,
+        refundType
+      );
+      const textContent = this.generateRefundConfirmationText(
+        bookingReference,
+        refundAmount,
+        currency,
+        refundType
+      );
+
+      const msg = {
+        to: email,
+        from: {
+          email: FROM_EMAIL,
+          name: FROM_NAME
+        },
+        subject: `Refund Processed - ${bookingReference}`,
+        text: textContent,
+        html: htmlContent,
+      };
+
+      const [response] = await sgMail.send(msg);
+      
+      console.log(`✅ Refund confirmation email sent to ${email}`);
+      
+      return {
+        success: true,
+        messageId: response.headers['x-message-id'] as string
+      };
+
+    } catch (error: any) {
+      console.error('❌ Failed to send refund confirmation email:', error);
+      
+      return {
+        success: false,
+        error: error.message || 'Failed to send email'
+      };
+    }
+  }
+
+  // Generate refund confirmation HTML
+  private static generateRefundConfirmationHTML(
+    bookingReference: string,
+    refundAmount: number,
+    currency: string,
+    refundType: 'FULL' | 'PARTIAL'
+  ): string {
+    const formatPrice = (amount: number, curr: string) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: curr,
+      }).format(amount);
+    };
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Refund Processed</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: #059669; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f8fafc; padding: 30px; border: 1px solid #e2e8f0; }
+        .amount { font-size: 36px; font-weight: bold; color: #059669; text-align: center; margin: 20px 0; }
+        .info-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .footer { background: #1e293b; color: white; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💚 Refund Processed Successfully</h1>
+        </div>
+        
+        <div class="content">
+            <p>Your ${refundType.toLowerCase()} refund has been processed.</p>
+            
+            <div class="amount">
+                ${formatPrice(refundAmount, currency)}
+            </div>
+            
+            <div class="info-box">
+                <p><strong>Booking Reference:</strong> ${bookingReference}</p>
+                <p><strong>Refund Type:</strong> ${refundType} Refund</p>
+                <p><strong>Status:</strong> Processing</p>
+            </div>
+            
+            <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin-top: 0;">⏱️ When will I receive my refund?</h3>
+                <p>The refund will appear in your original payment method within <strong>5-10 business days</strong>. The exact timing depends on your bank or card issuer.</p>
+                <p style="margin-bottom: 0;">If you don't see the refund after 10 business days, please contact your bank or reach out to our support team.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Need help? Contact us at support@flightbooker.com</p>
+            <p>&copy; 2024 FlightBooker. Thank you for your business.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+  }
+
+  // Generate refund confirmation plain text
+  private static generateRefundConfirmationText(
+    bookingReference: string,
+    refundAmount: number,
+    currency: string,
+    refundType: 'FULL' | 'PARTIAL'
+  ): string {
+    const formatPrice = (amount: number, curr: string) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: curr,
+      }).format(amount);
+    };
+
+    return `
+REFUND PROCESSED SUCCESSFULLY
+
+Your ${refundType.toLowerCase()} refund has been processed.
+
+REFUND AMOUNT: ${formatPrice(refundAmount, currency)}
+
+BOOKING DETAILS:
+Booking Reference: ${bookingReference}
+Refund Type: ${refundType} Refund
+Status: Processing
+
+WHEN WILL I RECEIVE MY REFUND?
+The refund will appear in your original payment method within 5-10 business days. 
+The exact timing depends on your bank or card issuer.
+
+If you don't see the refund after 10 business days, please contact your bank 
+or reach out to our support team.
+
+Need help? Contact us at support@flightbooker.com
+
+Thank you for your business.
+FlightBooker Team
+    `.trim();
+  }
 }
 
 export default EmailService;
