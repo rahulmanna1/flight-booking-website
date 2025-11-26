@@ -29,6 +29,7 @@ const searchSchema = z.object({
   tripType: z.enum(['roundtrip', 'oneway']),
   travelClass: z.enum(['economy', 'premium-economy', 'business', 'first']),
   directFlightsOnly: z.boolean().optional(),
+  flexibleDates: z.boolean().optional(),
 }).refine((data) => {
   if (data.tripType === 'roundtrip' && data.returnDate) {
     const depDate = new Date(data.departDate);
@@ -71,6 +72,7 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
       passengers: 1,
       travelClass: 'economy',
       directFlightsOnly: false,
+      flexibleDates: false,
     }
   });
 
@@ -324,9 +326,9 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
         
         {/* Row 2: Travel Details */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* DIRECT FLIGHTS TOGGLE */}
-          <div className="col-span-2 md:col-span-4">
-            <label className="flex items-center gap-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 transition-colors cursor-pointer">
+          {/* DIRECT FLIGHTS & FLEXIBLE DATES TOGGLES */}
+          <div className="col-span-2 md:col-span-4 flex flex-col sm:flex-row gap-3">
+            <label className="flex items-center gap-3 p-3 bg-blue-50 border-2 border-blue-200 rounded-xl hover:bg-blue-100 transition-colors cursor-pointer flex-1">
               <input
                 {...register('directFlightsOnly')}
                 type="checkbox"
@@ -335,6 +337,21 @@ export default function SearchForm({ onSearch }: SearchFormProps) {
               <div>
                 <span className="text-sm font-semibold text-gray-900">Direct flights only</span>
                 <p className="text-xs text-gray-600">Show flights without layovers</p>
+              </div>
+            </label>
+            
+            <label className="flex items-center gap-3 p-3 bg-green-50 border-2 border-green-200 rounded-xl hover:bg-green-100 transition-colors cursor-pointer flex-1">
+              <input
+                {...register('flexibleDates')}
+                type="checkbox"
+                className="w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500 cursor-pointer"
+              />
+              <div>
+                <span className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                  <Calendar className="w-4 h-4 text-green-600" />
+                  Flexible with dates?
+                </span>
+                <p className="text-xs text-gray-600">Compare prices ±3 days to find deals</p>
               </div>
             </label>
           </div>
