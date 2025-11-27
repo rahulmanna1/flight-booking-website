@@ -4,6 +4,7 @@ import { ClientProviders } from '@/components/providers/ClientProviders';
 import Footer from '@/components/ui/Footer';
 import FlightBookerSEO from '@/lib/seo/metadata';
 import { PerformanceInit } from '@/components/monitoring/PerformanceInit';
+import LiveChatWidget from '@/components/chat/LiveChatWidget';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,6 +38,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
+          <LiveChatWidget />
         </ClientProviders>
       </body>
     </html>

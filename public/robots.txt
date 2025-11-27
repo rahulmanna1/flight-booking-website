@@ -1,0 +1,72 @@
+# robots.txt for FlightBooker
+# https://flight-booking-website-khaki.vercel.app/robots.txt
+
+User-agent: *
+Allow: /
+Allow: /search
+Allow: /help
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /about
+
+# Block private/authenticated pages
+Disallow: /dashboard
+Disallow: /bookings
+Disallow: /booking/
+Disallow: /settings
+Disallow: /admin
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /profile
+Disallow: /price-alerts
+
+# Block search result pages with query parameters to avoid duplicate content
+Disallow: /search?*results=true
+
+# Allow crawling of static assets
+Allow: /*.css
+Allow: /*.js
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.png
+Allow: /*.svg
+Allow: /*.webp
+Allow: /*.woff
+Allow: /*.woff2
+
+# Sitemap location
+Sitemap: https://flight-booking-website-khaki.vercel.app/sitemap.xml
+
+# Crawl delay (optional, only if needed)
+# Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /admin
+
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /admin
+
+# Block AI scrapers (optional)
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
