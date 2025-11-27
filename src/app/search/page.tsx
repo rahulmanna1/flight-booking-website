@@ -19,6 +19,7 @@ interface SearchData {
   passengers: number;
   tripType: 'roundtrip' | 'oneway';
   travelClass?: string;
+  flexibleDates?: boolean;
 }
 
 export default function SearchPage() {

@@ -172,6 +172,7 @@ interface FlightResultsProps {
     passengers: number;
     tripType: 'roundtrip' | 'oneway';
     travelClass?: string;
+    flexibleDates?: boolean;
   };
   onBack: () => void;
 }
@@ -194,7 +195,7 @@ export default function FlightResults({ searchData, onBack }: FlightResultsProps
     primary: { field: 'price', direction: 'asc', weight: 10 }
   });
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-  const [showFlexibleDates, setShowFlexibleDates] = useState(false);
+  const [showFlexibleDates, setShowFlexibleDates] = useState(searchData.flexibleDates || false);
   const [showComparison, setShowComparison] = useState(false);
   const [selectedFlightsForComparison, setSelectedFlightsForComparison] = useState<string[]>([]);
   const { formatPrice, convertPrice } = useCurrency();
