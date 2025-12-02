@@ -28,6 +28,16 @@ export default function LiveChatWidget({ variant }: LiveChatWidgetProps) {
   const tawkPropertyId = process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID;
   const tawkWidgetId = process.env.NEXT_PUBLIC_TAWK_WIDGET_ID;
   
+  // Debug logging
+  if (typeof window !== 'undefined') {
+    console.log('[LiveChat] Environment check:', {
+      hasCrisp: !!crispWebsiteId,
+      hasTawk: !!(tawkPropertyId && tawkWidgetId),
+      tawkPropertyId: tawkPropertyId ? `${tawkPropertyId.substring(0, 8)}...` : 'not set',
+      tawkWidgetId: tawkWidgetId ? `${tawkWidgetId.substring(0, 5)}...` : 'not set'
+    });
+  }
+  
   // Auto-detect provider if not specified
   const detectedVariant = variant || 
     (crispWebsiteId ? 'crisp' : 
@@ -37,7 +47,10 @@ export default function LiveChatWidget({ variant }: LiveChatWidgetProps) {
     // Only load in browser
     if (typeof window === 'undefined') return;
 
+    console.log('[LiveChat] Loading with variant:', detectedVariant);
+
     if (detectedVariant === 'crisp' && crispWebsiteId) {
+      console.log('[LiveChat] Loading Crisp chat...');
       // Load Crisp Chat
       window.$crisp = [];
       window.CRISP_WEBSITE_ID = crispWebsiteId;
@@ -74,12 +87,28 @@ export default function LiveChatWidget({ variant }: LiveChatWidgetProps) {
 
     if (detectedVariant === 'tawk' && tawkPropertyId && tawkWidgetId) {
       // Load Tawk.to Chat
+      console.log('[LiveChat] Loading Tawk.to chat...', {
+        propertyId: tawkPropertyId,
+        widgetId: tawkWidgetId,
+        scriptUrl: `https://embed.tawk.to/${tawkPropertyId}/${tawkWidgetId}`
+      });
+      
       const script = document.createElement('script');
       script.async = true;
       script.src = `https://embed.tawk.to/${tawkPropertyId}/${tawkWidgetId}`;
       script.charset = 'UTF-8';
       script.setAttribute('crossorigin', '*');
+      
+      script.onload = () => {
+        console.log('[LiveChat] Tawk.to script loaded successfully');
+      };
+      
+      script.onerror = (error) => {
+        console.error('[LiveChat] Failed to load Tawk.to script:', error);
+      };
+      
       document.body.appendChild(script);
+      console.log('[LiveChat] Tawk.to script element appended to body');
 
       return () => {
         const existingScript = document.querySelector('script[src*="tawk.to"]');
