@@ -23,16 +23,21 @@ interface LiveChatWidgetProps {
   variant?: 'crisp' | 'tawk' | 'custom';
 }
 
-export default function LiveChatWidget({ variant = 'crisp' }: LiveChatWidgetProps) {
+export default function LiveChatWidget({ variant }: LiveChatWidgetProps) {
   const crispWebsiteId = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID;
   const tawkPropertyId = process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID;
   const tawkWidgetId = process.env.NEXT_PUBLIC_TAWK_WIDGET_ID;
+  
+  // Auto-detect provider if not specified
+  const detectedVariant = variant || 
+    (crispWebsiteId ? 'crisp' : 
+     (tawkPropertyId && tawkWidgetId ? 'tawk' : 'custom'));
   
   useEffect(() => {
     // Only load in browser
     if (typeof window === 'undefined') return;
 
-    if (variant === 'crisp' && crispWebsiteId) {
+    if (detectedVariant === 'crisp' && crispWebsiteId) {
       // Load Crisp Chat
       window.$crisp = [];
       window.CRISP_WEBSITE_ID = crispWebsiteId;
@@ -67,7 +72,7 @@ export default function LiveChatWidget({ variant = 'crisp' }: LiveChatWidgetProp
       };
     }
 
-    if (variant === 'tawk' && tawkPropertyId && tawkWidgetId) {
+    if (detectedVariant === 'tawk' && tawkPropertyId && tawkWidgetId) {
       // Load Tawk.to Chat
       const script = document.createElement('script');
       script.async = true;
@@ -83,7 +88,7 @@ export default function LiveChatWidget({ variant = 'crisp' }: LiveChatWidgetProp
         }
       };
     }
-  }, [variant, crispWebsiteId, tawkPropertyId, tawkWidgetId]);
+  }, [detectedVariant, crispWebsiteId, tawkPropertyId, tawkWidgetId]);
 
   // Show nothing if no API keys configured - chat widget will load automatically
   if (!crispWebsiteId && !tawkPropertyId) {
