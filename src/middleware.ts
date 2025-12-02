@@ -82,12 +82,12 @@ export async function middleware(request: NextRequest) {
   // Content Security Policy
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com https://maps.googleapis.com https://embed.tawk.to https://client.crisp.chat",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://api.stripe.com https://maps.googleapis.com https://test.api.amadeus.com https://api.amadeus.com",
-    "frame-src https://js.stripe.com https://hooks.stripe.com",
+    "connect-src 'self' https://api.stripe.com https://maps.googleapis.com https://test.api.amadeus.com https://api.amadeus.com https://embed.tawk.to https://client.crisp.chat https://va.tawk.to https://*.crisp.chat",
+    "frame-src https://js.stripe.com https://hooks.stripe.com https://embed.tawk.to https://client.crisp.chat",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
